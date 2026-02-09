@@ -1,73 +1,47 @@
-# FetchUs - Dog Walking Service App
+# FetchUs - Dog Walking App
 
-## Quick Start for Deployment
+Complete React PWA for professional dog walking service.
 
-### Prerequisites
-- GitHub account
-- Vercel account (free - sign up at vercel.com)
+## Features
 
-### Step-by-Step Deployment
+- **Client View**: See dogs, upcoming walks, and book services
+- **Walker View**: Today's schedule with walk details and GPS tracking
+- **Admin View**: Send broadcast messages and manage operations
+- **Real Supabase Integration**: All data stored in PostgreSQL database
 
-#### 1. Push to GitHub
+## Database
+
+Connected to Supabase project with:
+- 7 tables (users, dogs, walks, walk_locations, walk_reports, broadcast_messages, notifications)
+- Row-level security policies
+- Real-time capabilities
+- Storage buckets for photos
+
+## Deployment to Vercel
+
+1. Push this code to GitHub
+2. Connect repository to Vercel
+3. Vercel will auto-deploy
+4. Access at: fetchus.vercel.app
+
+## Local Development
+
 ```bash
-# Initialize git (if not already done)
-git init
-git add .
-git commit -m "Initial commit - FetchUs app"
-
-# Add your GitHub repository
-git remote add origin https://github.com/YOUR_USERNAME/fetchus.git
-git branch -M main
-git push -u origin main
+npm install
+npm run dev
 ```
 
-#### 2. Deploy to Vercel
-1. Go to [vercel.com](https://vercel.com)
-2. Click "Add New Project"
-3. Import your GitHub repository (fetchus)
-4. Vercel will auto-detect it's a Vite app
-5. Click "Deploy"
-6. Wait 2-3 minutes for deployment
+Open http://localhost:5173
 
-#### 3. Run Database Setup (ONE TIME ONLY)
-1. Once deployed, open your app URL (Vercel will give you something like `fetchus.vercel.app`)
-2. You'll see the "FetchUs Database Setup" page
-3. Click "Create Database Tables"
-4. Wait for all green checkmarks
-5. Click "Continue to App"
+## Test Users
 
-That's it! Your app is now live and the database is set up.
+- **Client**: sarah@example.com (see dogs and walks)
+- **Walker**: mike@fetchus.com (see today's schedule)
+- **Admin**: admin@fetchus.com (send broadcasts)
 
-### What This App Contains
+## Technology Stack
 
-- **Database Setup**: Automatic creation of all tables
-- **Tables Created**:
-  - users (clients, walkers, admin)
-  - dogs  
-  - walks
-  - walk_reports
-  - broadcast_messages
-- **Test Data**: Includes sample users for testing
-- **PWA Ready**: Can be added to phone home screen
-
-### Next Steps
-
-After deployment, the full app interface will be built with:
-- Client portal (book walks, view dogs)
-- Walker interface (view schedule, submit walk reports)
-- Admin dashboard (manage bookings, send broadcasts)
-
-### Supabase Configuration
-
-Your Supabase credentials are already configured in the app:
-- Project URL: https://rwauwkrdzcesyhwpaeow.supabase.co
-- Keys are embedded in `src/lib/supabase.js`
-
-### Support
-
-If database setup fails, check:
-1. Supabase project is active
-2. Service role key is valid
-3. Project URL is correct
-
-Contact Clarence for any issues.
+- React 18
+- Vite
+- Supabase (PostgreSQL + Auth + Storage)
+- Deployed on Vercel
