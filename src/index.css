@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream font-sans text-charcoal;
+    font-weight: 500;
+  }
+}
+
+@layer components {
+  /* App container */
+  .app-container {
+    @apply max-w-[430px] mx-auto min-h-screen bg-cream relative overflow-x-hidden;
+  }
+  
+  /* Cards */
+  .card {
+    @apply bg-white p-5 rounded-2xl;
+    box-shadow: 0 2px 12px rgba(45, 52, 54, 0.12);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(45, 52, 54, 0.18);
+  }
+  
+  /* Buttons */
+  .btn {
+    @apply px-6 py-3 rounded-xl font-bold transition-all duration-200;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-indigo to-indigo-light text-white;
+    box-shadow: 0 2px 8px rgba(91, 75, 138, 0.3);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(91, 75, 138, 0.4);
+  }
+  
+  .btn-success {
+    @apply bg-gradient-to-r from-teal to-teal-light text-white;
+    box-shadow: 0 2px 8px rgba(74, 159, 159, 0.3);
+  }
+  
+  .btn-secondary {
+    @apply bg-cream-dark text-charcoal;
+  }
+  
+  /* Stat boxes */
+  .stat-box {
+    @apply bg-white p-4 rounded-2xl text-center;
+    box-shadow: 0 2px 12px rgba(45, 52, 54, 0.12);
+  }
+  
+  .stat-box h3 {
+    @apply text-3xl font-bold mb-1;
+    background: linear-gradient(135deg, #5B4B8A, #7159A6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .stat-box p {
+    @apply text-charcoal-light text-sm;
+  }
+  
+  /* Status badges */
+  .status-badge {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold;
+  }
+  
+  .status-pending {
+    @apply bg-gold/20 text-gold;
+  }
+  
+  .status-confirmed {
+    @apply bg-teal/20 text-teal;
+  }
+  
+  .status-in-progress {
+    @apply bg-indigo/20 text-indigo;
+  }
+  
+  .status-completed {
+    @apply bg-gray-200 text-charcoal-light;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease;
+}
