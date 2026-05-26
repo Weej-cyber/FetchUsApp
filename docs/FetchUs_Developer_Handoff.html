@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FetchUs — Developer Handoff</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+  :root {
+    --black: #111;
+    --white: #fff;
+    --gray-light: #f5f5f3;
+    --gray-mid: #e2e1db;
+    --gray-text: #666;
+    --indigo: #5B4B8A;
+    --teal: #2D9B8A;
+    --gold: #C8963E;
+    --red: #c0392b;
+    --green: #2d6e4e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-light);
+    color: var(--black);
+    font-size: 15px;
+    line-height: 1.75;
+    padding-bottom: 80px;
+  }
+
+  .cover {
+    background: var(--indigo);
+    color: var(--white);
+    padding: 56px 32px 48px;
+  }
+  .cover .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 12px;
+  }
+  .cover h1 { font-size: clamp(30px, 6vw, 46px); font-weight: 700; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .cover p { color: rgba(255,255,255,0.65); font-size: 14px; max-width: 560px; }
+
+  .warning-bar {
+    background: #7c1c1c;
+    color: #fecaca;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 10px 32px;
+    letter-spacing: 0.5px;
+  }
+
+  .body { max-width: 820px; margin: 0 auto; padding: 0 24px; }
+
+  .section { margin-top: 48px; }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray-text);
+    margin-bottom: 10px;
+  }
+  .section h2 { font-size: 20px; font-weight: 700; color: var(--indigo); margin-bottom: 16px; }
+  p { margin-bottom: 12px; color: #333; }
+
+  .card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .card-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; color: var(--indigo); }
+  .card p { margin-bottom: 0; font-size: 13.5px; color: #444; }
+  .card code { font-family: 'DM Mono', monospace; font-size: 12px; background: #f0edf8; padding: 2px 6px; border-radius: 3px; color: var(--indigo); }
+
+  .code-block {
+    background: #1a1a2e;
+    color: #a8d8a8;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 10px 0 16px;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.6;
+  }
+
+  .cred-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .cred-table thead tr { background: var(--indigo); color: var(--white); }
+  .cred-table th { padding: 10px 14px; text-align: left; font-size: 11px; letter-spacing: 0.5px; }
+  .cred-table td { padding: 10px 14px; border-bottom: 1px solid var(--gray-mid); vertical-align: top; font-family: 'DM Mono', monospace; font-size: 11.5px; word-break: break-all; }
+  .cred-table td:first-child { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px; word-break: normal; color: #333; }
+  .cred-table tr:last-child td { border-bottom: none; }
+
+  .file-tree {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 2;
+    color: #333;
+    margin-bottom: 16px;
+  }
+  .file-tree .dir { color: var(--indigo); font-weight: 500; }
+  .file-tree .file { color: #333; }
+  .file-tree .note { color: var(--gray-text); font-size: 11px; }
+  .file-tree .indent1 { padding-left: 20px; }
+  .file-tree .indent2 { padding-left: 40px; }
+
+  .db-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .db-card {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    font-size: 12.5px;
+  }
+  .db-card h4 { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--teal); margin-bottom: 6px; }
+  .db-card ul { padding-left: 14px; color: #555; line-height: 1.8; }
+
+  .status-list { list-style: none; padding: 0; }
+  .status-list li {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-mid);
+    font-size: 14px;
+  }
+  .status-list li:last-child { border-bottom: none; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .dot-done { background: var(--green); }
+  .dot-pending { background: var(--gold); }
+  .dot-blocked { background: var(--red); }
+
+  .callout {
+    border-left: 4px solid var(--gold);
+    background: #fffbf0;
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0 16px;
+    font-size: 13.5px;
+    color: #444;
+  }
+  .callout strong { color: #92400e; }
+
+  .callout-red {
+    border-left: 4px solid var(--red);
+    background: #fff5f5;
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0 16px;
+    font-size: 13.5px;
+    color: #444;
+  }
+  .callout-red strong { color: var(--red); }
+
+  hr { border: none; border-top: 2px solid var(--gray-mid); margin: 48px 0 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="label">FetchUs — Confidential</div>
+  <h1>Developer Handoff</h1>
+  <p>Complete technical reference for anyone continuing work on FetchUs. Stack, credentials, architecture, database, known issues, and next steps.</p>
+</div>
+<div class="warning-bar">⚠ CONFIDENTIAL — Contains live credentials. Do not commit this file to any public repository.</div>
+
+<div class="body">
+
+  <div class="section">
+    <div class="section-label">Overview</div>
+    <h2>What This Is</h2>
+    <p>FetchUs is a dog walking service management app built for a single business owner. It handles three user roles (Admin, Walker, Client) with role-based routing, walk booking and management, walker assignment, walk completion with notes and photos, and in-app notifications. SMS notifications are built but not yet wired to Twilio.</p>
+    <p>The project owner is Clarence Wheeler. All technical decisions go through him. Contact via Nancy (the business owner / Admin user).</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Tech Stack</div>
+    <h2>Architecture</h2>
+    <div class="card"><div class="card-title">Frontend</div><p>React with Vite. Tailwind CSS. Single-page application. No backend server -- all data calls go directly to Supabase from the client.</p></div>
+    <div class="card"><div class="card-title">Database + Auth</div><p>Supabase (PostgreSQL). Handles all data storage, row-level security, and authentication. Magic link auth -- no passwords for end users.</p></div>
+    <div class="card"><div class="card-title">Deployment</div><p>Vercel. Auto-deploys on every push to the <code>main</code> branch of the GitHub repo. No build configuration needed beyond what's already in <code>vercel.json</code>.</p></div>
+    <div class="card"><div class="card-title">Version Control</div><p>GitHub. Repo: <code>github.com/Weej-cyber/FetchUsApp</code>. Single branch (main). No PR workflow -- direct pushes to main.</p></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Credentials</div>
+    <h2>All Keys and URLs</h2>
+    <div class="callout-red"><strong>Important:</strong> Rotate these keys if this document is ever shared outside of trusted parties.</div>
+    <table class="cred-table">
+      <thead><tr><th>Service</th><th>Key / URL</th></tr></thead>
+      <tbody>
+        <tr><td>Live App URL</td><td>https://fetch-us-dfpk8bzue-weej-cybers-projects.vercel.app</td></tr>
+        <tr><td>GitHub Repo</td><td>https://github.com/Weej-cyber/FetchUsApp</td></tr>
+        <tr><td>Supabase Project URL</td><td>https://rwauwkrdzcesyhwpaeow.supabase.co</td></tr>
+        <tr><td>Supabase Project ID</td><td>rwauwkrdzcesyhwpaeow</td></tr>
+        <tr><td>Supabase Anon (Publishable) Key</td><td>sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4</td></tr>
+        <tr><td>Supabase Service Role Key</td><td>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXV3a3JkemNlc3lod3BhZW93Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTgwODIyNywiZXhwIjoyMDg1Mzg0MjI3fQ.bRMPmKnuhdlxYBnS65bpmzUo2fciyuscGfgCH2_siPc</td></tr>
+        <tr><td>Browserbase API Key (UAT)</td><td>bb_live_sm-Jsu6SFgJ16OBCY-lqZxlp8_U</td></tr>
+        <tr><td>UAT Admin Email</td><td>fetchusadmin@test.com / FetchTest1!</td></tr>
+        <tr><td>UAT Walker Email</td><td>fetchuswalker@test.com / FetchTest1!</td></tr>
+        <tr><td>UAT Client Email</td><td>fetchusclient@test.com / FetchTest1!</td></tr>
+        <tr><td>Admin (Nancy)</td><td>fetchus2022@gmail.com</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-label">File Structure</div>
+    <h2>Key Files in the Repo</h2>
+    <div class="file-tree">
+      <div class="dir">FetchUsApp/</div>
+      <div class="indent1 dir">src/</div>
+      <div class="indent2"><span class="file">App.jsx</span> <span class="note">-- routes, protected route logic, role-based rendering</span></div>
+      <div class="indent2 dir">hooks/</div>
+      <div class="indent2" style="padding-left:60px"><span class="file">useAuth.jsx</span> <span class="note">-- auth state, session persistence, first-login user row creation</span></div>
+      <div class="indent2 dir">lib/</div>
+      <div class="indent2" style="padding-left:60px"><span class="file">supabase.js</span> <span class="note">-- Supabase client initialisation</span></div>
+      <div class="indent2 dir">components/</div>
+      <div class="indent2" style="padding-left:60px"><span class="file">auth/LoginPage.jsx</span> <span class="note">-- magic link request form</span></div>
+      <div class="indent2" style="padding-left:60px"><span class="file">admin/AdminPages.jsx</span> <span class="note">-- full admin portal</span></div>
+      <div class="indent2" style="padding-left:60px"><span class="file">walker/WalkerPages.jsx</span> <span class="note">-- walker dashboard</span></div>
+      <div class="indent2" style="padding-left:60px"><span class="file">client/ClientPortal.jsx</span> <span class="note">-- client portal</span></div>
+      <div class="indent1 dir">uat/</div>
+      <div class="indent2"><span class="file">uat.js</span> <span class="note">-- Playwright test suite, all 21 tests</span></div>
+      <div class="indent2"><span class="file">package.json</span> <span class="note">-- playwright + browserbase dependencies</span></div>
+      <div class="indent1 dir">.github/workflows/</div>
+      <div class="indent2"><span class="file">uat.yml</span> <span class="note">-- GitHub Actions workflow, triggers on push to main</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Auth Flow</div>
+    <h2>How Authentication Works</h2>
+    <p>FetchUs uses Supabase magic link auth. New user signup is disabled -- users can only be added by an admin via the Supabase dashboard (Authentication > Users > Invite user).</p>
+    <p>On first login, <code>useAuth.jsx</code> checks if the user has a row in <code>public.users</code>. If not, it creates one using the role stored in the user's auth metadata. This is how role-based routing works -- the app reads the role from <code>public.users</code> and sends the user to the correct screen.</p>
+    <div class="callout">
+      <strong>Adding a new user:</strong> Supabase Dashboard > Authentication > Users > Invite user. Set their role metadata to <code>admin</code>, <code>walker</code>, or <code>client</code>. The app handles the rest on first login.
+    </div>
+    <div class="callout-red">
+      <strong>Do not touch these files without tracing the full auth flow first:</strong> useAuth.jsx, App.jsx, LoginPage.jsx, supabase.js. A change in one breaks the others.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Database</div>
+    <h2>Schema — 8 Tables</h2>
+    <div class="db-grid">
+      <div class="db-card"><h4>users</h4><ul><li>id (FK auth.users)</li><li>email</li><li>name</li><li>phone</li><li>role</li></ul></div>
+      <div class="db-card"><h4>clients</h4><ul><li>id</li><li>user_id (FK users)</li><li>address</li><li>gate_code</li><li>access_instructions</li><li>emergency_contact</li></ul></div>
+      <div class="db-card"><h4>dogs</h4><ul><li>id</li><li>client_id</li><li>name</li><li>breed</li><li>age</li><li>photo_url</li><li>behavioral_notes</li><li>medical_needs</li></ul></div>
+      <div class="db-card"><h4>walk_requests</h4><ul><li>id</li><li>client_id</li><li>dog_id</li><li>service_type</li><li>preferred_date</li><li>preferred_time</li><li>status</li><li>assigned_walker_id</li></ul></div>
+      <div class="db-card"><h4>bookings</h4><ul><li>id</li><li>client_id</li><li>walker_id</li><li>request_id</li><li>dog_ids (array)</li><li>service_type</li><li>preferred_date</li><li>status</li></ul></div>
+      <div class="db-card"><h4>walks</h4><ul><li>id</li><li>booking_id</li><li>walker_id</li><li>started_at</li><li>completed_at</li><li>duration</li><li>notes</li><li>photo_url</li></ul></div>
+      <div class="db-card"><h4>walk_locations</h4><ul><li>id</li><li>walk_id</li><li>latitude</li><li>longitude</li><li>recorded_at</li></ul></div>
+      <div class="db-card"><h4>notifications</h4><ul><li>id</li><li>user_id</li><li>type</li><li>message</li><li>status</li><li>sent_at</li></ul></div>
+    </div>
+    <div class="callout">
+      <strong>Two triggers on public.users:</strong> (1) <code>on_user_created_create_client</code> -- auto-creates a clients row when a user with role=client is inserted. (2) <code>on_notification_insert</code> -- calls the send-sms Edge Function when a notification with status=pending is inserted. SMS is not yet wired so this call currently fails silently.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Deployment</div>
+    <h2>How to Deploy</h2>
+    <p>Vercel is connected to the GitHub repo. Every push to <code>main</code> triggers an automatic deployment. There is no manual deploy step. If a build fails, Vercel keeps the last working version live.</p>
+    <div class="code-block"># To deploy a change:
+1. Push updated file(s) to main branch on GitHub
+2. Vercel auto-builds (takes ~60-90 seconds)
+3. Live app updates automatically
+
+# To check build status:
+vercel.com > FetchUs project > Deployments tab</div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">UAT Automation</div>
+    <h2>Running Automated Tests</h2>
+    <p>A full automated test suite runs all 21 UAT test cases across all three roles using Playwright via Browserbase cloud browsers. Tests run automatically on every push to main.</p>
+    <div class="code-block"># Test users (created in Supabase, not real emails):
+fetchusadmin@test.com   -- role: admin
+fetchuswalker@test.com  -- role: walker
+fetchusclient@test.com  -- role: client
+password for all three: FetchTest1!
+
+# Auth method: password signin via /auth/v1/token?grant_type=password
+# Session injected into localStorage before page load
+# Tests run against live Vercel URL
+
+# To trigger manually:
+GitHub repo > Actions tab > FetchUs UAT > Run workflow</div>
+    <div class="callout">
+      <strong>If tests fail with "Database error querying schema":</strong> The test users' confirmation_token field in auth.users has reverted to NULL. Fix with:<br><br>
+      <code>UPDATE auth.users SET confirmation_token='', recovery_token='', email_change_token_new='', email_change='' WHERE email LIKE 'fetchus%@test.com';</code>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">What's Built / What Isn't</div>
+    <h2>Current State</h2>
+    <ul class="status-list">
+      <li><span class="dot dot-done"></span><span><strong>Magic link auth, role routing, session persistence</strong> -- complete.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>Admin portal</strong> -- client management, dog management, walk requests, booking assignment, history, broadcast messaging.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>Walker dashboard</strong> -- assigned walks, start/complete walk, completion note and photo, walk history.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>Client portal</strong> -- dog profiles, walk booking, status, completed walk view, notifications, profile editing.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>In-app notifications</strong> -- notifications table populated on walk assign and complete. Display in client portal.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>GPS tracking infrastructure</strong> -- walk_locations table and tracking code in WalkerPages.jsx. Not surfaced in client UI (deferred).</span></li>
+      <li><span class="dot dot-done"></span><span><strong>Automated UAT suite</strong> -- 21 tests, GitHub Actions, Browserbase.</span></li>
+      <li><span class="dot dot-pending"></span><span><strong>SMS notifications via Twilio</strong> -- trigger and Edge Function stub are built. Needs a Twilio account, account SID, auth token, and phone number added as Supabase secrets. Edge Function: <code>send-sms</code>.</span></li>
+      <li><span class="dot dot-pending"></span><span><strong>Admin client migration screen</strong> -- for onboarding existing clients with full profile pre-filled. Planned, not built.</span></li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Known Issues</div>
+    <h2>Watch Out For</h2>
+    <div class="card"><div class="card-title">Auth file fragility</div><p>useAuth.jsx, App.jsx, LoginPage.jsx, and supabase.js are tightly coupled. Changing one without tracing the full session flow has caused regressions before. Always read through the complete flow before touching any of these.</p></div>
+    <div class="card"><div class="card-title">Demo Mode buttons</div><p>LoginPage.jsx still contains Demo Mode buttons from an earlier development phase. These should be removed before go-live.</p></div>
+    <div class="card"><div class="card-title">Vercel build failures</div><p>Partial or broken file pushes have caused build failures. Always verify the complete file before pushing. Run <code>npm run build</code> locally if possible before pushing to main.</p></div>
+    <div class="card"><div class="card-title">SMS trigger fires on every notification insert</div><p>The <code>on_notification_insert</code> trigger calls the send-sms Edge Function on every insert with status=pending. Until Twilio is wired, this call fails silently. Insert notifications with status=sent to avoid triggering it during development.</p></div>
+  </div>
+
+  <hr>
+
+</div>
+</body>
+</html>

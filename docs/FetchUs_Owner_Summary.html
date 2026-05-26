@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FetchUs — Owner Summary</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+  :root {
+    --black: #111;
+    --white: #fff;
+    --gray-light: #f5f5f3;
+    --gray-mid: #e2e1db;
+    --gray-text: #666;
+    --green: #1a3a2a;
+    --green-mid: #2D9B8A;
+    --gold: #C8963E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-light);
+    color: var(--black);
+    font-size: 15px;
+    line-height: 1.75;
+    padding-bottom: 80px;
+  }
+
+  .cover {
+    background: var(--green);
+    color: var(--white);
+    padding: 56px 32px 48px;
+  }
+  .cover .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 12px;
+  }
+  .cover h1 { font-size: clamp(30px, 6vw, 46px); font-weight: 700; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .cover p { color: rgba(255,255,255,0.65); font-size: 14px; max-width: 500px; }
+
+  .body { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  .section { margin-top: 48px; }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray-text);
+    margin-bottom: 10px;
+  }
+  .section h2 { font-size: 20px; font-weight: 700; color: var(--green); margin-bottom: 16px; }
+  p { margin-bottom: 12px; color: #333; }
+
+  .card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .card-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .card p { margin-bottom: 0; font-size: 14px; color: #444; }
+
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .role-card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    border-top: 4px solid var(--green-mid);
+  }
+  .role-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .role-card ul { padding-left: 16px; font-size: 13px; color: #444; }
+  .role-card li { margin-bottom: 4px; }
+
+  .status-list { list-style: none; padding: 0; }
+  .status-list li {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-mid);
+    font-size: 14px;
+  }
+  .status-list li:last-child { border-bottom: none; }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .dot-done { background: #2d6e4e; }
+  .dot-pending { background: var(--gold); }
+
+  .callout {
+    border-left: 4px solid var(--gold);
+    background: #fffbf0;
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 14px;
+    color: #444;
+  }
+  .callout strong { color: #92400e; }
+
+  .contact-box {
+    background: var(--green);
+    color: var(--white);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-top: 16px;
+  }
+  .contact-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .contact-box p { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="label">FetchUs — Confidential</div>
+  <h1>Owner Summary</h1>
+  <p>A plain-language overview of the FetchUs app — what it is, what's built, what's coming, and how to manage it.</p>
+</div>
+
+<div class="body">
+
+  <div class="section">
+    <div class="section-label">What Is FetchUs</div>
+    <h2>The App in Plain Terms</h2>
+    <p>FetchUs is a mobile-friendly web app built specifically for your dog walking business. It replaces manual scheduling, texts, and spreadsheets with a single system that your clients, walkers, and you all use from your phones.</p>
+    <p>There is nothing to download from an app store. Everyone accesses it through a link in their browser, and it works like an app on any phone.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Who Uses It</div>
+    <h2>The Three Roles</h2>
+    <div class="role-grid">
+      <div class="role-card">
+        <h3>Admin (You)</h3>
+        <ul>
+          <li>Add and manage clients</li>
+          <li>Add dogs to client profiles</li>
+          <li>View and assign walk requests</li>
+          <li>See all scheduled and past walks</li>
+          <li>Send broadcast messages to clients</li>
+          <li>Add walkers to the system</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h3>Walker</h3>
+        <ul>
+          <li>See their assigned walks for the day</li>
+          <li>Start and complete walks</li>
+          <li>Add a note and photo when finishing</li>
+          <li>View their walk history</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h3>Client</h3>
+        <ul>
+          <li>View their dogs' profiles</li>
+          <li>Request a walk</li>
+          <li>See upcoming and past walks</li>
+          <li>Receive notifications</li>
+          <li>Update their profile and home access info</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">How People Log In</div>
+    <h2>Magic Link Login</h2>
+    <p>There are no passwords. When a new user is added, they receive a single-tap login link by email. They tap the link and they're in. Returning users request a new link the same way. This is simpler and more secure than passwords.</p>
+    <div class="callout">
+      <strong>Adding a new user:</strong> Log into the Supabase dashboard, go to Authentication, and invite the user by email. They receive a link automatically. Their role (admin, walker, or client) is set at that point.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">What's Built</div>
+    <h2>Current Status</h2>
+    <ul class="status-list">
+      <li><span class="dot dot-done"></span><span><strong>Login and role routing</strong> — All three roles log in and land on the correct screen.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>Admin portal</strong> — Client management, dog management, walk requests, booking assignment, history.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>Walker dashboard</strong> — Assigned walks, start/complete walk, completion notes and photos.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>Client portal</strong> — Dog profiles, walk booking, status tracking, notifications, profile editing.</span></li>
+      <li><span class="dot dot-done"></span><span><strong>In-app notifications</strong> — Notifications appear inside the app when a walk is assigned or completed.</span></li>
+      <li><span class="dot dot-pending"></span><span><strong>SMS text notifications</strong> — Built but not yet connected. Clients will receive a text when their walk is confirmed and when it's completed. This is the next item on the roadmap.</span></li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-label">What's Coming</div>
+    <h2>Next Steps</h2>
+    <div class="card">
+      <div class="card-title">SMS Notifications via Twilio</div>
+      <p>When a walker is assigned to a booking, the client gets a text. When the walk is completed, the client gets a text with the walker's note. The infrastructure for this is built -- it needs a Twilio account connected to finish it.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">UAT Sign-Off</div>
+      <p>A full round of user acceptance testing is in progress across all three roles to confirm everything works before live use.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Where Everything Lives</div>
+    <h2>Key Locations</h2>
+    <div class="card">
+      <div class="card-title">The App</div>
+      <p>Live at: fetch-us-dfpk8bzue-weej-cybers-projects.vercel.app. Automatically updates whenever code changes are pushed.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">The Database</div>
+      <p>Hosted on Supabase. All client, dog, walk, and booking data is stored here. Supabase handles backups automatically.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">The Code</div>
+      <p>Stored on GitHub at github.com/Weej-cyber/FetchUsApp. This is the master copy of all app files.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Support</div>
+    <h2>If Something Goes Wrong</h2>
+    <p>All support and changes go through Clarence Wheeler. He is the project owner and manages the technical side of the app. Contact him through Nancy for anything related to the app.</p>
+    <div class="contact-box">
+      <h3>Contact</h3>
+      <p>All technical issues and change requests go through Nancy, who will route to the project owner.</p>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
