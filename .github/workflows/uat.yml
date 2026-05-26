@@ -1,0 +1,32 @@
+name: FetchUs UAT
+
+on:
+  workflow_dispatch:
+
+jobs:
+  uat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: uat
+        run: npm install
+
+      - name: Install Playwright Chromium
+        working-directory: uat
+        run: npx playwright install chromium --with-deps
+
+      - name: Run UAT
+        working-directory: uat
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+        run: node uat.js
