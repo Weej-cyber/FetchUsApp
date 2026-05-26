@@ -43,12 +43,18 @@ async function getSessionTokens(email) {
 }
 
 // ── Inject Supabase session into page storage ─────────────────────────────────
-async function injectSession(page, session) {
-  // Use URL hash injection -- detectSessionInUrl: true is set in supabase.js
-  // This is exactly how real magic links work, guaranteed to be picked up
+async function injectSession(page, session, role) {
   const url = `${APP_URL}/#access_token=${session.access_token}&refresh_token=${session.refresh_token}&token_type=bearer&type=magiclink`;
   await page.goto(url);
-  await page.waitForTimeout(5000);
+  await page.waitForTimeout(6000);
+
+  // Debug: log exactly what the page is showing so we can see what's on screen
+  const title = await page.title();
+  const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 800));
+  const url2 = page.url();
+  console.log(`\n[DEBUG ${role.toUpperCase()}] URL: ${url2}`);
+  console.log(`[DEBUG ${role.toUpperCase()}] Title: ${title}`);
+  console.log(`[DEBUG ${role.toUpperCase()}] Page text:\n${bodyText}\n`);
 }
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
@@ -316,7 +322,7 @@ function printReport() {
       const context = browser.contexts()[0] || await browser.newContext();
       const page = await context.newPage();
       const tokens = await getSessionTokens(USERS[role].email);
-      await injectSession(page, tokens);
+      await injectSession(page, tokens, role);
       await fn(page);
     } catch (e) {
       console.error(`  Fatal error in ${role} session: ${e.message}`);
