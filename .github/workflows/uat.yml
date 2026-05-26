@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   uat:
     runs-on: ubuntu-latest
@@ -12,6 +15,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -34,11 +39,11 @@ jobs:
         run: node uat.js
         continue-on-error: true
 
-      - name: Commit results
+      - name: Commit results back to repo
         run: |
           git config user.email "uat@fetchusapp.com"
           git config user.name "FetchUs UAT"
-          cp uat/uat-results.txt uat-results.txt 2>/dev/null || echo "No results file" > uat-results.txt
+          cp uat/uat-results.txt uat-results.txt 2>/dev/null || echo "No results file produced" > uat-results.txt
           git add uat-results.txt
-          git commit -m "UAT results $(date -u +%Y-%m-%d\ %H:%M)" || echo "Nothing to commit"
-          git push
+          git diff --staged --quiet || git commit -m "UAT results $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Weej-cyber/FetchUsApp.git" main
