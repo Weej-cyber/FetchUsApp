@@ -1,0 +1,52 @@
+FETCHUS UAT RESULTS
+============================================================
+Total: 21 | Pass: 0 | Fail: 20 | Skip: 1
+============================================================
+
+ADMIN (0/8 passed)
+  [FAIL] A-01 -- Log in -- land on admin dashboard
+         Not found
+  [FAIL] A-02 -- Add a new client
+         Add Client button not found
+  [SKIP] A-03 -- Add dog to client
+         Dog management is in client portal, not admin
+  [FAIL] A-04 -- View walk requests
+         Not found
+  [FAIL] A-05 -- View scheduled walks
+         Not found
+  [FAIL] A-06 -- View completed walk history
+         Not found
+  [FAIL] A-07 -- Broadcast / notifications
+         Not found
+  [FAIL] A-08 -- Log out
+         Not returned to login screen
+
+WALKER (0/6 passed)
+  [FAIL] W-01 -- Log in -- land on walker dashboard
+         Not found
+  [FAIL] W-02 -- View assigned walks
+         Not found
+  [FAIL] W-03 -- Start a walk
+         Start Walk not found
+  [FAIL] W-04 -- Complete the walk
+         Complete Walk not found
+  [FAIL] W-06 -- View walk history
+         Not found
+  [FAIL] W-07 -- Log out
+         Not returned to login screen
+
+CLIENT (0/7 passed)
+  [FAIL] C-01 -- Log in -- land on client portal
+         Not found
+  [FAIL] C-02 -- View dogs
+         Buddy not found
+  [FAIL] C-03 -- Request a walk
+         No confirmation
+  [FAIL] C-04 -- Check booking status
+         Not found
+  [FAIL] C-05 -- View completed walk
+         Not found
+  [FAIL] C-06 -- Profile section
+         Not found
+  [FAIL] C-07 -- Log out
+         Not returned to login screen
