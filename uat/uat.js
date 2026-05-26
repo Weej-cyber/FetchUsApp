@@ -23,24 +23,22 @@ function record(id, title, status, note = '') {
 
 // ── Auth: generate session via service role ───────────────────────────────────
 async function getSessionTokens(email) {
-  const linkRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
+  const ANON_KEY = 'sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4';
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      apikey: SUPABASE_KEY,
+      apikey: ANON_KEY,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ type: 'magiclink', email }),
+    body: JSON.stringify({ email, password: 'FetchTest1!' }),
   });
-  if (!linkRes.ok) {
-    const err = await linkRes.text();
-    throw new Error(`generate_link failed for ${email}: ${err}`);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`signInWithPassword failed for ${email}: ${err}`);
   }
-  const data = await linkRes.json();
-  const access_token  = data.properties?.access_token  || data.access_token;
-  const refresh_token = data.properties?.refresh_token || data.refresh_token;
-  if (!access_token) throw new Error(`No access_token in generate_link response for ${email}`);
-  return { access_token, refresh_token };
+  const data = await res.json();
+  if (!data.access_token) throw new Error(`No access_token for ${email}: ${JSON.stringify(data)}`);
+  return { access_token: data.access_token, refresh_token: data.refresh_token };
 }
 
 // ── Inject Supabase session into page storage ─────────────────────────────────
