@@ -34,30 +34,40 @@ async function getSession(email) {
 }
 
 async function injectSession(page, session, role) {
-  // Step 1: load app with NO hash -- avoids hasAuthInUrl=true loading deadlock
   await page.goto(APP_URL);
   await page.waitForTimeout(2000);
 
-  // Step 2: inject full session into localStorage (Supabase JS v2 key + full object with user)
-  await page.evaluate(({ session }) => {
+  const injected = await page.evaluate(({ session }) => {
     const key = 'sb-rwauwkrdzcesyhwpaeow-auth-token';
-    localStorage.setItem(key, JSON.stringify({
+    const val = JSON.stringify({
       access_token:  session.access_token,
       refresh_token: session.refresh_token,
       token_type:    session.token_type || 'bearer',
       expires_in:    session.expires_in  || 3600,
       expires_at:    session.expires_at  || Math.floor(Date.now() / 1000) + 3600,
       user:          session.user,
-    }));
+    });
+    localStorage.setItem(key, val);
+    // Verify it was actually stored
+    const stored = localStorage.getItem(key);
+    const allKeys = Object.keys(localStorage);
+    return { stored_length: stored ? stored.length : 0, all_keys: allKeys };
   }, { session });
 
-  // Step 3: reload so app initialises with the session already in storage
   await page.reload();
-  await page.waitForTimeout(5000);
+  await page.waitForTimeout(6000);
 
-  // Step 4: log exactly what landed on screen
-  const text = await page.evaluate(() => document.body.innerText.slice(0, 600));
-  console.log(`[DEBUG ${role}] ${text.replace(/\n+/g, ' | ').slice(0, 300)}`);
+  const pageState = await page.evaluate(() => ({
+    url:   window.location.href,
+    text:  document.body.innerText.slice(0, 500),
+    lsKey: localStorage.getItem('sb-rwauwkrdzcesyhwpaeow-auth-token') ? 'present' : 'MISSING',
+    allLsKeys: Object.keys(localStorage),
+  }));
+
+  const debugLine = `[DEBUG ${role}] localStorage_stored:${injected.stored_length}b | ls_keys:${injected.all_keys.join(',')} | after_reload_ls:${pageState.lsKey} | url:${pageState.url} | text:${pageState.text.replace(/\n+/g,' | ').slice(0,200)}`;
+  console.log(debugLine);
+  // Append debug to results file for easy reading
+  require('fs').appendFileSync('uat-results.txt', '\n' + debugLine + '\n');
 }
 
 async function hasText(page, text, timeout = 5000) {
