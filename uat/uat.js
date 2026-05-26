@@ -38,26 +38,30 @@ async function getSessionTokens(email) {
   }
   const data = await res.json();
   if (!data.access_token) throw new Error(`No access_token for ${email}: ${JSON.stringify(data)}`);
-  return { access_token: data.access_token, refresh_token: data.refresh_token };
+  // Return full session object including user -- required for Supabase JS v2 getSession()
+  return data;
 }
 
 // ── Inject Supabase session into page storage ─────────────────────────────────
-async function injectSession(page, tokens) {
+async function injectSession(page, session) {
   await page.goto(APP_URL);
-  await page.waitForTimeout(1500);
-  await page.evaluate(({ tokens }) => {
-    const key = Object.keys(localStorage).find(k => k.includes('auth-token')) || 'sb-rwauwkrdzcesyhwpaeow-auth-token';
-    const session = {
-      access_token:  tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
+  await page.waitForTimeout(2000);
+  await page.evaluate(({ session }) => {
+    // Supabase JS v2 uses this exact key format
+    const key = 'sb-rwauwkrdzcesyhwpaeow-auth-token';
+    // Must include the full session object with user -- getSession() requires it
+    const stored = {
+      access_token:  session.access_token,
+      refresh_token: session.refresh_token,
+      token_type:    session.token_type || 'bearer',
+      expires_in:    session.expires_in  || 3600,
+      expires_at:    session.expires_at  || Math.floor(Date.now() / 1000) + 3600,
+      user:          session.user,
     };
-    localStorage.setItem(key, JSON.stringify(session));
-  }, { tokens });
+    localStorage.setItem(key, JSON.stringify(stored));
+  }, { session });
   await page.reload();
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(4000);
 }
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
