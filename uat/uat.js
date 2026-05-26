@@ -44,24 +44,11 @@ async function getSessionTokens(email) {
 
 // ── Inject Supabase session into page storage ─────────────────────────────────
 async function injectSession(page, session) {
-  await page.goto(APP_URL);
-  await page.waitForTimeout(2000);
-  await page.evaluate(({ session }) => {
-    // Supabase JS v2 uses this exact key format
-    const key = 'sb-rwauwkrdzcesyhwpaeow-auth-token';
-    // Must include the full session object with user -- getSession() requires it
-    const stored = {
-      access_token:  session.access_token,
-      refresh_token: session.refresh_token,
-      token_type:    session.token_type || 'bearer',
-      expires_in:    session.expires_in  || 3600,
-      expires_at:    session.expires_at  || Math.floor(Date.now() / 1000) + 3600,
-      user:          session.user,
-    };
-    localStorage.setItem(key, JSON.stringify(stored));
-  }, { session });
-  await page.reload();
-  await page.waitForTimeout(4000);
+  // Use URL hash injection -- detectSessionInUrl: true is set in supabase.js
+  // This is exactly how real magic links work, guaranteed to be picked up
+  const url = `${APP_URL}/#access_token=${session.access_token}&refresh_token=${session.refresh_token}&token_type=bearer&type=magiclink`;
+  await page.goto(url);
+  await page.waitForTimeout(5000);
 }
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
