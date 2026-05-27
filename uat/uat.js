@@ -171,29 +171,51 @@ async function runClientTests(page) {
   record('C-02', 'View dogs', hasDog ? 'PASS' : 'FAIL', hasDog ? `"${hasDog}"` : 'Buddy not found');
 
   try {
-    // '📅 Book a Walk' is the section header (non-clickable). The actual button says 'Book a Walk'.
+    const steps = [];
+    // Step 1: click the Book a Walk button (not the section header)
+    const bookBtns = await page.locator('button:has-text("Book a Walk")').count();
+    steps.push(`book_btns:${bookBtns}`);
+    if (bookBtns === 0) throw new Error('Book a Walk button not found');
     await page.locator('button:has-text("Book a Walk")').first().click({ timeout: 4000 });
     await page.waitForTimeout(1000);
-    // Service type defaults to '30-min Walk' -- click it to confirm selection
-    const serviceBtn = await findFirst(page, ['30-min Walk', '60-min Walk', 'Drop-In Visit'], 3000);
-    if (serviceBtn) await page.locator(`text=${serviceBtn}`).first().click();
+    // Step 2: form open check
+    const formOpen = await hasText(page, 'New Walk Request', 3000);
+    steps.push(`form:${formOpen}`);
+    // Step 3: service type -- click '30-min Walk' button specifically
+    const svc = await page.locator('button:has-text("30-min Walk")').count();
+    steps.push(`svc_btns:${svc}`);
+    if (svc > 0) await page.locator('button:has-text("30-min Walk")').first().click();
     await page.waitForTimeout(300);
-    // Select dog from dropdown
-    const dogSelect = page.locator('select').first();
-    if (await dogSelect.isVisible({ timeout: 2000 })) await dogSelect.selectOption({ index: 1 });
+    // Step 4: select dog
+    const selects = await page.locator('select').count();
+    steps.push(`selects:${selects}`);
+    if (selects > 0) await page.locator('select').first().selectOption({ index: 1 });
     await page.waitForTimeout(300);
-    // Fill date
-    const dateF = page.locator('input[type="date"]').first();
-    if (await dateF.isVisible({ timeout: 2000 })) await dateF.fill('2026-06-20');
+    // Step 5: fill date
+    const dates = await page.locator('input[type="date"]').count();
+    steps.push(`dates:${dates}`);
+    if (dates > 0) await page.locator('input[type="date"]').first().fill('2026-06-20');
     await page.waitForTimeout(300);
-    // Click a time slot button -- these are buttons not an input
-    const timeSlot = await findFirst(page, ['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM'], 3000);
-    if (timeSlot) await page.locator(`text=${timeSlot}`).first().click();
+    // Step 6: click time slot button
+    const slots = await page.locator('button:has-text("9:30 AM")').count();
+    steps.push(`slots:${slots}`);
+    if (slots > 0) await page.locator('button:has-text("9:30 AM")').first().click();
     await page.waitForTimeout(300);
-    await clickFirst(page, ['Send Request 🐾', 'Send Request'], 3000);
-    await page.waitForTimeout(2000);
-    const confirmed = await findFirst(page, ['Request Sent!', 'We will text you to confirm']);
-    record('C-03', 'Request a walk', confirmed ? 'PASS' : 'FAIL', confirmed ? `"${confirmed}"` : 'No confirmation');
+    // Step 7: check submit button
+    const submitBtn = page.locator('button:has-text("Send Request")').first();
+    const isDisabled = await submitBtn.getAttribute('disabled').catch(() => null);
+    const btnExists = await submitBtn.count();
+    steps.push(`submit_exists:${btnExists}|disabled:${isDisabled}`);
+    if (btnExists > 0) await submitBtn.click({ timeout: 3000 }).catch(e => steps.push(`click_err:${e.message}`));
+    await page.waitForTimeout(2500);
+    // Step 8: check result
+    const confirmed = await findFirst(page, ['Request Sent!', 'We will text you to confirm'], 2000);
+    const errMsg = await page.locator('text=Something went wrong').count();
+    const dateErr = await page.locator('text=Please select a date').count();
+    steps.push(`confirmed:${!!confirmed}|err:${errMsg}|dateErr:${dateErr}`);
+    require('fs').appendFileSync('uat-results.txt', `\nC-03 steps: ${steps.join(' | ')}\n`);
+    record('C-03', 'Request a walk', confirmed ? 'PASS' : 'FAIL',
+      confirmed ? `"${confirmed}"` : `steps: ${steps.join(' | ')}`);
   } catch (e) { record('C-03', 'Request a walk', 'FAIL', e.message); }
 
   const hasStatus = await findFirst(page, ['🦮 My Walks', 'pending', 'Pending', 'No walk requests yet']);
