@@ -171,7 +171,8 @@ async function runClientTests(page) {
   record('C-02', 'View dogs', hasDog ? 'PASS' : 'FAIL', hasDog ? `"${hasDog}"` : 'Buddy not found');
 
   try {
-    await clickFirst(page, ['📅 Book a Walk', 'Book a Walk'], 4000);
+    // '📅 Book a Walk' is the section header (non-clickable). The actual button says 'Book a Walk'.
+    await page.locator('button:has-text("Book a Walk")').first().click({ timeout: 4000 });
     await page.waitForTimeout(1000);
     // Service type defaults to '30-min Walk' -- click it to confirm selection
     const serviceBtn = await findFirst(page, ['30-min Walk', '60-min Walk', 'Drop-In Visit'], 3000);
