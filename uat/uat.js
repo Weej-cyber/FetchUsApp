@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const SUPABASE_URL = 'https://rwauwkrdzcesyhwpaeow.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const APP_URL      = 'https://fetch-us-dfpk8bzue-weej-cybers-projects.vercel.app';
+const APP_URL      = 'https://fetchus.vercel.app';
 
 const USERS = {
   admin:  { email: 'fetchusadmin@test.com' },

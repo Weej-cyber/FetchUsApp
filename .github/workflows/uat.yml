@@ -18,6 +18,36 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Verify environment
+        run: |
+          echo "=== Checking app URL ==="
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://fetchus.vercel.app)
+          echo "fetchus.vercel.app: $STATUS"
+          if [ "$STATUS" != "200" ] && [ "$STATUS" != "301" ] && [ "$STATUS" != "302" ]; then
+            echo "FAIL: App URL returned $STATUS -- aborting"
+            exit 1
+          fi
+
+          echo "=== Checking Supabase ==="
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4" \
+            https://rwauwkrdzcesyhwpaeow.supabase.co/rest/v1/)
+          echo "Supabase REST: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "FAIL: Supabase returned $STATUS -- aborting"
+            exit 1
+          fi
+
+          echo "=== Checking test user auth ==="
+          RESPONSE=$(curl -s -X POST \
+            -H "apikey: sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4" \
+            -H "Content-Type: application/json" \
+            -d '{"email":"fetchusadmin@test.com","password":"FetchTest1!"}' \
+            "https://rwauwkrdzcesyhwpaeow.supabase.co/auth/v1/token?grant_type=password")
+          echo "$RESPONSE" | grep -q "access_token" && echo "Auth: OK" || (echo "FAIL: Auth failed -- $RESPONSE" && exit 1)
+
+          echo "=== All environment checks passed ==="
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
