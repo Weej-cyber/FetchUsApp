@@ -100,8 +100,11 @@ async function runAdminTests(page) {
     if (await emailF.isVisible({ timeout: 2000 })) await emailF.fill('uattest@example.com');
     await clickFirst(page, ['Add Client', 'Save', 'Send Magic Link'], 3000);
     await page.waitForTimeout(2000);
-    const appeared = await hasText(page, 'UAT Test Client', 4000);
-    record('A-02', 'Add a new client', appeared ? 'PASS' : 'FAIL', appeared ? '' : 'Name not visible after save');
+    // App sends a magic link invite -- client appears in list only after they accept and log in.
+    // Correct success signal is the magic link sent confirmation, not the name in the list.
+    const confirmed = await findFirst(page, ['Magic link sent', 'magic link sent', '✓ Magic link sent!', 'magic link'], 4000);
+    record('A-02', 'Add a new client', confirmed ? 'PASS' : 'FAIL',
+      confirmed ? `"${confirmed}"` : 'No magic link confirmation shown after save');
   } catch (e) { record('A-02', 'Add a new client', 'FAIL', e.message); }
 
   record('A-03', 'Add dog to client', 'SKIP', 'Dog management is in client portal, not admin');
@@ -170,6 +173,14 @@ async function runClientTests(page) {
   try {
     await clickFirst(page, ['📅 Book a Walk', 'Book a Walk'], 4000);
     await page.waitForTimeout(1000);
+    // Select service type -- must click one of the service type buttons
+    const serviceBtn = await findFirst(page, ['30-min Walk', '60-min Walk', 'Drop-In Visit'], 3000);
+    if (serviceBtn) await page.locator(`text=${serviceBtn}`).first().click();
+    await page.waitForTimeout(500);
+    // Select dog from dropdown
+    const dogSelect = page.locator('select').first();
+    if (await dogSelect.isVisible({ timeout: 2000 })) await dogSelect.selectOption({ index: 1 });
+    await page.waitForTimeout(500);
     const dateF = page.locator('input[type="date"]').first();
     if (await dateF.isVisible({ timeout: 2000 })) await dateF.fill('2026-06-20');
     const timeF = page.locator('input[type="time"]').first();
