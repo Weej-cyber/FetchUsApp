@@ -173,18 +173,22 @@ async function runClientTests(page) {
   try {
     await clickFirst(page, ['📅 Book a Walk', 'Book a Walk'], 4000);
     await page.waitForTimeout(1000);
-    // Select service type -- must click one of the service type buttons
+    // Service type defaults to '30-min Walk' -- click it to confirm selection
     const serviceBtn = await findFirst(page, ['30-min Walk', '60-min Walk', 'Drop-In Visit'], 3000);
     if (serviceBtn) await page.locator(`text=${serviceBtn}`).first().click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     // Select dog from dropdown
     const dogSelect = page.locator('select').first();
     if (await dogSelect.isVisible({ timeout: 2000 })) await dogSelect.selectOption({ index: 1 });
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
+    // Fill date
     const dateF = page.locator('input[type="date"]').first();
     if (await dateF.isVisible({ timeout: 2000 })) await dateF.fill('2026-06-20');
-    const timeF = page.locator('input[type="time"]').first();
-    if (await timeF.isVisible({ timeout: 2000 })) await timeF.fill('14:00');
+    await page.waitForTimeout(300);
+    // Click a time slot button -- these are buttons not an input
+    const timeSlot = await findFirst(page, ['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM'], 3000);
+    if (timeSlot) await page.locator(`text=${timeSlot}`).first().click();
+    await page.waitForTimeout(300);
     await clickFirst(page, ['Send Request 🐾', 'Send Request'], 3000);
     await page.waitForTimeout(2000);
     const confirmed = await findFirst(page, ['Request Sent!', 'We will text you to confirm']);
