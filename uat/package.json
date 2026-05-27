@@ -2,7 +2,6 @@
   "name": "fetchus-uat",
   "version": "1.0.0",
   "dependencies": {
-    "playwright": "^1.44.0",
-    "@browserbasehq/sdk": "^2.0.0"
+    "playwright": "^1.44.0"
   }
 }

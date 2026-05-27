@@ -1,10 +1,8 @@
 const { chromium } = require('playwright');
-const { Browserbase } = require('@browserbasehq/sdk');
 const fs = require('fs');
 
 const SUPABASE_URL = 'https://rwauwkrdzcesyhwpaeow.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const BB_API_KEY   = process.env.BROWSERBASE_API_KEY;
 const APP_URL      = 'https://fetch-us-dfpk8bzue-weej-cybers-projects.vercel.app';
 
 const USERS = {
@@ -221,9 +219,7 @@ function writeResults() {
 
 (async () => {
   if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
-  if (!BB_API_KEY)   { console.error('Missing BROWSERBASE_API_KEY');  process.exit(1); }
 
-  const bb = new Browserbase({ apiKey: BB_API_KEY });
   const roleTests = [
     { role: 'admin',  fn: runAdminTests },
     { role: 'walker', fn: runWalkerTests },
@@ -234,9 +230,8 @@ function writeResults() {
     console.log(`\n${'─'.repeat(50)}\nStarting ${role.toUpperCase()} session...`);
     let browser;
     try {
-      const session = await bb.sessions.create({});
-      browser = await chromium.connectOverCDP(session.connectUrl);
-      const context = browser.contexts()[0] || await browser.newContext();
+      browser = await chromium.launch({ headless: true });
+      const context = await browser.newContext();
       const page = await context.newPage();
       const authSession = await getSession(USERS[role].email);
       await injectSession(page, authSession, role);
