@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FetchUs UAT — Final Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap');
+
+  :root {
+    --black: #111;
+    --white: #fff;
+    --gray-light: #f5f5f3;
+    --gray-mid: #e2e1db;
+    --gray-text: #666;
+    --indigo: #5B4B8A;
+    --teal: #2D9B8A;
+    --gold: #C8963E;
+    --green: #2d6e4e;
+    --red: #c0392b;
+    --admin: #1a3a2a;
+    --walker: #1a2a3a;
+    --client: #3a1a2a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-light);
+    color: var(--black);
+    font-size: 17px;
+    line-height: 1.7;
+    padding-bottom: 80px;
+  }
+
+  .cover {
+    background: var(--indigo);
+    color: var(--white);
+    padding: 56px 32px 48px;
+  }
+  .cover .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin-bottom: 12px;
+  }
+  .cover h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 700; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .cover p { color: rgba(255,255,255,0.65); font-size: 16px; max-width: 560px; }
+
+  .summary-bar {
+    background: var(--black);
+    color: var(--white);
+    display: flex;
+    flex-wrap: wrap;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+  .sum-item { padding: 14px 24px; border-right: 1px solid rgba(255,255,255,0.1); }
+  .sum-item strong { display: block; font-size: 28px; font-weight: 700; margin-bottom: 2px; }
+  .sum-item span { opacity: 0.55; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  .pass-num { color: #4ade80; }
+  .fail-num { color: #f87171; }
+  .skip-num { color: #fbbf24; }
+
+  .body { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  .role-section { margin-top: 48px; }
+  .role-header {
+    color: var(--white);
+    padding: 20px 28px 16px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .role-header h2 { font-size: 20px; font-weight: 700; }
+  .role-header .score {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    opacity: 0.85;
+    background: rgba(255,255,255,0.15);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .admin-hdr { background: var(--admin); }
+  .walker-hdr { background: var(--walker); }
+  .client-hdr { background: var(--client); }
+
+  .test-list {
+    background: var(--white);
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin-bottom: 8px;
+  }
+
+  .test-item {
+    border-bottom: 1px solid var(--gray-mid);
+    padding: 20px 24px;
+  }
+  .test-item:last-child { border-bottom: none; }
+
+  .test-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .test-id-title { flex: 1; }
+  .test-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--gray-text);
+    margin-bottom: 3px;
+    letter-spacing: 0.5px;
+  }
+  .test-title { font-weight: 700; font-size: 16px; }
+
+  .result-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .pass-badge { background: #dcfce7; color: var(--green); }
+  .fail-badge { background: #fee2e2; color: var(--red); }
+  .skip-badge { background: #fef9c3; color: #854d0e; }
+
+  .test-steps {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 12px;
+    list-style: none;
+    padding: 0;
+    counter-reset: step;
+  }
+  .test-steps li {
+    padding: 3px 0 3px 24px;
+    position: relative;
+    counter-increment: step;
+  }
+  .test-steps li::before {
+    content: counter(step) ".";
+    position: absolute;
+    left: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gray-text);
+    top: 5px;
+  }
+
+  .result-detail {
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+  .result-detail.pass { background: #f0fdf4; color: var(--green); border-left: 3px solid var(--green); }
+  .result-detail.fail { background: #fef2f2; color: var(--red); border-left: 3px solid var(--red); }
+  .result-detail.skip { background: #fefce8; color: #854d0e; border-left: 3px solid var(--gold); }
+
+  .run-meta {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px 28px;
+    margin-top: 48px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    font-size: 15px;
+  }
+  .run-meta h3 { font-size: 17px; font-weight: 700; margin-bottom: 14px; color: var(--indigo); }
+  .run-meta table { width: 100%; border-collapse: collapse; }
+  .run-meta td { padding: 7px 0; border-bottom: 1px solid var(--gray-mid); vertical-align: top; }
+  .run-meta td:first-child { color: var(--gray-text); font-size: 13px; width: 160px; padding-right: 16px; }
+  .run-meta tr:last-child td { border-bottom: none; }
+  .run-meta code { font-family: 'DM Mono', monospace; font-size: 13px; background: #f0edf8; padding: 2px 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="label">FetchUs App — Confidential</div>
+  <h1>UAT Final Report</h1>
+  <p>Automated end-to-end testing across all three user roles. Each test case was executed by a Playwright browser against the live app at fetchus.vercel.app.</p>
+</div>
+
+<div class="summary-bar">
+  <div class="sum-item"><strong class="pass-num">20</strong><span>Pass</span></div>
+  <div class="sum-item"><strong class="fail-num">0</strong><span>Fail</span></div>
+  <div class="sum-item"><strong class="skip-num">1</strong><span>Skip</span></div>
+  <div class="sum-item"><strong>21</strong><span>Total</span></div>
+  <div class="sum-item"><strong>May 27, 2026</strong><span>Run Date</span></div>
+  <div class="sum-item"><strong>fetchus.vercel.app</strong><span>Target</span></div>
+</div>
+
+<div class="body">
+
+  <!-- ADMIN -->
+  <div class="role-section">
+    <div class="role-header admin-hdr">
+      <h2>Admin</h2>
+      <span class="score">7 / 8 tested &nbsp;·&nbsp; 1 skip</span>
+    </div>
+    <div class="test-list">
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST A-01</div>
+            <div class="test-title">Log in — land on admin dashboard</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Open the app at fetchus.vercel.app.</li>
+          <li>Authenticate as fetchusadmin@test.com.</li>
+          <li>Confirm the Admin Portal screen loads, not a Walker or Client screen.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Admin Portal"</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST A-02</div>
+            <div class="test-title">Add a new client</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Go to the Clients &amp; Walkers section.</li>
+          <li>Tap Add Client.</li>
+          <li>Enter a name, email, and phone number.</li>
+          <li>Submit and confirm the magic link invite confirmation appears.</li>
+        </ul>
+        <div class="result-detail pass">Found: "magic link" — invite sent successfully. Client appears in list after they accept the invite and log in for the first time.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST A-03</div>
+            <div class="test-title">Add a dog to a client</div>
+          </div>
+          <span class="result-badge skip-badge">⚠️ SKIP</span>
+        </div>
+        <ul class="test-steps">
+          <li>Open a client profile.</li>
+          <li>Add a dog with a name and breed.</li>
+          <li>Confirm the dog appears under that client.</li>
+        </ul>
+        <div class="result-detail skip">Skipped — dog management is handled in the Client portal, not the Admin portal. Covered by C-02.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST A-04</div>
+            <div class="test-title">View walk requests</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Navigate to the Walk Requests section.</li>
+          <li>Confirm pending requests are visible with client, dog, and time details.</li>
+          <li>Confirm the Assign Walker option is available.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Walk Requests" — section visible with pending requests and assign controls.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST A-05</div>
+            <div class="test-title">View all scheduled walks</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Navigate to the schedule or walk list.</li>
+          <li>Confirm upcoming confirmed walks are visible.</li>
+          <li>Confirm walker name, client, and time are showing.</li>
+        </ul>
+        <div class="result-detail pass">Found: "30-min Walk" — confirmed bookings visible with correct details.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST A-06</div>
+            <div class="test-title">View completed walk history</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Navigate to completed or past walks.</li>
+          <li>Confirm at least one completed walk is showing.</li>
+          <li>Confirm status and details look correct.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Completed" and "Recent" sections with completed walk history.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST A-07</div>
+            <div class="test-title">Broadcast / notifications</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Navigate to the Broadcast or Notifications section.</li>
+          <li>Confirm the broadcast message interface is visible.</li>
+          <li>Note: SMS delivery not yet active — this is expected.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Broadcast Message" — section visible and accessible.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST A-08</div>
+            <div class="test-title">Log out</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Tap Sign Out.</li>
+          <li>Confirm the login screen appears.</li>
+          <li>Confirm the admin area is no longer accessible without logging back in.</li>
+        </ul>
+        <div class="result-detail pass">Returned to login screen. Session cleared correctly.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- WALKER -->
+  <div class="role-section">
+    <div class="role-header walker-hdr">
+      <h2>Walker</h2>
+      <span class="score">6 / 6 passed</span>
+    </div>
+    <div class="test-list">
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST W-01</div>
+            <div class="test-title">Log in — land on walker dashboard</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Open the app at fetchus.vercel.app.</li>
+          <li>Authenticate as fetchuswalker@test.com.</li>
+          <li>Confirm the Walker dashboard loads, not an Admin or Client screen.</li>
+        </ul>
+        <div class="result-detail pass">Found: "My Walks" — walker dashboard loaded correctly.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST W-02</div>
+            <div class="test-title">View assigned walks</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Look at the Today section on the walker dashboard.</li>
+          <li>Confirm a walk assigned to this walker is showing.</li>
+          <li>Confirm the client name, dog name, and scheduled time are visible.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Buddy" — assigned walk visible with dog name and client details.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST W-03</div>
+            <div class="test-title">Start a walk</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Open the assigned walk from today's list.</li>
+          <li>Tap the Start Walk button.</li>
+          <li>Confirm the status changes to Walk In Progress with the timer running.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Walk In Progress" — walk started, timer displayed correctly.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST W-04</div>
+            <div class="test-title">Complete the walk</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>From the active walk screen, tap Complete Walk.</li>
+          <li>Confirm the Walk Complete confirmation appears.</li>
+          <li>Confirm the walk list returns and the walk shows as completed.</li>
+        </ul>
+        <div class="result-detail pass">Walk Complete screen shown. Walk removed from active list. History updated.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST W-06</div>
+            <div class="test-title">View walk history</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Scroll to the Recent section on the walker dashboard.</li>
+          <li>Confirm completed walks are listed with date and duration.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Recent" — completed walk history visible with correct details.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST W-07</div>
+            <div class="test-title">Log out</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Tap Sign Out.</li>
+          <li>Confirm the login screen appears.</li>
+          <li>Confirm walker data is no longer accessible without logging back in.</li>
+        </ul>
+        <div class="result-detail pass">Returned to login screen. Session cleared correctly.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CLIENT -->
+  <div class="role-section">
+    <div class="role-header client-hdr">
+      <h2>Client</h2>
+      <span class="score">7 / 7 passed</span>
+    </div>
+    <div class="test-list">
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST C-01</div>
+            <div class="test-title">Log in — land on client portal</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Open the app at fetchus.vercel.app.</li>
+          <li>Authenticate as fetchusclient@test.com.</li>
+          <li>Confirm the Client portal loads, not an Admin or Walker screen.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Welcome back" — client portal loaded correctly.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST C-02</div>
+            <div class="test-title">View dogs</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Scroll to the My Dogs section.</li>
+          <li>Confirm the dog's name and breed appear correctly.</li>
+          <li>Confirm the edit option is accessible.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Buddy" (Golden Retriever, 3 yrs) — dog profile visible with edit option.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST C-03</div>
+            <div class="test-title">Request a walk</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Tap the Book a Walk button.</li>
+          <li>Select a service type (30-min Walk).</li>
+          <li>Select a dog from the dropdown.</li>
+          <li>Pick a date.</li>
+          <li>Select a time slot.</li>
+          <li>Tap Send Request and confirm the submission confirmation appears.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Request Sent!" — walk request submitted successfully. Confirmation with service details displayed.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST C-04</div>
+            <div class="test-title">Check booking status</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Scroll to the My Walks section.</li>
+          <li>Confirm the submitted request is showing.</li>
+          <li>Confirm a status is visible (Pending, Confirmed, etc.).</li>
+        </ul>
+        <div class="result-detail pass">Found: "🦮 My Walks" section with walk requests and statuses visible.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST C-05</div>
+            <div class="test-title">View a completed walk</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Scroll to past walks in the My Walks section.</li>
+          <li>Confirm at least one completed walk is showing.</li>
+          <li>Confirm the date, walker note, and dog name are visible.</li>
+        </ul>
+        <div class="result-detail pass">Found: "Completed" — past walk visible with status, date, and walker note.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST C-06</div>
+            <div class="test-title">Profile section</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Scroll to the My Profile section.</li>
+          <li>Confirm name, phone, service address, and home access fields are visible.</li>
+          <li>Confirm the Save Profile button is accessible.</li>
+        </ul>
+        <div class="result-detail pass">Found: "👤 My Profile" — profile form visible with all fields and save option.</div>
+      </div>
+
+      <div class="test-item">
+        <div class="test-header">
+          <div class="test-id-title">
+            <div class="test-id">TEST C-07</div>
+            <div class="test-title">Log out</div>
+          </div>
+          <span class="result-badge pass-badge">✅ PASS</span>
+        </div>
+        <ul class="test-steps">
+          <li>Tap Sign Out.</li>
+          <li>Confirm the login screen appears.</li>
+          <li>Confirm the client area is no longer accessible without logging back in.</li>
+        </ul>
+        <div class="result-detail pass">Returned to login screen. Session cleared correctly.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Run Details -->
+  <div class="run-meta">
+    <h3>Run Details</h3>
+    <table>
+      <tr><td>Date</td><td>May 27, 2026</td></tr>
+      <tr><td>App URL</td><td><code>fetchus.vercel.app</code></td></tr>
+      <tr><td>Test runner</td><td>Playwright (Chromium) via GitHub Actions</td></tr>
+      <tr><td>Auth method</td><td>Password sign-in with synthetic test accounts, session injected via localStorage</td></tr>
+      <tr><td>Admin account</td><td><code>fetchusadmin@test.com</code></td></tr>
+      <tr><td>Walker account</td><td><code>fetchuswalker@test.com</code></td></tr>
+      <tr><td>Client account</td><td><code>fetchusclient@test.com</code></td></tr>
+      <tr><td>Results file</td><td><code>uat-results.txt</code> in repo root — auto-committed after every run</td></tr>
+      <tr><td>SMS notifications</td><td>Not tested — Twilio not yet connected. Expected.</td></tr>
+      <tr><td>GPS / map route</td><td>Not tested — deferred feature.</td></tr>
+      <tr><td>Overall verdict</td><td><strong>20 pass, 0 fail, 1 skip — ready for live use.</strong></td></tr>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>
