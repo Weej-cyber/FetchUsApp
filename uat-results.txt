@@ -1,1 +1,53 @@
-ENV_CHECK_PASSED
+[DEBUG admin] localStorage_stored:1813b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Client | 0 | WALKS TODAY | 1 | PENDING REQUESTS | 3 | ACTIVE CLIENTS | 2 | WALKERS | Recent Activity | Walk request: Buddy (30-m
+[DEBUG walker] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Wednesday, May 27 | Sign Out | Today | 🎉 | No walks today | Coming Up | Nothing scheduled this week | Recent | Sat, May 23 | Completed | 32 min | Great walk! Buddy was well-behaved and ene
+[DEBUG client] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Test Client | Next walk: Tue, Jun 2 at 10:00 AM | Sign Out | 🐕 My Dogs | 🐕 | Buddy | Golden Retriever · 3 yrs | tap to edit | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 
+
+FETCHUS UAT RESULTS
+============================================================
+Total: 21 | Pass: 15 | Fail: 5 | Skip: 1
+============================================================
+
+ADMIN (6/8 passed)
+  [PASS] A-01 -- Log in -- land on admin dashboard
+         "Admin Portal"
+  [FAIL] A-02 -- Add a new client
+         Name not visible after save
+  [SKIP] A-03 -- Add dog to client
+         Dog management is in client portal, not admin
+  [PASS] A-04 -- View walk requests
+         "Walk Requests"
+  [PASS] A-05 -- View scheduled walks
+         "30-min Walk"
+  [PASS] A-06 -- View completed walk history
+         "Recent"
+  [PASS] A-07 -- Broadcast / notifications
+         "Broadcast Message"
+  [PASS] A-08 -- Log out
+
+WALKER (4/6 passed)
+  [PASS] W-01 -- Log in -- land on walker dashboard
+         "My Walks"
+  [PASS] W-02 -- View assigned walks
+         "Buddy"
+  [FAIL] W-03 -- Start a walk
+         Start Walk not found
+  [FAIL] W-04 -- Complete the walk
+         Complete Walk not found
+  [PASS] W-06 -- View walk history
+         "Recent"
+  [PASS] W-07 -- Log out
+
+CLIENT (5/7 passed)
+  [PASS] C-01 -- Log in -- land on client portal
+         "Welcome back"
+  [PASS] C-02 -- View dogs
+         "Buddy"
+  [FAIL] C-03 -- Request a walk
+         No confirmation
+  [PASS] C-04 -- Check booking status
+         "🦮 My Walks"
+  [FAIL] C-05 -- View completed walk
+         Not found
+  [PASS] C-06 -- Profile section
+         "👤 My Profile"
+  [PASS] C-07 -- Log out
