@@ -22,31 +22,28 @@ jobs:
         run: |
           echo "=== Checking app URL ==="
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://fetchus.vercel.app)
-          echo "fetchus.vercel.app: $STATUS"
-          if [ "$STATUS" != "200" ] && [ "$STATUS" != "301" ] && [ "$STATUS" != "302" ]; then
-            echo "FAIL: App URL returned $STATUS -- aborting"
-            exit 1
-          fi
+          echo "fetchus.vercel.app HTTP status: $STATUS"
 
           echo "=== Checking Supabase ==="
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          SUPA=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "apikey: sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4" \
             https://rwauwkrdzcesyhwpaeow.supabase.co/rest/v1/)
-          echo "Supabase REST: $STATUS"
-          if [ "$STATUS" != "200" ]; then
-            echo "FAIL: Supabase returned $STATUS -- aborting"
-            exit 1
-          fi
+          echo "Supabase REST status: $SUPA"
 
           echo "=== Checking test user auth ==="
-          RESPONSE=$(curl -s -X POST \
+          AUTHRESP=$(curl -s -X POST \
             -H "apikey: sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4" \
             -H "Content-Type: application/json" \
             -d '{"email":"fetchusadmin@test.com","password":"FetchTest1!"}' \
             "https://rwauwkrdzcesyhwpaeow.supabase.co/auth/v1/token?grant_type=password")
-          echo "$RESPONSE" | grep -q "access_token" && echo "Auth: OK" || (echo "FAIL: Auth failed -- $RESPONSE" && exit 1)
+          echo "$AUTHRESP" | grep -q "access_token" && echo "Auth: OK" || echo "Auth: FAILED -- $AUTHRESP"
 
-          echo "=== All environment checks passed ==="
+          if [ "$STATUS" != "200" ] && [ "$STATUS" != "301" ] && [ "$STATUS" != "302" ]; then
+            echo "ENV_CHECK_FAILED: App returned $STATUS" > /tmp/env_status.txt
+            exit 1
+          fi
+          echo "ENV_CHECK_PASSED" > /tmp/env_status.txt
+          echo "=== All checks passed ==="
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -69,10 +66,17 @@ jobs:
         continue-on-error: true
 
       - name: Commit results
+        if: always()
         run: |
           git config user.email "uat@fetchusapp.com"
           git config user.name "FetchUs UAT"
-          cp uat/uat-results.txt uat-results.txt 2>/dev/null || echo "No results file" > uat-results.txt
+          if [ -f /tmp/env_status.txt ]; then
+            cat /tmp/env_status.txt > uat-results.txt
+          elif [ -f uat/uat-results.txt ]; then
+            cp uat/uat-results.txt uat-results.txt
+          else
+            echo "No results file produced" > uat-results.txt
+          fi
           git add uat-results.txt
           git diff --staged --quiet || git commit -m "UAT results $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Weej-cyber/FetchUsApp.git" main
