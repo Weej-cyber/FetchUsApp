@@ -38,7 +38,7 @@ async function injectSession(page, session, role) {
   await page.waitForTimeout(2000);
 
   const injected = await page.evaluate(({ session }) => {
-    const key = 'sb-rwauwkrdzcesyhwpaeow-auth-token';
+    const key = 'supabase.auth.token';
     const val = JSON.stringify({
       access_token:  session.access_token,
       refresh_token: session.refresh_token,
@@ -60,7 +60,7 @@ async function injectSession(page, session, role) {
   const pageState = await page.evaluate(() => ({
     url:   window.location.href,
     text:  document.body.innerText.slice(0, 500),
-    lsKey: localStorage.getItem('sb-rwauwkrdzcesyhwpaeow-auth-token') ? 'present' : 'MISSING',
+    lsKey: localStorage.getItem('supabase.auth.token') ? 'present' : 'MISSING',
     allLsKeys: Object.keys(localStorage),
   }));
 
