@@ -70,10 +70,10 @@ jobs:
         run: |
           git config user.email "uat@fetchusapp.com"
           git config user.name "FetchUs UAT"
-          if [ -f /tmp/env_status.txt ]; then
-            cat /tmp/env_status.txt > uat-results.txt
-          elif [ -f uat/uat-results.txt ]; then
+          if [ -f uat/uat-results.txt ]; then
             cp uat/uat-results.txt uat-results.txt
+          elif [ -f /tmp/env_status.txt ]; then
+            cat /tmp/env_status.txt > uat-results.txt
           else
             echo "No results file produced" > uat-results.txt
           fi
