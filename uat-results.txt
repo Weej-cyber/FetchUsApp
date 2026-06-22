@@ -1,10 +1,10 @@
-[DEBUG admin] localStorage_stored:1812b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Client | 0 | WALKS TODAY | 5 | PENDING REQUESTS | 3 | ACTIVE CLIENTS | 3 | WALKERS | Recent Activity | Walk request: Buddy (30-m
-[DEBUG walker] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Wednesday, June 17 | Sign Out | Today | 🎉 | No walks today | Coming Up | Sat, Jun 20 at 9:30 AM | Buddy · — · 30-min Walk | Recent | Wed, May 27 | Completed | 0 | Wed, May 27 | Completed |
-[DEBUG client] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Test Client | Next walk: Sat, Jun 20 at 9:30 AM | Sign Out | 🐕 My Dogs | 🐕 | Buddy | Golden Retriever · 3 yrs | tap to edit | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 
+[DEBUG admin] localStorage_stored:1813b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Client | 0 | WALKS TODAY | 7 | PENDING REQUESTS | 3 | ACTIVE CLIENTS | 3 | WALKERS | Recent Activity | Walk request: Buddy (30-m
+[DEBUG walker] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Monday, June 22 | Sign Out | Today | 🎉 | No walks today | Coming Up | Nothing scheduled this week | Recent | Wed, May 27 | Completed | 0 | Wed, May 27 | Completed | 0 | Wed, May 27 | Compl
+[DEBUG client] localStorage_stored:1820b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Test Client | Next walk: Sat, Jun 20 at 9:30 AM | Sign Out | 🐕 My Dogs | 🐕 | Buddy | Golden Retriever · 3 yrs | tap to edit | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 
 
 FETCHUS UAT RESULTS
 ============================================================
-Total: 21 | Pass: 18 | Fail: 2 | Skip: 1
+Total: 21 | Pass: 17 | Fail: 3 | Skip: 1
 ============================================================
 
 ADMIN (7/8 passed)
@@ -24,11 +24,11 @@ ADMIN (7/8 passed)
          "Broadcast Message"
   [PASS] A-08 -- Log out
 
-WALKER (4/6 passed)
+WALKER (3/6 passed)
   [PASS] W-01 -- Log in -- land on walker dashboard
          "My Walks"
-  [PASS] W-02 -- View assigned walks
-         "Buddy"
+  [FAIL] W-02 -- View assigned walks
+         Not found
   [FAIL] W-03 -- Start a walk
          Start Walk not found
   [FAIL] W-04 -- Complete the walk
