@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
       <p>We use your information solely to provide dog walking services. This includes scheduling walks, assigning walkers, and sending SMS notifications about your bookings and walk status updates. We do not sell or share your information with third parties for marketing purposes.</p>
 
       <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', color: '#2D3436', marginTop: 32 }}>3. SMS Messaging</h2>
-      <p>By providing your phone number and creating an account, you consent to receive SMS notifications from FetchUs regarding your walk bookings, walker assignments, and walk completion updates. Message and data rates may apply. You may opt out at any time by replying STOP to any message.</p>
+      <p>SMS notifications are required to use the FetchUs platform. By providing your phone number and using FetchUs, you agree to receive automated text messages from FetchUs regarding walk confirmations, walker arrival, walk start, and walk completion. This is not optional. Message frequency varies based on your bookings. Message and data rates may apply. Reply STOP to opt out at any time. Reply HELP for help. No mobile data will be shared with third parties or affiliates for marketing or promotional purposes at any time.</p>
 
       <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', color: '#2D3436', marginTop: 32 }}>4. Data Security</h2>
       <p>We take reasonable measures to protect your personal information. Your data is stored securely and access is limited to authorized FetchUs staff only.</p>

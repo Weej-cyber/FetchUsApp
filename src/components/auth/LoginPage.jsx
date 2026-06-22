@@ -49,7 +49,7 @@ export default function LoginPage() {
           FetchUs is a private platform connecting pet owners with trusted professional dog walkers. Real-time walk updates, booking management, and direct communication — all in one place.
         </p>
         <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
-          {["Real-Time Walk Updates", "Professional Walkers", "Invite-Only Platform"].map(b => (
+          {["Walk Check-In Updates", "Professional Walkers", "Invite-Only Platform"].map(b => (
             <span key={b} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: "12px", fontWeight: 600, padding: "5px 12px", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.25)" }}>{b}</span>
           ))}
         </div>
@@ -58,7 +58,7 @@ export default function LoginPage() {
       {/* Features */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: "#e8e4da", borderBottom: "1px solid #e8e4da" }}>
         {[
-          { emoji: "📍", title: "Live Tracking", desc: "Know exactly when your walker arrives and departs" },
+          { emoji: "📍", title: "Walk Check-In", desc: "Know exactly when your walker arrives and departs" },
           { emoji: "💬", title: "SMS Alerts", desc: "Instant text notifications at every walk milestone" },
           { emoji: "📋", title: "Walk Reports", desc: "Post-walk summaries after every visit" },
           { emoji: "🔒", title: "Trusted Network", desc: "Invite-only access for verified clients only" },
@@ -120,7 +120,7 @@ export default function LoginPage() {
       <div style={{ background: "#F3F0F9", padding: "20px 24px", borderTop: "1px solid #e8e4da" }}>
         <p style={{ fontSize: "12px", fontWeight: 800, color: "#5B4B8A", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>About FetchUs</p>
         <p style={{ fontSize: "13px", color: "#4B5563", lineHeight: 1.6, margin: 0 }}>
-          FetchUs is a professional dog walking management platform operated by FetchUs LLC. The platform serves pet owners and professional dog walkers through a secure, invitation-based system. Clients receive real-time SMS notifications about their dog walk status after consenting to communications through their account profile.
+          FetchUs is a professional dog walking management platform operated by FetchUs LLC. The platform serves pet owners and professional dog walkers through a secure, invitation-based system. Clients receive SMS notifications about their dog walk status as a required part of using the platform.
         </p>
       </div>
 
@@ -128,7 +128,7 @@ export default function LoginPage() {
       <div style={{ background: "#FFF8E1", padding: "20px 24px", borderTop: "1px solid #e8e4da", borderBottom: "1px solid #e8e4da" }}>
         <p style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>SMS Notification Consent</p>
         <p style={{ fontSize: "13px", color: "#4B5563", lineHeight: 1.6, margin: 0 }}>
-          FetchUs requires clients to consent to receive SMS notifications about their dog walks in order to use the platform. This is not optional. By providing your phone number and using FetchUs, you agree to receive automated text messages from FetchUs regarding walk confirmations, walker arrival, walk start, and walk completion. Message frequency varies. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. See our <a href="/privacy" style={{ color: "#5B4B8A", textDecoration: "underline" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "#5B4B8A", textDecoration: "underline" }}>Terms of Service</a> for more information.
+          FetchUs requires clients to consent to receive SMS notifications about their dog walks in order to use the platform. This is not optional. By providing your phone number and using FetchUs, you agree to receive automated text messages from FetchUs regarding walk confirmations, walker arrival, walk start, and walk completion. Message frequency varies. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. No mobile data will be shared with third parties or affiliates for marketing or promotional purposes at any time. See our <a href="/privacy" style={{ color: "#5B4B8A", textDecoration: "underline" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "#5B4B8A", textDecoration: "underline" }}>Terms of Service</a> for more information.
         </p>
       </div>
 

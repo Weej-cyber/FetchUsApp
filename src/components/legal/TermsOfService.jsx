@@ -16,7 +16,7 @@ export default function TermsOfService() {
       <p>You are responsible for maintaining the confidentiality of your account. You must provide accurate information including a valid phone number and address for service delivery.</p>
 
       <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', color: '#2D3436', marginTop: 32 }}>3. SMS Communications</h2>
-      <p>By registering with FetchUs and providing your phone number, you expressly consent to receive SMS text messages from FetchUs for service-related communications including booking confirmations, walker assignments, and walk completion notifications. Message frequency varies based on your bookings. Message and data rates may apply. Reply STOP to opt out at any time. Reply HELP for help.</p>
+      <p>SMS notifications are required to use the FetchUs platform. By providing your phone number and using FetchUs, you expressly consent to receive automated text messages from FetchUs for service-related communications including walk confirmations, walker arrival, walk start, and walk completion notifications. This is not optional. Message frequency varies based on your bookings. Message and data rates may apply. Reply STOP to opt out at any time. Reply HELP for help. No mobile data will be shared with third parties or affiliates for marketing or promotional purposes at any time.</p>
 
       <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', color: '#2D3436', marginTop: 32 }}>4. Cancellations</h2>
       <p>Walk cancellations must be submitted through the FetchUs app. FetchUs reserves the right to cancel bookings due to walker availability or weather conditions.</p>
