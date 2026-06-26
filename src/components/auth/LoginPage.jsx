@@ -6,9 +6,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
+  const [smsConsent, setSmsConsent] = useState(false);
 
   const handleSubmit = async () => {
-    if (!email.trim()) return;
+    if (!email.trim() || !smsConsent) return;
     setLoading(true);
     setError(null);
     try {
@@ -103,10 +104,21 @@ export default function LoginPage() {
                   style={{ width: "100%", padding: "12px 16px", borderRadius: "10px", border: "1.5px solid #E5E7EB", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", backgroundColor: "#F9FAFB" }}
                 />
                 {error && <p style={{ color: "#EF4444", fontSize: "13px", marginTop: "-8px" }}>{error}</p>}
+                <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={smsConsent}
+                    onChange={(e) => setSmsConsent(e.target.checked)}
+                    style={{ marginTop: "2px", width: "16px", height: "16px", accentColor: "#5B4B8A", flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: "12px", color: "#4B5563", lineHeight: 1.5 }}>
+                    I agree to receive SMS notifications from FetchUs LLC about my dog walk bookings, including walk confirmations, walker arrival, walk start, and walk completion. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. See our <a href="/privacy" style={{ color: "#5B4B8A" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "#5B4B8A" }}>Terms of Service</a>.
+                  </span>
+                </label>
                 <button
                   onClick={handleSubmit}
-                  disabled={loading || !email.trim()}
-                  style={{ width: "100%", padding: "13px", borderRadius: "10px", border: "none", background: loading || !email.trim() ? "#A5B4FC" : "linear-gradient(135deg, #6366F1, #4F46E5)", color: "#FFFFFF", fontSize: "15px", fontWeight: "700", fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+                  disabled={loading || !email.trim() || !smsConsent}
+                  style={{ width: "100%", padding: "13px", borderRadius: "10px", border: "none", background: loading || !email.trim() || !smsConsent ? "#A5B4FC" : "linear-gradient(135deg, #6366F1, #4F46E5)", color: "#FFFFFF", fontSize: "15px", fontWeight: "700", fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() || !smsConsent ? "not-allowed" : "pointer", transition: "all 0.2s" }}
                 >
                   {loading ? "Sending..." : "Send Magic Link"}
                 </button>
