@@ -3,13 +3,14 @@ import { supabase } from "../../lib/supabase";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
   const [smsConsent, setSmsConsent] = useState(false);
 
   const handleSubmit = async () => {
-    if (!email.trim() || !smsConsent) return;
+    if (!email.trim() || !phone.trim() || !smsConsent) return;
     setLoading(true);
     setError(null);
     try {
@@ -17,6 +18,7 @@ export default function LoginPage() {
         email: email.trim(),
         options: {
           emailRedirectTo: window.location.origin,
+          data: { phone: phone.trim() },
         },
       });
       if (error) throw error;
@@ -103,6 +105,14 @@ export default function LoginPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                   style={{ width: "100%", padding: "12px 16px", borderRadius: "10px", border: "1.5px solid #E5E7EB", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", backgroundColor: "#F9FAFB" }}
                 />
+                <input
+                  type="tel"
+                  placeholder="(555) 123-4567"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                  style={{ width: "100%", padding: "12px 16px", borderRadius: "10px", border: "1.5px solid #E5E7EB", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", backgroundColor: "#F9FAFB" }}
+                />
                 {error && <p style={{ color: "#EF4444", fontSize: "13px", marginTop: "-8px" }}>{error}</p>}
                 <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
                   <input
@@ -117,8 +127,8 @@ export default function LoginPage() {
                 </label>
                 <button
                   onClick={handleSubmit}
-                  disabled={loading || !email.trim() || !smsConsent}
-                  style={{ width: "100%", padding: "13px", borderRadius: "10px", border: "none", background: loading || !email.trim() || !smsConsent ? "#A5B4FC" : "linear-gradient(135deg, #6366F1, #4F46E5)", color: "#FFFFFF", fontSize: "15px", fontWeight: "700", fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() || !smsConsent ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+                  disabled={loading || !email.trim() || !phone.trim() || !smsConsent}
+                  style={{ width: "100%", padding: "13px", borderRadius: "10px", border: "none", background: loading || !email.trim() || !phone.trim() || !smsConsent ? "#A5B4FC" : "linear-gradient(135deg, #6366F1, #4F46E5)", color: "#FFFFFF", fontSize: "15px", fontWeight: "700", fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() || !phone.trim() || !smsConsent ? "not-allowed" : "pointer", transition: "all 0.2s" }}
                 >
                   {loading ? "Sending..." : "Send Magic Link"}
                 </button>
