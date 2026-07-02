@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [smsConsent, setSmsConsent] = useState(false);
 
   const handleSubmit = async () => {
-    if (!email.trim() || !phone.trim() || !smsConsent) return;
+    if (!email.trim()) return;
     setLoading(true);
     setError(null);
     try {
@@ -127,8 +127,8 @@ export default function LoginPage() {
                 </label>
                 <button
                   onClick={handleSubmit}
-                  disabled={loading || !email.trim() || !phone.trim() || !smsConsent}
-                  style={{ width: "100%", padding: "13px", borderRadius: "10px", border: "none", background: loading || !email.trim() || !phone.trim() || !smsConsent ? "#A5B4FC" : "linear-gradient(135deg, #6366F1, #4F46E5)", color: "#FFFFFF", fontSize: "15px", fontWeight: "700", fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() || !phone.trim() || !smsConsent ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+                  disabled={loading || !email.trim()}
+                  style={{ width: "100%", padding: "13px", borderRadius: "10px", border: "none", background: loading || !email.trim() ? "#A5B4FC" : "linear-gradient(135deg, #6366F1, #4F46E5)", color: "#FFFFFF", fontSize: "15px", fontWeight: "700", fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}
                 >
                   {loading ? "Sending..." : "Send Magic Link"}
                 </button>
@@ -142,7 +142,7 @@ export default function LoginPage() {
       <div style={{ background: "#F3F0F9", padding: "20px 24px", borderTop: "1px solid #e8e4da" }}>
         <p style={{ fontSize: "12px", fontWeight: 800, color: "#5B4B8A", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>About FetchUs</p>
         <p style={{ fontSize: "13px", color: "#4B5563", lineHeight: 1.6, margin: 0 }}>
-          FetchUs is a professional dog walking management platform operated by FetchUs LLC. The platform serves pet owners and professional dog walkers through a secure, invitation-based system. Clients receive SMS notifications about their dog walk status as a required part of using the platform.
+          FetchUs is a professional dog walking management platform operated by FetchUs LLC. The platform serves pet owners and professional dog walkers through a secure, invitation-based system. Clients may opt in to receive SMS notifications about their dog walk status.
         </p>
       </div>
 
@@ -150,7 +150,7 @@ export default function LoginPage() {
       <div style={{ background: "#FFF8E1", padding: "20px 24px", borderTop: "1px solid #e8e4da", borderBottom: "1px solid #e8e4da" }}>
         <p style={{ fontSize: "12px", fontWeight: 800, color: "#92400E", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>SMS Notification Consent</p>
         <p style={{ fontSize: "13px", color: "#4B5563", lineHeight: 1.6, margin: 0 }}>
-          FetchUs requires clients to consent to receive SMS notifications about their dog walks in order to use the platform. This is not optional. By providing your phone number and using FetchUs, you agree to receive automated text messages from FetchUs regarding walk confirmations, walker arrival, walk start, and walk completion. Message frequency varies. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. No mobile data will be shared with third parties or affiliates for marketing or promotional purposes at any time. See our <a href="/privacy" style={{ color: "#5B4B8A", textDecoration: "underline" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "#5B4B8A", textDecoration: "underline" }}>Terms of Service</a> for more information.
+          FetchUs offers SMS notifications to keep clients informed about their dog walks. By providing your phone number and checking the SMS consent box above, you agree to receive automated text messages from FetchUs LLC regarding walk confirmations, walker arrival, walk start, and walk completion. SMS notifications are optional -- you may use FetchUs without opting in. Message frequency varies. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. No mobile data will be shared with third parties or affiliates for marketing or promotional purposes at any time. See our <a href="/privacy" style={{ color: "#5B4B8A", textDecoration: "underline" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "#5B4B8A", textDecoration: "underline" }}>Terms of Service</a> for more information.
         </p>
       </div>
 
