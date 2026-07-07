@@ -74,14 +74,10 @@ export default function WalkerDashboard() {
           created_at,
           booking:booking_id (
             preferred_time,
+            dog_ids,
             client:client_id (
               address,
               user:user_id (
-                name
-              )
-            ),
-            dogs:booking_dogs (
-              dog:dog_id (
                 name
               )
             )
@@ -96,6 +92,17 @@ export default function WalkerDashboard() {
         setDemoMode(true)
         setWalks(DEMO_WALKS)
       } else {
+        // Look up dog names for all unique dog IDs
+        const allDogIds = [...new Set(data.flatMap(w => w.booking?.dog_ids || []))]
+        let dogMap = {}
+        if (allDogIds.length > 0) {
+          const { data: dogs } = await supabase
+            .from('dogs')
+            .select('id, name')
+            .in('id', allDogIds)
+          if (dogs) dogs.forEach(d => { dogMap[d.id] = d.name })
+        }
+
         const normalized = data.map(w => ({
           id: w.id,
           started_at: w.started_at,
@@ -104,7 +111,7 @@ export default function WalkerDashboard() {
           scheduled_time: w.booking?.preferred_time || 'Today',
           client_name: w.booking?.client?.user?.name || 'Client',
           address: w.booking?.client?.address || '',
-          dog_names: w.booking?.dogs?.map(d => d.dog?.name).filter(Boolean).join(' & ') || 'Dog',
+          dog_names: (w.booking?.dog_ids || []).map(id => dogMap[id]).filter(Boolean).join(' & ') || 'Dog',
         }))
         setWalks(normalized)
       }
