@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
 import Card from '../shared/Card'
 import Button from '../shared/Button'
 
@@ -40,34 +41,35 @@ const DEMO_WALKS = [
 ]
 
 export default function WalkerDashboard() {
+  const { user } = useAuth()
   const [walks, setWalks] = useState([])
   const [loading, setLoading] = useState(true)
   const [demoMode, setDemoMode] = useState(false)
-  
+  const [actionLoading, setActionLoading] = useState({})
+
   useEffect(() => {
     fetchTodayWalks()
   }, [])
-  
+
   async function fetchTodayWalks() {
     try {
-      // Check if demo mode is forced via URL
       const urlParams = new URLSearchParams(window.location.search)
       const forcedDemo = urlParams.get('demo') === 'true'
-      
+
       if (forcedDemo) {
         setDemoMode(true)
         setWalks(DEMO_WALKS)
         setLoading(false)
         return
       }
-      
+
       const today = new Date().toISOString().split('T')[0]
       const { data } = await supabase
         .from('walks')
         .select('*')
         .gte('created_at', today)
         .order('started_at', { ascending: true })
-      
+
       if (!data || data.length === 0) {
         setDemoMode(true)
         setWalks(DEMO_WALKS)
@@ -82,7 +84,70 @@ export default function WalkerDashboard() {
       setLoading(false)
     }
   }
-  
+
+  async function sendSmsNotification(walkId, eventType) {
+    try {
+      await supabase.functions.invoke('send-sms', {
+        body: { walk_id: walkId, event_type: eventType },
+      })
+    } catch (err) {
+      console.error('SMS notification failed:', err)
+      // Don't block the walk action if SMS fails
+    }
+  }
+
+  async function handleStartWalk(walkId) {
+    if (demoMode) return
+    setActionLoading(prev => ({ ...prev, [walkId]: 'starting' }))
+    try {
+      const now = new Date().toISOString()
+      const { error } = await supabase
+        .from('walks')
+        .update({ started_at: now, status: 'in_progress' })
+        .eq('id', walkId)
+
+      if (error) throw error
+
+      // Update local state immediately
+      setWalks(prev => prev.map(w => w.id === walkId ? { ...w, started_at: now, status: 'in_progress' } : w))
+
+      // Send SMS notification
+      await sendSmsNotification(walkId, 'walk_started')
+
+    } catch (err) {
+      console.error('Error starting walk:', err)
+      alert('Failed to start walk. Please try again.')
+    } finally {
+      setActionLoading(prev => ({ ...prev, [walkId]: null }))
+    }
+  }
+
+  async function handleEndWalk(walkId) {
+    if (demoMode) return
+    setActionLoading(prev => ({ ...prev, [walkId]: 'ending' }))
+    try {
+      const now = new Date().toISOString()
+      const { error } = await supabase
+        .from('walks')
+        .update({ completed_at: now, status: 'completed' })
+        .eq('id', walkId)
+
+      if (error) throw error
+
+      // Update local state immediately
+      setWalks(prev => prev.map(w => w.id === walkId ? { ...w, completed_at: now, status: 'completed' } : w))
+
+      // Send SMS notification
+      await sendSmsNotification(walkId, 'walk_completed')
+
+    } catch (err) {
+      console.error('Error ending walk:', err)
+      alert('Failed to end walk. Please try again.')
+    } finally {
+      setActionLoading(prev => ({ ...prev, [walkId]: null }))
+    }
+  }
+
   if (loading) {
     return (
       <div className="p-5 animate-fade-in">
@@ -90,7 +155,7 @@ export default function WalkerDashboard() {
       </div>
     )
   }
-  
+
   return (
     <div className="p-5 pb-24 animate-fade-in">
       {demoMode && (
@@ -100,9 +165,9 @@ export default function WalkerDashboard() {
           </p>
         </div>
       )}
-      
+
       <h2 className="text-2xl font-bold mb-6">Today's Schedule</h2>
-      
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="stat-box">
@@ -118,7 +183,7 @@ export default function WalkerDashboard() {
           <p>Remaining</p>
         </div>
       </div>
-      
+
       {/* Walks List */}
       {walks.length === 0 ? (
         <Card>
@@ -139,28 +204,36 @@ export default function WalkerDashboard() {
                   <p className="text-sm text-charcoal-light">{walk.client_name}</p>
                 </div>
                 <span className={`status-badge ${
-                  walk.completed_at ? 'status-completed' : 
-                  walk.started_at ? 'status-in-progress' : 
+                  walk.completed_at ? 'status-completed' :
+                  walk.started_at ? 'status-in-progress' :
                   'status-confirmed'
                 }`}>
                   {walk.completed_at ? 'Completed' : walk.started_at ? 'In Progress' : 'Scheduled'}
                 </span>
               </div>
-              
+
               <div className="text-sm mb-3 text-charcoal-light">
                 <p>📍 {walk.address}</p>
                 <p>⏱️ {walk.duration} minutes</p>
               </div>
-              
+
               {!walk.completed_at && (
                 <div className="flex gap-2">
                   {!walk.started_at ? (
-                    <Button className="flex-1 bg-teal text-white">
-                      Start Walk
+                    <Button
+                      className="flex-1 bg-teal text-white"
+                      onClick={() => handleStartWalk(walk.id)}
+                      disabled={!!actionLoading[walk.id]}
+                    >
+                      {actionLoading[walk.id] === 'starting' ? 'Starting...' : 'Start Walk'}
                     </Button>
                   ) : (
-                    <Button className="flex-1 bg-charcoal-light text-white">
-                      End Walk
+                    <Button
+                      className="flex-1 bg-charcoal-light text-white"
+                      onClick={() => handleEndWalk(walk.id)}
+                      disabled={!!actionLoading[walk.id]}
+                    >
+                      {actionLoading[walk.id] === 'ending' ? 'Ending...' : 'End Walk'}
                     </Button>
                   )}
                 </div>
