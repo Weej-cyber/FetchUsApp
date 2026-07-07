@@ -64,25 +64,10 @@ export default function WalkerDashboard() {
       }
 
       const today = new Date().toISOString().split('T')[0]
+      // Step 1: get walks for this walker today
       const { data, error } = await supabase
         .from('walks')
-        .select(`
-          id,
-          started_at,
-          completed_at,
-          duration,
-          created_at,
-          booking:booking_id (
-            preferred_time,
-            dog_ids,
-            client:client_id (
-              address,
-              user:user_id (
-                name
-              )
-            )
-          )
-        `)
+        .select('id, started_at, completed_at, duration, created_at, booking_id')
         .gte('created_at', today)
         .order('created_at', { ascending: true })
 
@@ -92,27 +77,61 @@ export default function WalkerDashboard() {
         setDemoMode(true)
         setWalks(DEMO_WALKS)
       } else {
-        // Look up dog names for all unique dog IDs
-        const allDogIds = [...new Set(data.flatMap(w => w.booking?.dog_ids || []))]
+        // Step 2: get bookings for those walks
+        const bookingIds = data.map(w => w.booking_id).filter(Boolean)
+        let bookingMap = {}
+        if (bookingIds.length > 0) {
+          const { data: bookings } = await supabase
+            .from('bookings')
+            .select('id, preferred_time, preferred_date, dog_ids, client_id')
+            .in('id', bookingIds)
+          if (bookings) bookings.forEach(b => { bookingMap[b.id] = b })
+        }
+
+        // Step 3: get clients for those bookings
+        const clientIds = Object.values(bookingMap).map(b => b.client_id).filter(Boolean)
+        let clientMap = {}
+        if (clientIds.length > 0) {
+          const { data: clients } = await supabase
+            .from('clients')
+            .select('id, address, user_id')
+            .in('id', clientIds)
+          if (clients) {
+            const userIds = clients.map(c => c.user_id).filter(Boolean)
+            let userMap = {}
+            if (userIds.length > 0) {
+              const { data: users } = await supabase
+                .from('users')
+                .select('id, name')
+                .in('id', userIds)
+              if (users) users.forEach(u => { userMap[u.id] = u })
+            }
+            clients.forEach(c => { clientMap[c.id] = { ...c, user: userMap[c.user_id] } })
+          }
+        }
+
+        // Step 4: get dog names
+        const allDogIds = [...new Set(Object.values(bookingMap).flatMap(b => b.dog_ids || []))]
         let dogMap = {}
         if (allDogIds.length > 0) {
-          const { data: dogs } = await supabase
-            .from('dogs')
-            .select('id, name')
-            .in('id', allDogIds)
+          const { data: dogs } = await supabase.from('dogs').select('id, name').in('id', allDogIds)
           if (dogs) dogs.forEach(d => { dogMap[d.id] = d.name })
         }
 
-        const normalized = data.map(w => ({
-          id: w.id,
-          started_at: w.started_at,
-          completed_at: w.completed_at,
-          duration: w.duration || 30,
-          scheduled_time: w.booking?.preferred_time || 'Today',
-          client_name: w.booking?.client?.user?.name || 'Client',
-          address: w.booking?.client?.address || '',
-          dog_names: (w.booking?.dog_ids || []).map(id => dogMap[id]).filter(Boolean).join(' & ') || 'Dog',
-        }))
+        const normalized = data.map(w => {
+          const booking = bookingMap[w.booking_id] || {}
+          const client = clientMap[booking.client_id] || {}
+          return {
+            id: w.id,
+            started_at: w.started_at,
+            completed_at: w.completed_at,
+            duration: w.duration || 30,
+            scheduled_time: booking.preferred_time || 'Today',
+            client_name: client.user?.name || 'Client',
+            address: client.address || '',
+            dog_names: (booking.dog_ids || []).map(id => dogMap[id]).filter(Boolean).join(' & ') || 'Dog',
+          }
+        })
         setWalks(normalized)
       }
     } catch (error) {
