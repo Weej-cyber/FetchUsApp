@@ -87,6 +87,19 @@ function ActiveWalkScreen({ walk, onComplete }) {
         status: 'pending',
       })
     }
+    // Send SMS notification for walk complete
+    try {
+      await supabase.functions.invoke('send-sms-direct', {
+        body: {
+          to_phone: walk.client_phone || null,
+          sms_consent: walk.sms_consent || false,
+          walker_name: 'Your walker',
+          dog_name: walk.dog_name || 'your dog',
+          event_type: 'walk_completed',
+          client_user_id: walk.client_user_id || null,
+        }
+      })
+    } catch (e) { console.error('SMS complete error:', e) }
 
     setSaving(false)
     setSaved(true)
@@ -179,7 +192,7 @@ export function WalkerDashboard() {
     })
 
     const [{ data: todayData }, { data: weekData }, { data: historyData }, { data: activeData }] = await Promise.all([
-      supabase.from('walk_requests').select('*, dogs(name), clients(id, user_id, users(name))').eq('assigned_walker_id', user.id).eq('preferred_date', today).in('status', ['assigned', 'confirmed']).order('preferred_time', { ascending: true }),
+      supabase.from('walk_requests').select('*, dogs(name), clients(id, user_id, users(name, phone, sms_consent))').eq('assigned_walker_id', user.id).eq('preferred_date', today).in('status', ['assigned', 'confirmed', 'in_progress']).order('preferred_time', { ascending: true }),
       supabase.from('walk_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).in('preferred_date', days).in('status', ['assigned', 'confirmed']).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }),
       supabase.from('walks').select('*').eq('walker_id', user.id).not('completed_at', 'is', null).order('completed_at', { ascending: false }).limit(5),
       supabase.from('walks').select('*').eq('walker_id', user.id).is('completed_at', null).not('started_at', 'is', null).limit(1),
@@ -200,14 +213,29 @@ export function WalkerDashboard() {
       started_at: new Date().toISOString(),
       notes: null,
     }).select().single()
-    await supabase.from('walk_requests').update({ status: 'confirmed' }).eq('id', req.id)
+    await supabase.from('walk_requests').update({ status: 'in_progress' }).eq('id', req.id)
     if (walk) {
       setActiveWalk({
         ...walk,
         dog_name: req.dogs?.name,
         client_name: req.clients?.users?.name,
         client_user_id: req.clients?.user_id || null,
+        client_phone: req.clients?.users?.phone || null,
+        sms_consent: req.clients?.users?.sms_consent || false,
       })
+      // Send SMS notification
+      try {
+        await supabase.functions.invoke('send-sms-direct', {
+          body: {
+            to_phone: req.clients?.users?.phone || null,
+            sms_consent: req.clients?.users?.sms_consent || false,
+            walker_name: user?.name || 'Your walker',
+            dog_name: req.dogs?.name || 'your dog',
+            event_type: 'walk_started',
+            client_user_id: req.clients?.user_id || null,
+          }
+        })
+      } catch (e) { console.error('SMS error:', e) }
     }
   }
 
