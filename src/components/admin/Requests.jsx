@@ -31,16 +31,23 @@ export default function AdminRequests() {
     if (!newMessage.trim()) return
     
     try {
+      const { data: { user } } = await supabase.auth.getUser()
       const { error } = await supabase
         .from('broadcast_messages')
-        .insert([
-          { message: newMessage, sender_id: 'admin', status: 'sent' }
-        ])
+        .insert([{
+          title: 'Broadcast',
+          message_text: newMessage,
+          recipient_type: 'all',
+          sent_by: user.id,
+        }])
       
       if (!error) {
         setNewMessage('')
         fetchMessages()
         alert('Broadcast message sent!')
+      } else {
+        console.error('Broadcast error:', error)
+        alert('Failed to send message')
       }
     } catch (error) {
       console.error('Error sending broadcast:', error)
@@ -89,9 +96,9 @@ export default function AdminRequests() {
                 <span className="text-xs text-charcoal-light">
                   {new Date(msg.created_at).toLocaleString()}
                 </span>
-                <span className="status-badge status-confirmed">{msg.status}</span>
+                <span className="status-badge status-confirmed">{msg.recipient_type || 'all'}</span>
               </div>
-              <p className="text-sm">{msg.message}</p>
+              <p className="text-sm">{msg.message_text}</p>
             </Card>
           ))}
         </div>

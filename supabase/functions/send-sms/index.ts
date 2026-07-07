@@ -30,7 +30,7 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get walk details with client phone, walker name, and dog names
+    // Get walk with walker name and booking details
     const { data: walk, error: walkError } = await supabase
       .from("walks")
       .select(`
@@ -40,15 +40,12 @@ serve(async (req) => {
           name
         ),
         booking:booking_id (
+          dog_ids,
           client:client_id (
+            user_id,
             user:user_id (
               phone,
               sms_consent,
-              name
-            )
-          ),
-          dogs:booking_dogs (
-            dog:dog_id (
               name
             )
           )
@@ -65,8 +62,6 @@ serve(async (req) => {
     }
 
     const clientUser = walk.booking?.client?.user;
-    const walkerName = walk.walker?.name || "Your walker";
-    const dogNames = walk.booking?.dogs?.map((d: any) => d.dog?.name).filter(Boolean).join(" & ") || "your dog";
     const clientPhone = clientUser?.phone;
     const smsConsent = clientUser?.sms_consent;
 
@@ -78,7 +73,19 @@ serve(async (req) => {
       });
     }
 
-    // Build message based on event type
+    const walkerName = walk.walker?.name || "Your walker";
+
+    // Look up dog names from dog_ids array
+    let dogNames = "your dog";
+    const dogIds = walk.booking?.dog_ids || [];
+    if (dogIds.length > 0) {
+      const { data: dogs } = await supabase.from("dogs").select("name").in("id", dogIds);
+      if (dogs && dogs.length > 0) {
+        dogNames = dogs.map((d: any) => d.name).join(" & ");
+      }
+    }
+
+    // Build message
     let message = "";
     if (event_type === "walk_started") {
       message = `FetchUs: ${walkerName} has started ${dogNames}'s walk. Reply STOP to opt out.`;
@@ -91,11 +98,11 @@ serve(async (req) => {
       });
     }
 
-    // Format phone number to E.164
+    // Format phone to E.164
     const toPhone = clientPhone.replace(/\D/g, "");
     const formattedPhone = toPhone.startsWith("1") ? `+${toPhone}` : `+1${toPhone}`;
 
-    // Send SMS via Twilio
+    // Send via Twilio
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
     const twilioResponse = await fetch(twilioUrl, {
       method: "POST",
@@ -113,7 +120,7 @@ serve(async (req) => {
     const twilioData = await twilioResponse.json();
     const success = twilioResponse.ok;
 
-    // Log to notifications table
+    // Log to notifications
     await supabase.from("notifications").insert({
       user_id: walk.booking?.client?.user_id || null,
       type: event_type,
