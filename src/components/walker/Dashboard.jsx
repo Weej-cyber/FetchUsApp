@@ -64,17 +64,49 @@ export default function WalkerDashboard() {
       }
 
       const today = new Date().toISOString().split('T')[0]
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('walks')
-        .select('*')
+        .select(`
+          id,
+          started_at,
+          completed_at,
+          duration,
+          created_at,
+          booking:booking_id (
+            preferred_time,
+            client:client_id (
+              address,
+              user:user_id (
+                name
+              )
+            ),
+            dogs:booking_dogs (
+              dog:dog_id (
+                name
+              )
+            )
+          )
+        `)
         .gte('created_at', today)
-        .order('started_at', { ascending: true })
+        .order('created_at', { ascending: true })
+
+      if (error) console.error('Walk fetch error:', error)
 
       if (!data || data.length === 0) {
         setDemoMode(true)
         setWalks(DEMO_WALKS)
       } else {
-        setWalks(data)
+        const normalized = data.map(w => ({
+          id: w.id,
+          started_at: w.started_at,
+          completed_at: w.completed_at,
+          duration: w.duration || 30,
+          scheduled_time: w.booking?.preferred_time || 'Today',
+          client_name: w.booking?.client?.user?.name || 'Client',
+          address: w.booking?.client?.address || '',
+          dog_names: w.booking?.dogs?.map(d => d.dog?.name).filter(Boolean).join(' & ') || 'Dog',
+        }))
+        setWalks(normalized)
       }
     } catch (error) {
       console.error('Error fetching walks:', error)
