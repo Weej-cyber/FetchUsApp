@@ -176,7 +176,7 @@ export function WalkerDashboard() {
   const [weekWalks, setWeekWalks] = useState([])
   const [history, setHistory] = useState([])
 
-  useEffect(() => { fetchAll() }, [])
+  useEffect(() => { if (user?.id) fetchAll() }, [user?.id])
 
   async function fetchAll() {
     setLoading(true)
