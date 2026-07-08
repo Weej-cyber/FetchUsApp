@@ -91,12 +91,10 @@ function ActiveWalkScreen({ walk, onComplete }) {
     try {
       await supabase.functions.invoke('send-sms-direct', {
         body: {
-          to_phone: walk.client_phone || null,
-          sms_consent: walk.sms_consent || false,
-          walker_name: 'Your walker',
+          walker_name: walk.client_name || 'Your walker',
           dog_name: walk.dog_name || 'your dog',
           event_type: 'walk_completed',
-          client_user_id: walk.client_user_id || null,
+          client_id: walk.client_id || null,
         }
       })
     } catch (e) { console.error('SMS complete error:', e) }
@@ -219,6 +217,7 @@ export function WalkerDashboard() {
         ...walk,
         dog_name: req.dogs?.name,
         client_name: req.clients?.users?.name,
+        client_id: req.client_id || null,
         client_user_id: req.clients?.user_id || null,
         client_phone: req.clients?.users?.phone || null,
         sms_consent: req.clients?.users?.sms_consent || false,
@@ -227,12 +226,10 @@ export function WalkerDashboard() {
       try {
         await supabase.functions.invoke('send-sms-direct', {
           body: {
-            to_phone: req.clients?.users?.phone || null,
-            sms_consent: req.clients?.users?.sms_consent || false,
             walker_name: user?.name || 'Your walker',
             dog_name: req.dogs?.name || 'your dog',
             event_type: 'walk_started',
-            client_user_id: req.clients?.user_id || null,
+            client_id: req.client_id || null,
           }
         })
       } catch (e) { console.error('SMS error:', e) }
