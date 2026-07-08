@@ -217,7 +217,7 @@ export function WalkerDashboard() {
         ...walk,
         dog_name: req.dogs?.name,
         client_name: req.clients?.users?.name,
-        client_id: req.client_id || null,
+        client_id: req.clients?.id || null,
         client_user_id: req.clients?.user_id || null,
         client_phone: req.clients?.users?.phone || null,
         sms_consent: req.clients?.users?.sms_consent || false,
@@ -229,7 +229,7 @@ export function WalkerDashboard() {
             walker_name: user?.name || 'Your walker',
             dog_name: req.dogs?.name || 'your dog',
             event_type: 'walk_started',
-            client_id: req.client_id || null,
+            client_id: req.clients?.id || null,
           }
         })
       } catch (e) { console.error('SMS error:', e) }
