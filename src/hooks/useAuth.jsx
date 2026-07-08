@@ -40,8 +40,10 @@ export function AuthProvider({ children }) {
 
     if (error) {
       console.error('Role lookup failed:', error.message)
-      setRoleState('client')
-      setDbRole(false)
+      // Fall back to metadata role if DB lookup fails
+      const metaRole = session.user.user_metadata?.role || 'client'
+      setRoleState(metaRole)
+      setDbRole(metaRole === 'admin')
       setLoading(false)
       return
     }
