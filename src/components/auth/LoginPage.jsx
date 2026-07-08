@@ -3,11 +3,9 @@ import { supabase } from "../../lib/supabase";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
-  const [smsConsent, setSmsConsent] = useState(false);
 
   const handleSubmit = async () => {
     if (!email.trim()) return;
@@ -18,7 +16,6 @@ export default function LoginPage() {
         email: email.trim(),
         options: {
           emailRedirectTo: window.location.origin,
-          data: { phone: phone.trim() },
         },
       });
       if (error) throw error;
@@ -150,26 +147,7 @@ export default function LoginPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                   style={{ width: "100%", padding: "13px 16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.2)", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 600 }}
                 />
-                <input
-                  type="tel"
-                  placeholder="Phone (optional, for SMS alerts)"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                  style={{ width: "100%", padding: "13px 16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.2)", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 600 }}
-                />
                 {error && <p style={{ color: "#FCA5A5", fontSize: "13px", marginTop: "-4px", fontWeight: 700 }}>{error}</p>}
-                <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={smsConsent}
-                    onChange={(e) => setSmsConsent(e.target.checked)}
-                    style={{ marginTop: "3px", width: "16px", height: "16px", accentColor: "#C4B5FD", flexShrink: 0 }}
-                  />
-                  <span style={{ fontSize: "13px", color: "#D4BBFF", lineHeight: 1.6, fontWeight: 600 }}>
-                    I agree to receive SMS notifications from FetchUs LLC about my dog walk bookings. Msg &amp; data rates may apply. Reply STOP to opt out. <a href="/privacy" style={{ color: "#C4B5FD" }}>Privacy Policy</a> &amp; <a href="/terms" style={{ color: "#C4B5FD" }}>Terms</a>.
-                  </span>
-                </label>
                 <button
                   onClick={handleSubmit}
                   disabled={loading || !email.trim()}
@@ -188,17 +166,7 @@ export default function LoginPage() {
         <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px" }}>
           <p style={{ fontSize: "12px", fontWeight: 800, color: "#C4B5FD", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>About FetchUs</p>
           <p style={{ fontSize: "15px", color: "#E0D8FF", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
-            FetchUs is a professional dog walking management platform operated by FetchUs LLC. The platform serves pet owners and professional dog walkers through a secure, invitation-based system. Clients may opt in to receive SMS notifications about their dog walk status.
-          </p>
-        </div>
-      </div>
-
-      {/* SMS Consent Disclosure */}
-      <div style={{ background: "rgba(252,211,77,0.07)", borderTop: "1px solid rgba(252,211,77,0.2)", borderBottom: "1px solid rgba(252,211,77,0.2)" }}>
-        <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px" }}>
-          <p style={{ fontSize: "12px", fontWeight: 800, color: "#FCD34D", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>SMS Notification Consent</p>
-          <p style={{ fontSize: "15px", color: "#FFF8E0", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
-            FetchUs offers SMS notifications to keep you informed about your dog walks. You may decline SMS messaging and still use FetchUs. To opt in, provide your phone number and check the consent box above. If you choose to opt in, you agree to receive automated text messages from FetchUs LLC regarding walk confirmations, walker arrival, walk start, and walk completion. Message frequency varies. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. No mobile data will be shared with third parties or affiliates for marketing or promotional purposes at any time. See our <a href="/privacy" style={{ color: "#FCD34D" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "#FCD34D" }}>Terms of Service</a> for more information.
+            FetchUs is a professional dog walking management platform operated by FetchUs LLC. The platform serves pet owners and professional dog walkers through a secure, invitation-based system. SMS notifications about your dog walk status are a required part of using FetchUs.
           </p>
         </div>
       </div>
