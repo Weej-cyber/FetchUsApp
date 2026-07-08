@@ -88,16 +88,16 @@ function ActiveWalkScreen({ walk, onComplete }) {
       })
     }
     // Send SMS notification for walk complete
-    if (walk.client_phone && walk.sms_consent) {
-      try {
-        await supabase.functions.invoke('send-sms-direct', {
-          body: {
-            to_phone: walk.client_phone,
-            message: `FetchUs: Your walker has completed ${walk.dog_name || 'your dog'}'s walk. Have a great day! Reply STOP to opt out.`,
-          }
-        })
-      } catch (e) { console.error('SMS complete error:', e) }
-    }
+    try {
+      await supabase.functions.invoke('send-sms-direct', {
+        body: {
+          client_id: walk.client_id,
+          walker_name: 'Your walker',
+          dog_name: walk.dog_name || 'your dog',
+          event_type: 'walk_completed',
+        }
+      })
+    } catch (e) { console.error('SMS complete error:', e) }
 
     setSaving(false)
     setSaved(true)
@@ -222,19 +222,17 @@ export function WalkerDashboard() {
         client_phone: req.clients?.users?.phone || null,
         sms_consent: req.clients?.users?.sms_consent || false,
       })
-      // Send SMS notification
-      const clientPhone = req.clients?.users?.phone
-      const smsConsent = req.clients?.users?.sms_consent
-      if (clientPhone && smsConsent) {
-        try {
-          await supabase.functions.invoke('send-sms-direct', {
-            body: {
-              to_phone: clientPhone,
-              message: `FetchUs: ${user?.name || 'Your walker'} has started ${req.dogs?.name || 'your dog'}'s walk. Reply STOP to opt out.`,
-            }
-          })
-        } catch (e) { console.error('SMS error:', e) }
-      }
+      // Send SMS notification using client_id -- edge function looks up phone via SECURITY DEFINER
+      try {
+        await supabase.functions.invoke('send-sms-direct', {
+          body: {
+            client_id: req.client_id,
+            walker_name: user?.name || 'Your walker',
+            dog_name: req.dogs?.name || 'your dog',
+            event_type: 'walk_started',
+          }
+        })
+      } catch (e) { console.error('SMS error:', e) }
     }
   }
 
