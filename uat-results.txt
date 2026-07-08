@@ -1,13 +1,13 @@
-[DEBUG admin] localStorage_stored:1813b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Client | — | WALKS TODAY | — | PENDING REQUESTS | — | ACTIVE CLIENTS | — | WALKERS | Manage | WALK REQUESTS | No walk requests y
-[DEBUG walker] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Wednesday, July 8 | Sign Out | Today | 🎉 | No walks today | Coming Up | Nothing scheduled this week | Recent | No completed walks yet
-[DEBUG client] localStorage_stored:1820b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Pet Parent | No upcoming walks scheduled | Sign Out | 🐕 My Dogs | 🐾 | No dogs added yet | Add your first pup to get started | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 
+[DEBUG admin] localStorage_stored:1813b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Client | 1 | WALKS TODAY | 21 | PENDING REQUESTS | 3 | ACTIVE CLIENTS | 3 | WALKERS | Recent Activity | Walk request: Snoops (30
+[DEBUG walker] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Wednesday, July 8 | Sign Out | Today | 🎉 | No walks today | Coming Up | Nothing scheduled this week | Recent | Wed, May 27 | Completed | 0 | Wed, May 27 | Completed | 0 | Wed, May 27 | Com
+[DEBUG client] localStorage_stored:1820b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Test Client | Next walk: Sat, Jun 20 at 9:30 AM | Sign Out | 🐕 My Dogs | 🐕 | Buddy | Golden Retriever · 3 yrs | tap to edit | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 
 
 FETCHUS UAT RESULTS
 ============================================================
-Total: 21 | Pass: 13 | Fail: 7 | Skip: 1
+Total: 21 | Pass: 16 | Fail: 4 | Skip: 1
 ============================================================
 
-ADMIN (5/8 passed)
+ADMIN (7/8 passed)
   [PASS] A-01 -- Log in -- land on admin dashboard
          "Admin Portal"
   [PASS] A-02 -- Add a new client
@@ -16,10 +16,10 @@ ADMIN (5/8 passed)
          Dog management is in client portal, not admin
   [PASS] A-04 -- View walk requests
          "Walk Requests"
-  [FAIL] A-05 -- View scheduled walks
-         Not found
-  [FAIL] A-06 -- View completed walk history
-         Not found
+  [PASS] A-05 -- View scheduled walks
+         "30-min Walk"
+  [PASS] A-06 -- View completed walk history
+         "Recent"
   [PASS] A-07 -- Broadcast / notifications
          "Broadcast Message"
   [PASS] A-08 -- Log out
@@ -37,13 +37,13 @@ WALKER (3/6 passed)
          "Recent"
   [PASS] W-07 -- Log out
 
-CLIENT (5/7 passed)
+CLIENT (6/7 passed)
   [PASS] C-01 -- Log in -- land on client portal
          "Welcome back"
   [PASS] C-02 -- View dogs
-         "🐕 My Dogs"
-  [FAIL] C-03 -- Request a walk
-         steps: book_btns:1 | form:true | svc_btns:1 | selects:0 | dates:1 | slots:1 | submit_exists:1|disabled:null | confirmed:false|err:0|dateErr:0
+         "Buddy"
+  [PASS] C-03 -- Request a walk
+         "Request Sent!"
   [PASS] C-04 -- Check booking status
          "🦮 My Walks"
   [FAIL] C-05 -- View completed walk
