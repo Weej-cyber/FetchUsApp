@@ -1,17 +1,17 @@
-[DEBUG admin] localStorage_stored:1813b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Pet Parent | No upcoming walks scheduled | Sign Out | 🐕 My Dogs | 🐾 | No dogs added yet | Add your first pup to get started | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 
-[DEBUG walker] localStorage_stored:1820b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Pet Parent | No upcoming walks scheduled | Sign Out | 🐕 My Dogs | 🐾 | No dogs added yet | Add your first pup to get started | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 
+[DEBUG admin] localStorage_stored:1813b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Client | — | WALKS TODAY | — | PENDING REQUESTS | — | ACTIVE CLIENTS | — | WALKERS | Manage | WALK REQUESTS | No walk requests y
+[DEBUG walker] localStorage_stored:1820b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Wednesday, July 8 | Sign Out | Today | 🎉 | No walks today | Coming Up | Nothing scheduled this week | Recent | No completed walks yet
 [DEBUG client] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Pet Parent | No upcoming walks scheduled | Sign Out | 🐕 My Dogs | 🐾 | No dogs added yet | Add your first pup to get started | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 
 
 FETCHUS UAT RESULTS
 ============================================================
-Total: 21 | Pass: 10 | Fail: 10 | Skip: 1
+Total: 21 | Pass: 13 | Fail: 7 | Skip: 1
 ============================================================
 
-ADMIN (3/8 passed)
+ADMIN (5/8 passed)
   [PASS] A-01 -- Log in -- land on admin dashboard
-         "Walk Requests"
-  [FAIL] A-02 -- Add a new client
-         Add Client button not found
+         "Admin Portal"
+  [PASS] A-02 -- Add a new client
+         "magic link"
   [SKIP] A-03 -- Add dog to client
          Dog management is in client portal, not admin
   [PASS] A-04 -- View walk requests
@@ -20,11 +20,11 @@ ADMIN (3/8 passed)
          Not found
   [FAIL] A-06 -- View completed walk history
          Not found
-  [FAIL] A-07 -- Broadcast / notifications
-         Not found
+  [PASS] A-07 -- Broadcast / notifications
+         "Broadcast Message"
   [PASS] A-08 -- Log out
 
-WALKER (2/6 passed)
+WALKER (3/6 passed)
   [PASS] W-01 -- Log in -- land on walker dashboard
          "My Walks"
   [FAIL] W-02 -- View assigned walks
@@ -33,8 +33,8 @@ WALKER (2/6 passed)
          Start Walk not found
   [FAIL] W-04 -- Complete the walk
          Complete Walk not found
-  [FAIL] W-06 -- View walk history
-         Not found
+  [PASS] W-06 -- View walk history
+         "Recent"
   [PASS] W-07 -- Log out
 
 CLIENT (5/7 passed)
