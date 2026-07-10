@@ -217,11 +217,11 @@
         <tr><td>Supabase Project URL</td><td>https://rwauwkrdzcesyhwpaeow.supabase.co</td></tr>
         <tr><td>Supabase Project ID</td><td>rwauwkrdzcesyhwpaeow</td></tr>
         <tr><td>Supabase Anon (Publishable) Key</td><td>sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4</td></tr>
-        <tr><td>Supabase Service Role Key</td><td>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXV3a3JkemNlc3lod3BhZW93Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTgwODIyNywiZXhwIjoyMDg1Mzg0MjI3fQ.bRMPmKnuhdlxYBnS65bpmzUo2fciyuscGfgCH2_siPc</td></tr>
-        <tr><td>Browserbase API Key (UAT)</td><td>bb_live_sm-Jsu6SFgJ16OBCY-lqZxlp8_U</td></tr>
-        <tr><td>UAT Admin Email</td><td>fetchusadmin@test.com / FetchTest1!</td></tr>
-        <tr><td>UAT Walker Email</td><td>fetchuswalker@test.com / FetchTest1!</td></tr>
-        <tr><td>UAT Client Email</td><td>fetchusclient@test.com / FetchTest1!</td></tr>
+        <tr><td>Supabase Service Role Key</td><td>Rotated. Legacy JWT-based keys disabled — see Supabase Secret API key in dashboard.</td></tr>
+        <tr><td>Browserbase API Key (UAT)</td><td>Not currently used — UAT runs local Playwright chromium, not Browserbase. Revoke if still active on Browserbase's dashboard.</td></tr>
+        <tr><td>UAT Admin Email</td><td>fetchusadmin@test.com / [stored in UAT_ADMIN_PASSWORD secret]</td></tr>
+        <tr><td>UAT Walker Email</td><td>fetchuswalker@test.com / [stored in UAT_ADMIN_PASSWORD secret]</td></tr>
+        <tr><td>UAT Client Email</td><td>fetchusclient@test.com / [stored in UAT_ADMIN_PASSWORD secret]</td></tr>
         <tr><td>Admin (Nancy)</td><td>fetchus2022@gmail.com</td></tr>
       </tbody>
     </table>
@@ -303,7 +303,7 @@ vercel.com > FetchUs project > Deployments tab</div>
 fetchusadmin@test.com   -- role: admin
 fetchuswalker@test.com  -- role: walker
 fetchusclient@test.com  -- role: client
-password for all three: FetchTest1!
+password for all three: [stored in UAT_ADMIN_PASSWORD secret]
 
 # Auth method: password signin via /auth/v1/token?grant_type=password
 # Session injected into localStorage before page load
@@ -314,6 +314,7 @@ GitHub repo > Actions tab > FetchUs UAT > Run workflow</div>
     <div class="callout">
       <strong>If tests fail with "Database error querying schema":</strong> The test users' confirmation_token field in auth.users has reverted to NULL. Fix with:<br><br>
       <code>UPDATE auth.users SET confirmation_token='', recovery_token='', email_change_token_new='', email_change='' WHERE email LIKE 'fetchus%@test.com';</code>
+      <br><br>Test account password is stored in the <code>UAT_ADMIN_PASSWORD</code> GitHub Actions secret, not documented here.
     </div>
   </div>
 

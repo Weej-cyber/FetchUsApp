@@ -20,10 +20,12 @@ function record(id, title, status, note = '') {
 
 async function getSession(email) {
   const ANON_KEY = 'sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4';
+  const TEST_PASSWORD = process.env.UAT_ADMIN_PASSWORD;
+  if (!TEST_PASSWORD) throw new Error('Missing UAT_ADMIN_PASSWORD env var');
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
     headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password: 'FetchTest1!' }),
+    body: JSON.stringify({ email, password: TEST_PASSWORD }),
   });
   if (!res.ok) throw new Error(`Auth failed for ${email}: ${await res.text()}`);
   const data = await res.json();

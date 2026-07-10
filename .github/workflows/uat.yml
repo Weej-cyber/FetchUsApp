@@ -62,6 +62,7 @@ jobs:
         working-directory: uat
         env:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          UAT_ADMIN_PASSWORD: ${{ secrets.UAT_ADMIN_PASSWORD }}
         run: node uat.js
         continue-on-error: true
 

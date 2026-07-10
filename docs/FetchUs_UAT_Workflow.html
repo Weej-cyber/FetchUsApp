@@ -223,7 +223,7 @@
     <p>Second, the test script calls the standard password sign-in endpoint to get a session, then injects that session into the browser's localStorage before the app loads. The localStorage key the app uses is derived from the Supabase project URL by the supabase-js library: <code>sb-rwauwkrdzcesyhwpaeow-auth-token</code>.</p>
     <div class="code-block">// Auth flow in uat.js
 POST /auth/v1/token?grant_type=password
-{ email: "fetchusadmin@test.com", password: "FetchTest1!" }
+{ email: "fetchusadmin@test.com", password: "[stored in UAT_ADMIN_PASSWORD secret]" }
 → returns full session object including user
 
 // Session injected into browser localStorage before page load
@@ -246,9 +246,9 @@ localStorage.setItem('sb-rwauwkrdzcesyhwpaeow-auth-token', JSON.stringify(sessio
   <div class="section">
     <div class="section-label">Test Users</div>
     <h2>Test Accounts</h2>
-    <div class="card"><div class="card-title">fetchusadmin@test.com</div><p>Role: admin. Password: FetchTest1! — Used for A-01 through A-08.</p></div>
-    <div class="card"><div class="card-title">fetchuswalker@test.com</div><p>Role: walker. Password: FetchTest1! — Used for W-01 through W-07.</p></div>
-    <div class="card"><div class="card-title">fetchusclient@test.com</div><p>Role: client. Password: FetchTest1! — Used for C-01 through C-07.</p></div>
+    <div class="card"><div class="card-title">fetchusadmin@test.com</div><p>Role: admin. Password: [stored in UAT_ADMIN_PASSWORD secret] — Used for A-01 through A-08.</p></div>
+    <div class="card"><div class="card-title">fetchuswalker@test.com</div><p>Role: walker. Password: [stored in UAT_ADMIN_PASSWORD secret] — Used for W-01 through W-07.</p></div>
+    <div class="card"><div class="card-title">fetchusclient@test.com</div><p>Role: client. Password: [stored in UAT_ADMIN_PASSWORD secret] — Used for C-01 through C-07.</p></div>
     <div class="callout">
       <strong>These are synthetic accounts.</strong> No email ever gets sent. They exist only in Supabase auth and public.users. They can be deleted after UAT is complete. All three have confirmation_token, recovery_token, email_change_token_new, and email_change set to empty strings — this is required for password auth to work on SQL-created users.
     </div>
