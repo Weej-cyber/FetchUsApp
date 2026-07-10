@@ -168,13 +168,6 @@ export default function ClientPortal() {
       preferred_time: bookForm.preferred_time, notes: bookForm.notes || null, status: 'pending',
     })
     if (error) { setBookError('Something went wrong. Please try again.'); setBookSubmitting(false); return }
-    await supabase.from('notifications').insert({
-      user_id: 'ebabd25d-bad4-4f72-8513-32c7d2c49121',
-      type: 'walk_request',
-      message: `New walk request: ${bookForm.service_type} on ${bookForm.preferred_date} at ${bookForm.preferred_time}.`,
-      phone: '6468018402',
-      status: 'pending',
-    })
     setBookSubmitting(false)
     setBookSubmitted(true)
     setTimeout(() => { setBookSubmitted(false); setShowBook(false); setBookForm({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' }); loadAll() }, 2500)
