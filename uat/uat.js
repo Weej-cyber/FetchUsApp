@@ -166,6 +166,16 @@ async function runWalkerTests(page) {
 
 async function runClientTests(page) {
   console.log('\n── Client ────────────────────────────────────────');
+  // The client portal loads profile + dogs asynchronously after mount. Wait for that fetch
+  // to actually resolve (either a dog shows up, or the empty-state text does) before
+  // interacting -- a fixed timeout here was racing ahead of the data load and made the
+  // booking flow test unreliable (dog dropdown/clientId not ready yet).
+  await Promise.race([
+    page.locator('text=Buddy').first().waitFor({ timeout: 8000 }).catch(() => {}),
+    page.locator('text=No dogs added yet').first().waitFor({ timeout: 8000 }).catch(() => {}),
+  ]);
+  await page.waitForTimeout(500);
+
   const landed = await findFirst(page, ['Welcome back', 'Viewing as Client', '🐕 My Dogs', '📅 Book a Walk']);
   record('C-01', 'Log in -- land on client portal', landed ? 'PASS' : 'FAIL', landed ? `"${landed}"` : 'Not found');
 
@@ -196,7 +206,10 @@ async function runClientTests(page) {
     // Step 5: fill date
     const dates = await page.locator('input[type="date"]').count();
     steps.push(`dates:${dates}`);
-    if (dates > 0) await page.locator('input[type="date"]').first().fill('2026-06-20');
+    if (dates > 0) {
+      const future = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 5 days out
+      await page.locator('input[type="date"]').first().fill(future);
+    }
     await page.waitForTimeout(300);
     // Step 6: click time slot button
     const slots = await page.locator('button:has-text("9:30 AM")').count();
