@@ -333,6 +333,3 @@ export function WalkerDashboard() {
     </div>
   )
 }
-
-export function WalkerSchedule() { return null }
-export function WalkerHistory() { return null }

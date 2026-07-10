@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import LoginPage from './components/auth/LoginPage'
 import ClientPortal from './components/client/ClientPortal'
-import { WalkerDashboard, WalkerSchedule, WalkerHistory } from './components/walker/WalkerPages'
+import { WalkerDashboard } from './components/walker/WalkerPages'
 import AdminPortal from './components/admin/AdminPages'
 import PrivacyPolicy from './components/legal/PrivacyPolicy'
 import TermsOfService from './components/legal/TermsOfService'
@@ -29,8 +29,6 @@ function AppRoutes() {
       <Route path="/client" element={<ProtectedRoute allowedRoles={['client']}><ClientPortal /></ProtectedRoute>} />
       <Route path="/client/*" element={<Navigate to="/client" replace />} />
       <Route path="/walker" element={<ProtectedRoute allowedRoles={['walker']}><WalkerDashboard /></ProtectedRoute>} />
-      <Route path="/walker/schedule" element={<ProtectedRoute allowedRoles={['walker']}><WalkerSchedule /></ProtectedRoute>} />
-      <Route path="/walker/history" element={<ProtectedRoute allowedRoles={['walker']}><WalkerHistory /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminPortal /></ProtectedRoute>} />
       <Route path="/" element={user && role ? <Navigate to={`/${role}`} replace /> : <Navigate to="/login" replace />} />
       <Route path="*" element={user && role ? <Navigate to={`/${role}`} replace /> : <Navigate to="/login" replace />} />
