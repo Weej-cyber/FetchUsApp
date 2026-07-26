@@ -246,6 +246,9 @@ function ClientsAndWalkersSection() {
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [addError, setAddError] = useState('')
   const [search, setSearch] = useState('')
+  const [showDeactivated, setShowDeactivated] = useState(false)
+  const [deactivated, setDeactivated] = useState([])
+  const [loadingDeactivated, setLoadingDeactivated] = useState(false)
 
   useEffect(() => { loadAll() }, [])
 
@@ -275,6 +278,33 @@ function ClientsAndWalkersSection() {
       window.alert('Could not delete this user: ' + error.message)
       return
     }
+    loadAll()
+  }
+
+  async function loadDeactivated() {
+    setLoadingDeactivated(true)
+    const { data } = await supabase
+      .from('users')
+      .select('id, name, email, phone, role')
+      .eq('is_active', false)
+      .order('name')
+    setDeactivated(data || [])
+    setLoadingDeactivated(false)
+  }
+
+  function toggleDeactivated() {
+    const next = !showDeactivated
+    setShowDeactivated(next)
+    if (next) loadDeactivated()
+  }
+
+  async function handleReactivate(id) {
+    const { error } = await supabase.from('users').update({ is_active: true }).eq('id', id)
+    if (error) {
+      window.alert('Could not reactivate this user: ' + error.message)
+      return
+    }
+    loadDeactivated()
     loadAll()
   }
 
@@ -309,6 +339,9 @@ function ClientsAndWalkersSection() {
     <div>
       <SectionHeader title="Clients & Walkers" action={
         <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={toggleDeactivated} style={{ ...saveBtnStyle, background: showDeactivated ? '#636e72' : '#B2BEC3', color: '#2D3436' }}>
+            {showDeactivated ? 'Hide Deactivated' : 'View Deactivated'}
+          </button>
           <button onClick={() => openAddForm('walker')} style={{ ...saveBtnStyle, background: '#2D9B8A' }}>+ Add Walker</button>
           <button onClick={() => openAddForm('client')} style={saveBtnStyle}>+ Add Client</button>
         </div>
@@ -341,6 +374,30 @@ function ClientsAndWalkersSection() {
             </>
           )}
         </form>
+      )}
+
+      {showDeactivated && (
+        <div style={{ background: '#FFF8E7', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 16, borderLeft: '4px solid #D4A843' }}>
+          <div style={{ fontWeight: 700, marginBottom: 12, color: '#2D3436', fontSize: '0.9rem' }}>
+            Deactivated Accounts ({deactivated.length})
+          </div>
+          {loadingDeactivated ? <EmptyState message="Loading..." /> : (
+            deactivated.length === 0
+              ? <EmptyState message="No deactivated accounts." />
+              : deactivated.map(u => (
+                <div key={u.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#2D3436' }}>{u.name || '(no name)'}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#636e72' }}>{u.email}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ background: '#F1F1F1', color: '#636e72', borderRadius: 12, padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700, textTransform: 'capitalize' }}>{u.role}</span>
+                    <button onClick={() => handleReactivate(u.id)} style={{ background: 'none', border: 'none', color: '#2D9B8A', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}>Reactivate</button>
+                  </div>
+                </div>
+              ))
+          )}
+        </div>
       )}
 
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients and walkers..." style={{ ...inputStyle, marginBottom: 16, width: '100%', boxSizing: 'border-box' }} />
