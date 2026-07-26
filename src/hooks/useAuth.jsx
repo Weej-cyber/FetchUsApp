@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
 
     const { data, error } = await supabase
       .from('users')
-      .select('role')
+      .select('role, is_active')
       .eq('id', session.user.id)
       .maybeSingle()
 
@@ -44,6 +44,15 @@ export function AuthProvider({ children }) {
       const metaRole = session.user.user_metadata?.role || 'client'
       setRoleState(metaRole)
       setDbRole(metaRole === 'admin')
+      setLoading(false)
+      return
+    }
+
+    if (data && data.is_active === false) {
+      await supabase.auth.signOut()
+      setUser(null)
+      setRoleState(null)
+      setDbRole(false)
       setLoading(false)
       return
     }

@@ -114,7 +114,7 @@ function BroadcastPanel() {
   async function sendBroadcast() {
     if (!message.trim()) return
     setSending(true)
-    const { data: clients } = await supabase.from('users').select('id, phone').eq('role', 'client').not('phone', 'is', null)
+    const { data: clients } = await supabase.from('users').select('id, phone').eq('role', 'client').eq('is_active', true).not('phone', 'is', null)
     if (clients?.length) {
       await supabase.from('notifications').insert(clients.map(c => ({ user_id: c.id, type: 'broadcast', message: message.trim(), phone: c.phone, status: 'pending' })))
     }
@@ -252,8 +252,8 @@ function ClientsAndWalkersSection() {
   async function loadAll() {
     setLoading(true)
     const [{ data: c }, { data: w }] = await Promise.all([
-      supabase.from('users').select('id, name, email, phone, created_at').eq('role', 'client').order('name'),
-      supabase.from('users').select('id, name, email, phone, created_at').eq('role', 'walker').order('name'),
+      supabase.from('users').select('id, name, email, phone, created_at').eq('role', 'client').eq('is_active', true).order('name'),
+      supabase.from('users').select('id, name, email, phone, created_at').eq('role', 'walker').eq('is_active', true).order('name'),
     ])
     if (c) setClients(c)
     if (w) setWalkers(w)
@@ -270,7 +270,11 @@ function ClientsAndWalkersSection() {
 
   async function handleDelete(id) {
     if (!window.confirm('Are you sure you want to delete this user?')) return
-    await supabase.from('users').delete().eq('id', id)
+    const { error } = await supabase.from('users').update({ is_active: false }).eq('id', id)
+    if (error) {
+      window.alert('Could not delete this user: ' + error.message)
+      return
+    }
     loadAll()
   }
 
@@ -408,8 +412,8 @@ export default function AdminPortal() {
     const [{ count: walksToday }, { count: pending }, { count: clients }, { count: walkers }] = await Promise.all([
       supabase.from('walk_requests').select('*', { count: 'exact', head: true }).eq('preferred_date', today).in('status', ['assigned', 'confirmed']),
       supabase.from('walk_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'client'),
-      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'walker'),
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'client').eq('is_active', true),
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'walker').eq('is_active', true),
     ])
     setStats({ walksToday, pending, clients, walkers })
   }
@@ -422,12 +426,12 @@ export default function AdminPortal() {
   }
 
   async function loadWalkers() {
-    const { data } = await supabase.from('users').select('id, name').eq('role', 'walker')
+    const { data } = await supabase.from('users').select('id, name').eq('role', 'walker').eq('is_active', true)
     if (data) setWalkers(data)
   }
 
   async function loadActivity() {
-    const { data: newClients } = await supabase.from('users').select('name, created_at').eq('role', 'client').order('created_at', { ascending: false }).limit(3)
+    const { data: newClients } = await supabase.from('users').select('name, created_at').eq('role', 'client').eq('is_active', true).order('created_at', { ascending: false }).limit(3)
     const { data: recentRequests } = await supabase.from('walk_requests').select('id, service_type, created_at, status, dogs(name)').order('created_at', { ascending: false }).limit(3)
     const feed = [
       ...(newClients ?? []).map(c => ({ label: `New client: ${c.name}`, ts: c.created_at })),
