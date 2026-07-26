@@ -1,53 +1,52 @@
-[DEBUG admin] localStorage_stored:1813b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Client | 1 | WALKS TODAY | 23 | PENDING REQUESTS | 3 | ACTIVE CLIENTS | 3 | WALKERS | Recent Activity | Walk request: Buddy (30-
-[DEBUG walker] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Friday, July 10 | Sign Out | Today | 9:30 AM | Buddy | — | 30-min Walk | Start Walk | Coming Up | Nothing scheduled this week | Recent | Thu, Jul 9 | Completed | 32 min | Great walk, Buddy 
-[DEBUG client] localStorage_stored:1821b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | Test Client | Next walk: Fri, Jul 10 at 9:30 AM | Sign Out | 🐕 My Dogs | 🐕 | Buddy | Golden Retriever · 3 yrs | tap to edit | 🐕 | Buddy | Golden Retriever · 3 yrs | tap to edit | + A
-
 FETCHUS UAT RESULTS
 ============================================================
-Total: 21 | Pass: 20 | Fail: 0 | Skip: 1
+Total: 21 | Pass: 0 | Fail: 21 | Skip: 0
 ============================================================
 
-ADMIN (7/8 passed)
-  [PASS] A-01 -- Log in -- land on admin dashboard
-         "Admin Portal"
-  [PASS] A-02 -- Add a new client
-         "magic link"
-  [SKIP] A-03 -- Add dog to client
-         Dog management is in client portal, not admin
-  [PASS] A-04 -- View walk requests
-         "Walk Requests"
-  [PASS] A-05 -- View scheduled walks
-         "30-min Walk"
-  [PASS] A-06 -- View completed walk history
-         "Completed"
-  [PASS] A-07 -- Broadcast / notifications
-         "Broadcast Message"
-  [PASS] A-08 -- Log out
+ADMIN (0/8 passed)
+  [FAIL] A-01 -- Login
+         Auth failed for fetchusadmin@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] A-02 -- Add client
+         Auth failed for fetchusadmin@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] A-03 -- Add dog
+         Auth failed for fetchusadmin@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] A-04 -- Walk requests
+         Auth failed for fetchusadmin@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] A-05 -- Scheduled walks
+         Auth failed for fetchusadmin@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] A-06 -- History
+         Auth failed for fetchusadmin@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] A-07 -- Notifications
+         Auth failed for fetchusadmin@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] A-08 -- Logout
+         Auth failed for fetchusadmin@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
 
-WALKER (6/6 passed)
-  [PASS] W-01 -- Log in -- land on walker dashboard
-         "My Walks"
-  [PASS] W-02 -- View assigned walks
-         "Buddy"
-  [PASS] W-03 -- Start a walk
-         "Walk In Progress"
-  [PASS] W-04 -- Complete the walk
-         "My Walks"
-  [PASS] W-06 -- View walk history
-         "Recent"
-  [PASS] W-07 -- Log out
+WALKER (0/6 passed)
+  [FAIL] W-01 -- Login
+         Auth failed for fetchuswalker@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] W-02 -- Assigned walks
+         Auth failed for fetchuswalker@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] W-03 -- Start walk
+         Auth failed for fetchuswalker@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] W-04 -- Complete walk
+         Auth failed for fetchuswalker@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] W-06 -- History
+         Auth failed for fetchuswalker@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] W-07 -- Logout
+         Auth failed for fetchuswalker@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
 
-CLIENT (7/7 passed)
-  [PASS] C-01 -- Log in -- land on client portal
-         "Welcome back"
-  [PASS] C-02 -- View dogs
-         "Buddy"
-  [PASS] C-03 -- Request a walk
-         "Request Sent!"
-  [PASS] C-04 -- Check booking status
-         "🦮 My Walks"
-  [PASS] C-05 -- View completed walk
-         "Completed"
-  [PASS] C-06 -- Profile section
-         "👤 My Profile"
-  [PASS] C-07 -- Log out
+CLIENT (0/7 passed)
+  [FAIL] C-01 -- Login
+         Auth failed for fetchusclient@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] C-02 -- Dogs
+         Auth failed for fetchusclient@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] C-03 -- Request walk
+         Auth failed for fetchusclient@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] C-04 -- Status
+         Auth failed for fetchusclient@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] C-05 -- Completed walk
+         Auth failed for fetchusclient@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] C-06 -- Profile
+         Auth failed for fetchusclient@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+  [FAIL] C-07 -- Logout
+         Auth failed for fetchusclient@test.com: {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
