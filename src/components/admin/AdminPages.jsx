@@ -3,6 +3,23 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 
+// Looks up active users holding a given role via user_roles, so multi-role
+// users (e.g. an admin who is also a walker or client) are included alongside
+// single-role users. Pass select fields matching what the caller needs.
+async function getUsersByRole(role, fields = 'id, name, email, phone, created_at') {
+  const { data, error } = await supabase
+    .from('user_roles')
+    .select(`users!inner(${fields})`)
+    .eq('role', role)
+    .eq('users.is_active', true)
+  if (error) {
+    console.error(`Failed to load users with role ${role}:`, error.message)
+    return { data: null, error }
+  }
+  const users = (data ?? []).map(r => r.users).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+  return { data: users, error: null }
+}
+
 function timeAgo(ts) {
   const diff = (Date.now() - new Date(ts)) / 1000
   if (diff < 60) return 'just now'
@@ -114,9 +131,10 @@ function BroadcastPanel() {
   async function sendBroadcast() {
     if (!message.trim()) return
     setSending(true)
-    const { data: clients } = await supabase.from('users').select('id, phone').eq('role', 'client').eq('is_active', true).not('phone', 'is', null)
-    if (clients?.length) {
-      await supabase.from('notifications').insert(clients.map(c => ({ user_id: c.id, type: 'broadcast', message: message.trim(), phone: c.phone, status: 'pending' })))
+    const { data: clients } = await getUsersByRole('client', 'id, phone')
+    const withPhone = clients?.filter(c => c.phone) ?? []
+    if (withPhone.length) {
+      await supabase.from('notifications').insert(withPhone.map(c => ({ user_id: c.id, type: 'broadcast', message: message.trim(), phone: c.phone, status: 'pending' })))
     }
     setSending(false)
     setSent(true)
@@ -255,8 +273,8 @@ function ClientsAndWalkersSection() {
   async function loadAll() {
     setLoading(true)
     const [{ data: c }, { data: w }] = await Promise.all([
-      supabase.from('users').select('id, name, email, phone, created_at').eq('role', 'client').eq('is_active', true).order('name'),
-      supabase.from('users').select('id, name, email, phone, created_at').eq('role', 'walker').eq('is_active', true).order('name'),
+      getUsersByRole('client'),
+      getUsersByRole('walker'),
     ])
     if (c) setClients(c)
     if (w) setWalkers(w)
@@ -466,13 +484,13 @@ export default function AdminPortal() {
 
   async function loadStats() {
     const today = new Date().toISOString().split('T')[0]
-    const [{ count: walksToday }, { count: pending }, { count: clients }, { count: walkers }] = await Promise.all([
+    const [{ count: walksToday }, { count: pending }, { data: clientList }, { data: walkerList }] = await Promise.all([
       supabase.from('walk_requests').select('*', { count: 'exact', head: true }).eq('preferred_date', today).in('status', ['assigned', 'confirmed']),
       supabase.from('walk_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'client').eq('is_active', true),
-      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'walker').eq('is_active', true),
+      getUsersByRole('client', 'id'),
+      getUsersByRole('walker', 'id'),
     ])
-    setStats({ walksToday, pending, clients, walkers })
+    setStats({ walksToday, pending, clients: clientList?.length ?? 0, walkers: walkerList?.length ?? 0 })
   }
 
   async function loadRequests() {
@@ -483,12 +501,13 @@ export default function AdminPortal() {
   }
 
   async function loadWalkers() {
-    const { data } = await supabase.from('users').select('id, name').eq('role', 'walker').eq('is_active', true)
+    const { data } = await getUsersByRole('walker', 'id, name')
     if (data) setWalkers(data)
   }
 
   async function loadActivity() {
-    const { data: newClients } = await supabase.from('users').select('name, created_at').eq('role', 'client').eq('is_active', true).order('created_at', { ascending: false }).limit(3)
+    const { data: recentClients } = await getUsersByRole('client', 'name, created_at')
+    const newClients = (recentClients ?? []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3)
     const { data: recentRequests } = await supabase.from('walk_requests').select('id, service_type, created_at, status, dogs(name)').order('created_at', { ascending: false }).limit(3)
     const feed = [
       ...(newClients ?? []).map(c => ({ label: `New client: ${c.name}`, ts: c.created_at })),
