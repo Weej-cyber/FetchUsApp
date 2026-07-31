@@ -91,6 +91,7 @@ export default function LoginPage() {
           </svg>
           <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "30px", color: "#fff", lineHeight: 1 }}>FetchUs</span>
         </div>
+        <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#D4BBFF", fontSize: "15px", margin: "8px 0 0" }}>We love them like you do ❤️</p>
       </div>
 
       {/* Login Form — first thing on the page */}
@@ -139,7 +140,6 @@ export default function LoginPage() {
 
       {/* Hero */}
       <div style={{ background: "linear-gradient(160deg, #5B4B8A 0%, #3D2E6E 100%)", padding: "52px 24px 48px", textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#D4BBFF", fontSize: "17px", margin: "0 0 22px" }}>We love them like you do ❤️</p>
         <h1 style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "clamp(26px, 5vw, 38px)", color: "#fff", lineHeight: 1.2, margin: "0 0 16px" }}>
           Professional Dog Walking,<br /><em style={{ fontStyle: "normal", color: "#C4B5FD" }}>Managed Simply</em>
         </h1>
