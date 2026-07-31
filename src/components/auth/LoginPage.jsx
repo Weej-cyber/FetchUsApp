@@ -80,17 +80,65 @@ export default function LoginPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#4A3880", fontFamily: "'Nunito', sans-serif", WebkitFontSmoothing: "antialiased" }}>
 
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(160deg, #5B4B8A 0%, #3D2E6E 100%)", padding: "52px 24px 48px", textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "14px", marginBottom: "10px" }}>
-          <svg width="52" height="46" viewBox="0 0 48 42" fill="none">
+      {/* Logo bar */}
+      <div style={{ padding: "28px 24px 20px", textAlign: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
+          <svg width="40" height="35" viewBox="0 0 48 42" fill="none">
             <ellipse cx="10" cy="12" rx="5" ry="7" fill="white"/>
             <ellipse cx="24" cy="7" rx="6" ry="8" fill="white"/>
             <ellipse cx="38" cy="12" rx="5" ry="7" fill="white"/>
             <path d="M24 18 C13 18 8 27 10 34 C12 40 18 42 24 42 C30 42 36 40 38 34 C40 27 35 18 24 18Z" fill="white"/>
           </svg>
-          <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "40px", color: "#fff", lineHeight: 1 }}>FetchUs</span>
+          <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "30px", color: "#fff", lineHeight: 1 }}>FetchUs</span>
         </div>
+      </div>
+
+      {/* Login Form — first thing on the page */}
+      <div style={{ padding: "8px 24px 40px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ width: "100%", maxWidth: "400px", background: "#F3EEFF", border: "1px solid #D4BBFF", borderRadius: "16px", padding: "32px 26px", boxShadow: "0 12px 40px rgba(0,0,0,0.35)" }}>
+          {sent ? (
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>📬</div>
+              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#3D2E6E", marginBottom: "8px" }}>Check your email</h2>
+              <p style={{ color: "#5B4B8A", fontSize: "15px", lineHeight: 1.6, fontWeight: 600 }}>
+                We sent a magic link to <strong style={{ color: "#3D2E6E" }}>{email}</strong>. Click it to sign in.
+              </p>
+              <button
+                onClick={() => { setSent(false); setEmail(""); }}
+                style={{ marginTop: "24px", background: "none", border: "none", color: "#7C3AED", fontSize: "14px", cursor: "pointer", fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}
+              >
+                Use a different email
+              </button>
+            </div>
+          ) : (
+            <>
+              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#3D2E6E", marginBottom: "6px" }}>Sign in to FetchUs</h2>
+              <p style={{ color: "#5B4B8A", fontSize: "14px", marginBottom: "22px", lineHeight: 1.6, fontWeight: 600 }}>FetchUs is invite-only. Enter your email and we'll send you a secure link to sign in.</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                  style={{ width: "100%", padding: "13px 16px", borderRadius: "10px", border: "1.5px solid #C4B5FD", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", background: "#fff", color: "#3D2E6E", fontWeight: 600 }}
+                />
+                {error && <p style={{ color: "#B91C1C", fontSize: "13px", marginTop: "-4px", fontWeight: 700 }}>{error}</p>}
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading || !email.trim()}
+                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: loading || !email.trim() ? "#D4C6F0" : "linear-gradient(135deg, #7C3AED, #5B4B8A)", color: "#fff", fontSize: "15px", fontWeight: 800, fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+                >
+                  {loading ? "Sending..." : "Send Magic Link"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(160deg, #5B4B8A 0%, #3D2E6E 100%)", padding: "52px 24px 48px", textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#D4BBFF", fontSize: "17px", margin: "0 0 22px" }}>We love them like you do ❤️</p>
         <h1 style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "clamp(26px, 5vw, 38px)", color: "#fff", lineHeight: 1.2, margin: "0 0 16px" }}>
           Professional Dog Walking,<br /><em style={{ fontStyle: "normal", color: "#C4B5FD" }}>Managed Simply</em>
@@ -114,51 +162,6 @@ export default function LoginPage() {
             <div style={{ fontSize: "12px", color: "#D4BBFF", lineHeight: 1.5, fontWeight: 600 }}>{f.desc}</div>
           </div>
         ))}
-      </div>
-
-      {/* Login Form */}
-      <div style={{ padding: "40px 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <p style={{ fontSize: "12px", fontWeight: 800, color: "#C4B5FD", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "20px" }}>Client &amp; Walker Access</p>
-        <div style={{ width: "100%", maxWidth: "400px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "16px", padding: "28px 24px" }}>
-          {sent ? (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "48px", marginBottom: "16px" }}>📬</div>
-              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#fff", marginBottom: "8px" }}>Check your email</h2>
-              <p style={{ color: "#D4BBFF", fontSize: "15px", lineHeight: 1.6, fontWeight: 600 }}>
-                We sent a magic link to <strong style={{ color: "#fff" }}>{email}</strong>. Click it to sign in.
-              </p>
-              <button
-                onClick={() => { setSent(false); setEmail(""); }}
-                style={{ marginTop: "24px", background: "none", border: "none", color: "#C4B5FD", fontSize: "14px", cursor: "pointer", fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}
-              >
-                Use a different email
-              </button>
-            </div>
-          ) : (
-            <>
-              <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>Sign in to FetchUs</h2>
-              <p style={{ color: "#D4BBFF", fontSize: "14px", marginBottom: "24px", lineHeight: 1.6, fontWeight: 600 }}>FetchUs is invite-only. Enter your email and we'll send you a secure link to sign in.</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                  style={{ width: "100%", padding: "13px 16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.2)", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 600 }}
-                />
-                {error && <p style={{ color: "#FCA5A5", fontSize: "13px", marginTop: "-4px", fontWeight: 700 }}>{error}</p>}
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading || !email.trim()}
-                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: loading || !email.trim() ? "rgba(255,255,255,0.15)" : "linear-gradient(135deg, #7C3AED, #5B4B8A)", color: "#fff", fontSize: "15px", fontWeight: 800, fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}
-                >
-                  {loading ? "Sending..." : "Send Magic Link"}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
       </div>
 
       {/* About */}
