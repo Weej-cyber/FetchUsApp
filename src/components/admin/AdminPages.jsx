@@ -361,7 +361,7 @@ function ClientsAndWalkersSection() {
             {showDeactivated ? 'Hide Deactivated' : 'View Deactivated'}
           </button>
           <button onClick={() => openAddForm('walker')} style={{ ...saveBtnStyle, background: '#2D9B8A' }}>+ Add Walker</button>
-          <button onClick={() => openAddForm('client')} style={saveBtnStyle}>+ Add Client</button>
+          <button onClick={() => openAddForm('client')} style={saveBtnStyle}>+ Add Pet Parent</button>
         </div>
       } />
 
@@ -418,7 +418,7 @@ function ClientsAndWalkersSection() {
         </div>
       )}
 
-      <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients and walkers..." style={{ ...inputStyle, marginBottom: 16, width: '100%', boxSizing: 'border-box' }} />
+      <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pet parents and walkers..." style={{ ...inputStyle, marginBottom: 16, width: '100%', boxSizing: 'border-box' }} />
 
       {loading ? <EmptyState message="Loading..." /> : (
         <>
@@ -446,7 +446,7 @@ function ClientsAndWalkersSection() {
             Clients ({filteredClients.length})
           </div>
           {filteredClients.length === 0
-            ? <EmptyState message="No clients yet." />
+            ? <EmptyState message="No pet parents yet." />
             : filteredClients.map(c => (
               <div key={c.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.06)', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -510,7 +510,7 @@ export default function AdminPortal() {
     const newClients = (recentClients ?? []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3)
     const { data: recentRequests } = await supabase.from('walk_requests').select('id, service_type, created_at, status, dogs(name)').order('created_at', { ascending: false }).limit(3)
     const feed = [
-      ...(newClients ?? []).map(c => ({ label: `New client: ${c.name}`, ts: c.created_at })),
+      ...(newClients ?? []).map(c => ({ label: `New pet parent: ${c.name}`, ts: c.created_at })),
       ...(recentRequests ?? []).map(r => ({ label: `Walk request: ${r.dogs?.name ?? '?'} (${r.service_type}) — ${r.status}`, ts: r.created_at })),
     ].sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 6)
     setActivity(feed)
@@ -556,7 +556,7 @@ export default function AdminPortal() {
         {[
           { role: 'admin', label: 'Admin', color: '#5B4B8A', path: '/admin' },
           { role: 'walker', label: 'Walker', color: '#2D9B8A', path: '/walker' },
-          { role: 'client', label: 'Client', color: '#D4A843', path: '/client' },
+          { role: 'client', label: 'Pet Parent', color: '#D4A843', path: '/client' },
         ].map(r => (
           <button
             key={r.role}

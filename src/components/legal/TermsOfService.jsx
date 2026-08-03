@@ -10,7 +10,7 @@ export default function TermsOfService() {
       </div>
 
       <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', color: '#2D3436', marginTop: 32 }}>1. Service Description</h2>
-      <p>FetchUs is a pet care management platform that connects clients with professional dog walkers. By using FetchUs, you agree to these terms.</p>
+      <p>FetchUs is a pet care management platform that connects pet parents with professional dog walkers. By using FetchUs, you agree to these terms.</p>
 
       <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', color: '#2D3436', marginTop: 32 }}>2. User Accounts</h2>
       <p>You are responsible for maintaining the confidentiality of your account. You must provide accurate information including a valid phone number and address for service delivery.</p>

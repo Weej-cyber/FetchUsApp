@@ -128,7 +128,7 @@ function ActiveWalkScreen({ walk, onComplete }) {
       <div style={{ padding: '24px 20px 48px' }}>
         <div style={{ background: 'white', borderRadius: 14, padding: 18, boxShadow: '0 2px 12px rgba(45,52,54,0.08)', marginBottom: 14 }}>
           <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: C.light, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            Walk Notes <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(sent to client on complete)</span>
+            Walk Notes <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(sent to pet parent on complete)</span>
           </label>
           <textarea
             value={notes}
@@ -161,7 +161,7 @@ function ActiveWalkScreen({ walk, onComplete }) {
         >
           {saving ? 'Saving...' : '✓ Complete Walk'}
         </button>
-        <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#b2bec3', marginTop: 10 }}>Note and photo will be sent to the client.</p>
+        <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#b2bec3', marginTop: 10 }}>Note and photo will be sent to the pet parent.</p>
       </div>
     </div>
   )
