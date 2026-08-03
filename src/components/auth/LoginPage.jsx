@@ -140,8 +140,11 @@ export default function LoginPage() {
 
       {/* Hero */}
       <div style={{ background: "linear-gradient(160deg, #5B4B8A 0%, #3D2E6E 100%)", padding: "52px 24px 48px", textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <h1 style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "clamp(26px, 5vw, 38px)", color: "#fff", lineHeight: 1.3, margin: "0 auto 28px", maxWidth: "560px" }}>
-          FetchUs's private dog walking service — real relationships, real trust, real walks.
+        <p style={{ fontSize: "13px", fontWeight: 700, color: "#E0D8FF", textTransform: "uppercase", letterSpacing: "2px", margin: "0 0 14px" }}>
+          FetchUs's private dog walking service
+        </p>
+        <h1 style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "clamp(28px, 6vw, 44px)", color: "#C4B5FD", lineHeight: 1.25, margin: "0 auto 28px", maxWidth: "560px" }}>
+          Real relationships. Real trust. Real walks.
         </h1>
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           {["Real-Time Updates", "SMS Notifications", "Invite-Only"].map((b, i) => (
