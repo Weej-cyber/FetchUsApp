@@ -68,7 +68,7 @@ export default function LoginPage() {
     },
     {
       title: "Trusted Network",
-      desc: "Verified clients only, by invitation",
+      desc: "Verified pet owners only, by invitation",
       icon: (
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -144,7 +144,7 @@ export default function LoginPage() {
           Professional Dog Walking,<br /><em style={{ fontStyle: "normal", color: "#C4B5FD" }}>Managed Simply</em>
         </h1>
         <p style={{ fontSize: "16px", color: "#E0D8FF", lineHeight: 1.75, maxWidth: "480px", margin: "0 auto 28px", fontWeight: 600 }}>
-          FetchUs's private dog walking service for trusted clients. Real-time SMS updates, booking management, and direct communication with your walker.
+          FetchUs's private dog walking service — real relationships, real trust, real walks.
         </p>
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           {["Real-Time Updates", "SMS Notifications", "Invite-Only"].map((b, i) => (
@@ -172,7 +172,7 @@ export default function LoginPage() {
         <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px" }}>
           <p style={{ fontSize: "12px", fontWeight: 800, color: "#C4B5FD", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>About FetchUs</p>
           <p style={{ fontSize: "15px", color: "#E0D8FF", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
-            FetchUs is the professional dog walking service operated by FetchUs LLC. Clients and walking team members access their accounts through a secure, invitation-based system. SMS notifications about your dog walk status are a required part of using FetchUs.
+            FetchUs is the professional dog walking service operated by FetchUs LLC. Pet owners and walkers access their accounts through a secure, invitation-based system. SMS notifications about your dog walk status are a required part of using FetchUs.
           </p>
         </div>
       </div>
