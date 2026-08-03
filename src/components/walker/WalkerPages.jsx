@@ -79,6 +79,13 @@ function ActiveWalkScreen({ walk, onComplete }) {
       photo_url,
     }).eq('id', walk.id)
 
+    if (walk.walk_request_id) {
+      await supabase.from('walk_requests').update({
+        status: 'completed',
+        notes: notes || null,
+      }).eq('id', walk.walk_request_id)
+    }
+
     if (walk.client_user_id) {
       await supabase.from('notifications').insert({
         user_id: walk.client_user_id,
@@ -208,6 +215,7 @@ export function WalkerDashboard() {
     const { data: walk } = await supabase.from('walks').insert({
       walker_id: user.id,
       booking_id: null,
+      walk_request_id: req.id,
       started_at: new Date().toISOString(),
       notes: null,
     }).select().single()

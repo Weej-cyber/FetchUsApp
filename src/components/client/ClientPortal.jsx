@@ -170,6 +170,18 @@ export default function ClientPortal() {
     if (error) { setBookError('Something went wrong. Please try again.'); setBookSubmitting(false); return }
     setBookSubmitting(false)
     setBookSubmitted(true)
+    const bookedDog = dogs.find(d => d.id === bookForm.dog_id)
+    try {
+      await supabase.functions.invoke('send-sms-direct', {
+        body: {
+          client_id: clientId,
+          event_type: 'new_booking',
+          dog_name: bookedDog?.name || null,
+          preferred_date: bookForm.preferred_date,
+          preferred_time: bookForm.preferred_time,
+        }
+      })
+    } catch (e) { console.error('New booking SMS error:', e) }
     setTimeout(() => { setBookSubmitted(false); setShowBook(false); setBookForm({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' }); loadAll() }, 2500)
   }
 
