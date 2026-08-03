@@ -31,11 +31,11 @@ export default function LoginPage() {
     width: "52px",
     height: "52px",
     margin: "0 auto 14px",
-    background: "rgba(255,255,255,0.12)",
-    borderRadius: "14px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    fontSize: "26px",
+    opacity: 0.85,
   };
 
   const features = [
@@ -146,9 +146,12 @@ export default function LoginPage() {
         <p style={{ fontSize: "16px", color: "#E0D8FF", lineHeight: 1.75, maxWidth: "480px", margin: "0 auto 28px", fontWeight: 600 }}>
           A private platform connecting pet owners with trusted professional dog walkers. Real-time SMS updates, booking management, and direct communication.
         </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap" }}>
-          {["Real-Time Updates", "SMS Notifications", "Invite-Only"].map(b => (
-            <span key={b} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "#fff", fontSize: "13px", fontWeight: 700, padding: "7px 16px", borderRadius: "24px" }}>{b}</span>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          {["Real-Time Updates", "SMS Notifications", "Invite-Only"].map((b, i) => (
+            <span key={b} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {i > 0 && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px" }}>•</span>}
+              <span style={{ color: "#E0D8FF", fontSize: "13px", fontWeight: 700, letterSpacing: "0.3px" }}>{b}</span>
+            </span>
           ))}
         </div>
       </div>
