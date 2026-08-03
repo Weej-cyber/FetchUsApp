@@ -1,6 +1,6 @@
-[DEBUG admin] localStorage_stored:1735b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Pet Parent | 1 | WALKS TODAY | 4 | PENDING REQUESTS | 3 | ACTIVE CLIENTS | 5 | WALKERS | Recent Activity | Walk request: Buddy (
-[DEBUG walker] localStorage_stored:1745b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Monday, August 3 | Sign Out | Today | 9:30 AM | Buddy | — | 30-min Walk | Start Walk | Coming Up | Nothing scheduled this week | Recent | No completed walks yet
-[DEBUG client] localStorage_stored:1745b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | UAT Client | Next walk: Sat, Aug 8 at 9:30 AM | Sign Out | 🐕 My Dogs | 🐕 | Buddy | Test Terrier | tap to edit | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 30-min Walk | 
+[DEBUG admin] localStorage_stored:1736b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/admin | text:Admin Portal | FetchUs Pet Care | Sign Out | VIEW AS | Admin | Walker | Pet Parent | 1 | WALKS TODAY | 1 | PENDING REQUESTS | 3 | ACTIVE CLIENTS | 5 | WALKERS | Recent Activity | Walk request: Buddy (
+[DEBUG walker] localStorage_stored:1745b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/walker | text:My Walks | Monday, August 3 | Sign Out | Today | 9:30 AM | Buddy | — | 30-min Walk | Start Walk | Coming Up | Nothing scheduled this week | Recent | Mon, Aug 3 | Completed | 0
+[DEBUG client] localStorage_stored:1745b | ls_keys:sb-rwauwkrdzcesyhwpaeow-auth-token | after_reload_ls:present | url:https://fetchus.vercel.app/client | text:WELCOME BACK | UAT Client | No upcoming walks scheduled | Sign Out | 🐕 My Dogs | 🐕 | Buddy | Test Terrier | tap to edit | + Add Dog | 📅 Book a Walk | Book a Walk | 🦮 My Walks | 30-min Walk | Buddy
 
 FETCHUS UAT RESULTS
 ============================================================
@@ -19,7 +19,7 @@ ADMIN (7/8 passed)
   [PASS] A-05 -- View scheduled walks
          "30-min Walk"
   [PASS] A-06 -- View completed walk history
-         "Recent"
+         "Completed"
   [PASS] A-07 -- Broadcast / notifications
          "Broadcast Message"
   [PASS] A-08 -- Log out
