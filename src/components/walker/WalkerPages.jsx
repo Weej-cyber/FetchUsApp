@@ -190,15 +190,13 @@ export function WalkerDashboard() {
     if (!user?.id) { setLoading(false); return }
 
     const today = new Date().toISOString().split('T')[0]
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() + i + 1)
-      return d.toISOString().split('T')[0]
-    })
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split('T')[0]
 
     const [{ data: todayData }, { data: weekData }, { data: historyData }, { data: activeData }] = await Promise.all([
       supabase.from('walk_requests').select('*, dogs(name), clients(id, user_id, users(name, phone, sms_consent))').eq('assigned_walker_id', user.id).eq('preferred_date', today).in('status', ['assigned', 'confirmed', 'in_progress']).order('preferred_time', { ascending: true }),
-      supabase.from('walk_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).in('preferred_date', days).in('status', ['assigned', 'confirmed']).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }),
+      supabase.from('walk_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).gte('preferred_date', tomorrowStr).in('status', ['assigned', 'confirmed']).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }),
       supabase.from('walks').select('*').eq('walker_id', user.id).not('completed_at', 'is', null).order('completed_at', { ascending: false }).limit(5),
       supabase.from('walks').select('*').eq('walker_id', user.id).is('completed_at', null).not('started_at', 'is', null).limit(1),
     ])
@@ -312,7 +310,7 @@ export function WalkerDashboard() {
         <SectionHeader title="Coming Up" />
         {weekWalks.length === 0 ? (
           <div style={{ background: 'white', borderRadius: 14, padding: '16px 20px', color: C.light, fontSize: '0.88rem', boxShadow: '0 1px 4px rgba(45,52,54,0.05)' }}>
-            Nothing scheduled this week
+            Nothing scheduled yet
           </div>
         ) : weekWalks.map(w => (
           <div key={w.id} style={{ background: 'white', borderRadius: 12, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.07)', marginBottom: 8 }}>
