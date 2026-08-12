@@ -2,33 +2,28 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
-const TWILIO_API_KEY_SID = Deno.env.get("TWILIO_API_KEY_SID")!;
-const TWILIO_API_KEY_SECRET = Deno.env.get("TWILIO_API_KEY_SECRET")!;
+const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY = "sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4";
+
+async function sendTwilioSms(to: string, body: string) {
+  const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
+  const res = await fetch(twilioUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Basic " + btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`),
+    },
+    body: new URLSearchParams({ To: to, From: TWILIO_PHONE_NUMBER, Body: body }),
+  });
+  const data = await res.json();
+  return { ok: res.ok, data };
+}
 
 function formatPhone(raw: string) {
   const digits = raw.replace(/\D/g, "");
   return digits.startsWith("1") ? `+${digits}` : `+1${digits}`;
-}
-
-async function sendTwilioSms(toPhone: string, message: string) {
-  const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
-  const twilioResponse = await fetch(twilioUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": "Basic " + btoa(`${TWILIO_API_KEY_SID}:${TWILIO_API_KEY_SECRET}`),
-    },
-    body: new URLSearchParams({
-      To: toPhone,
-      From: TWILIO_PHONE_NUMBER,
-      Body: message,
-    }),
-  });
-  const twilioData = await twilioResponse.json();
-  return { success: twilioResponse.ok, twilioData };
 }
 
 serve(async (req) => {
@@ -42,61 +37,81 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    const { event_type } = body;
+    const { client_id, walker_name, dog_name, event_type, preferred_date, preferred_time, check_in_date, check_out_date } = await req.json();
 
-    // Admin-notification events: fan out to every admin with a phone number
-    // and SMS consent on file, rather than a single recipient.
-    if (event_type === "new_walk_request" || event_type === "new_boarding_request") {
-      const { dog_name, client_name, service_type, preferred_date, preferred_time, check_in_date, check_out_date } = body;
-
-      const message = event_type === "new_walk_request"
-        ? `FetchUs: New walk request - ${service_type || "walk"} for ${dog_name || "a dog"} from ${client_name || "a client"} on ${preferred_date} at ${preferred_time}. Reply STOP to opt out.`
-        : `FetchUs: New boarding request for ${dog_name || "a dog"} from ${client_name || "a client"}, ${check_in_date} to ${check_out_date}. Reply STOP to opt out.`;
-
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      const { data: admins } = await supabase
-        .from("users")
-        .select("id, phone")
-        .eq("role", "admin")
-        .eq("sms_consent", true)
-        .not("phone", "is", null);
-
-      const results = [];
-      for (const admin of admins ?? []) {
-        const formattedPhone = formatPhone(admin.phone);
-        const { success } = await sendTwilioSms(formattedPhone, message);
-        await supabase.from("notifications").insert({
-          user_id: admin.id,
-          type: event_type,
-          message,
-          phone: formattedPhone,
-          status: success ? "sent" : "failed",
-        });
-        results.push({ admin_id: admin.id, success });
-      }
-
-      return new Response(JSON.stringify({ success: true, notified: results }), {
+    if (!client_id) {
+      return new Response(JSON.stringify({ skipped: true, reason: "No client_id" }), {
         status: 200,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
     }
 
-    // Single-recipient events: text the client directly (walker-triggered).
-    const { to_phone, sms_consent, walker_name, dog_name, client_user_id } = body;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    if (!to_phone || !sms_consent) {
-      return new Response(JSON.stringify({ skipped: true, reason: "No phone or no SMS consent" }), {
+    if (event_type === "new_booking" || event_type === "new_boarding") {
+      const { data: clientInfo } = await supabase.rpc("get_client_sms_info_by_client", { p_client_id: client_id });
+      const clientName = clientInfo?.[0]?.name || "A pet parent";
+
+      const { data: admins, error: adminErr } = await supabase.rpc("get_admin_sms_recipients");
+      if (adminErr || !admins || admins.length === 0) {
+        return new Response(JSON.stringify({ skipped: true, reason: "No admin recipients", adminErr }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+
+      let message;
+      if (event_type === "new_booking") {
+        const when = preferred_date && preferred_time ? ` on ${preferred_date} at ${preferred_time}` : "";
+        message = `FetchUs: New walk request from ${clientName} for ${dog_name || "their dog"}${when}. Reply STOP to opt out.`;
+      } else {
+        const when = check_in_date && check_out_date ? ` ${check_in_date} to ${check_out_date}` : "";
+        message = `FetchUs: New boarding request from ${clientName} for ${dog_name || "their dog"},${when}. Reply STOP to opt out.`;
+      }
+
+      const results = [];
+      for (const admin of admins) {
+        const formattedPhone = formatPhone(admin.phone);
+        const { ok, data } = await sendTwilioSms(formattedPhone, message);
+        await supabase.from("notifications").insert({
+          user_id: admin.user_id,
+          type: event_type,
+          message,
+          phone: formattedPhone,
+          status: ok ? "sent" : "failed",
+        });
+        results.push({ to: formattedPhone, ok, data });
+      }
+
+      return new Response(JSON.stringify({ success: true, sentTo: results.length, results }), {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    const { data, error } = await supabase.rpc("get_client_sms_info_by_client", { p_client_id: client_id });
+
+    if (error || !data || data.length === 0) {
+      return new Response(JSON.stringify({ skipped: true, reason: "Client not found", error }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    const { phone, sms_consent, user_id } = data[0];
+
+    if (!phone || !sms_consent) {
+      return new Response(JSON.stringify({ skipped: true, reason: "No phone or no consent", phone, sms_consent }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
     }
 
     let message = "";
     if (event_type === "walk_started") {
-      message = `FetchUs: ${walker_name} has started ${dog_name}'s walk. Reply STOP to opt out.`;
+      message = `FetchUs: ${walker_name || 'Your walker'} has started ${dog_name || 'your dog'}'s walk. Reply STOP to opt out.`;
     } else if (event_type === "walk_completed") {
-      message = `FetchUs: ${walker_name} has completed ${dog_name}'s walk. Have a great day! Reply STOP to opt out.`;
+      message = `FetchUs: ${walker_name || 'Your walker'} has completed ${dog_name || 'your dog'}'s walk. Have a great day! Reply STOP to opt out.`;
     } else {
       return new Response(JSON.stringify({ error: "Unknown event_type" }), {
         status: 400,
@@ -104,26 +119,20 @@ serve(async (req) => {
       });
     }
 
-    const formattedPhone = formatPhone(to_phone);
-    const { success, twilioData } = await sendTwilioSms(formattedPhone, message);
+    const formattedPhone = formatPhone(phone);
+    const { ok: success, data: twilioData } = await sendTwilioSms(formattedPhone, message);
 
-    if (client_user_id) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      await supabase.from("notifications").insert({
-        user_id: client_user_id,
-        type: event_type,
-        message,
-        phone: formattedPhone,
-        status: success ? "sent" : "failed",
-      });
-    }
+    await supabase.from("notifications").insert({
+      user_id: user_id || null,
+      type: event_type,
+      message,
+      phone: formattedPhone,
+      status: success ? "sent" : "failed",
+    });
 
-    return new Response(JSON.stringify({ success, twilioData }), {
+    return new Response(JSON.stringify({ success, message, to: formattedPhone, twilioData }), {
       status: success ? 200 : 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
 
   } catch (err) {

@@ -183,10 +183,9 @@ export default function ClientPortal() {
     try {
       await supabase.functions.invoke('send-sms-direct', {
         body: {
-          event_type: 'new_walk_request',
-          client_name: profile.name,
+          client_id: clientId,
+          event_type: 'new_booking',
           dog_name: bookedDog?.name || null,
-          service_type: bookForm.service_type,
           preferred_date: bookForm.preferred_date,
           preferred_time: bookForm.preferred_time,
         }
@@ -213,8 +212,8 @@ export default function ClientPortal() {
     try {
       await supabase.functions.invoke('send-sms-direct', {
         body: {
-          event_type: 'new_boarding_request',
-          client_name: profile.name,
+          client_id: clientId,
+          event_type: 'new_boarding',
           dog_name: boardedDog?.name || null,
           check_in_date: boardForm.check_in_date,
           check_out_date: boardForm.check_out_date,
