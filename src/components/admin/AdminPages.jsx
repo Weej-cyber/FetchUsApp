@@ -115,6 +115,60 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
   )
 }
 
+function BoardingRequestCard({ req, walkers, onDecline, onAssign }) {
+  const [selectedWalker, setSelectedWalker] = useState('')
+  const [assigning, setAssigning] = useState(false)
+  const [showAssign, setShowAssign] = useState(false)
+
+  const statusColors = {
+    pending:   { bg: '#FEF9C3', text: '#92400E' },
+    assigned:  { bg: '#D1FAE5', text: '#065F46' },
+    declined:  { bg: '#FEE2E2', text: '#991B1B' },
+    confirmed: { bg: '#E0E7FF', text: '#3730A3' },
+  }
+  const sc = statusColors[req.status] || statusColors.pending
+
+  async function handleAssign() {
+    if (!selectedWalker) return
+    setAssigning(true)
+    await onAssign(req.id, selectedWalker)
+    setAssigning(false)
+    setShowAssign(false)
+  }
+
+  return (
+    <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, borderLeft: '4px solid #D4A843' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#2D3436' }}>{req.dogs?.name ?? 'Unknown dog'} — Boarding</div>
+          <div style={{ fontSize: '0.83rem', color: '#636e72', marginTop: 2 }}>{formatDate(req.check_in_date)} → {formatDate(req.check_out_date)}</div>
+          <div style={{ fontSize: '0.8rem', color: '#b2bec3', marginTop: 2 }}>{req.clients?.users?.name ?? 'Unknown client'} · {timeAgo(req.created_at)}</div>
+        </div>
+        <span style={{ background: sc.bg, color: sc.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{req.status}</span>
+      </div>
+      {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: '#FAF8F3', borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
+      {req.assigned_walker_id && <div style={{ fontSize: '0.8rem', color: '#2D9B8A', fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
+      {req.status === 'pending' && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+          <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
+          <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
+        </div>
+      )}
+      {showAssign && req.status === 'pending' && (
+        <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <select value={selectedWalker} onChange={e => setSelectedWalker(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid #DDD6FE', padding: '6px 10px', fontSize: '0.85rem', flex: 1, minWidth: 140, background: 'white' }}>
+            <option value="">Select walker...</option>
+            {walkers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+          <button onClick={handleAssign} disabled={!selectedWalker || assigning} style={{ background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', opacity: !selectedWalker ? 0.5 : 1 }}>
+            {assigning ? 'Saving...' : 'Confirm'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function BroadcastPanel() {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -470,27 +524,30 @@ function ClientsAndWalkersSection() {
 export default function AdminPortal() {
   const { signOut, setRole } = useAuth()
   const navigate = useNavigate()
-  const [stats, setStats] = useState({ walksToday: null, pending: null, clients: null, walkers: null })
+  const [stats, setStats] = useState({ walksToday: null, pending: null, clients: null, walkers: null, pendingBoardings: null })
   const [requests, setRequests] = useState([])
+  const [boardings, setBoardings] = useState([])
   const [walkers, setWalkers] = useState([])
   const [loadingRequests, setLoadingRequests] = useState(true)
+  const [loadingBoardings, setLoadingBoardings] = useState(true)
   const [activity, setActivity] = useState([])
 
   useEffect(() => { loadAll() }, [])
 
   async function loadAll() {
-    await Promise.all([loadStats(), loadRequests(), loadWalkers(), loadActivity()])
+    await Promise.all([loadStats(), loadRequests(), loadBoardings(), loadWalkers(), loadActivity()])
   }
 
   async function loadStats() {
     const today = new Date().toISOString().split('T')[0]
-    const [{ count: walksToday }, { count: pending }, { data: clientList }, { data: walkerList }] = await Promise.all([
+    const [{ count: walksToday }, { count: pending }, { count: pendingBoardings }, { data: clientList }, { data: walkerList }] = await Promise.all([
       supabase.from('walk_requests').select('*', { count: 'exact', head: true }).eq('preferred_date', today).in('status', ['assigned', 'confirmed']),
       supabase.from('walk_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('boarding_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       getUsersByRole('client', 'id'),
       getUsersByRole('walker', 'id'),
     ])
-    setStats({ walksToday, pending, clients: clientList?.length ?? 0, walkers: walkerList?.length ?? 0 })
+    setStats({ walksToday, pending, pendingBoardings, clients: clientList?.length ?? 0, walkers: walkerList?.length ?? 0 })
   }
 
   async function loadRequests() {
@@ -498,6 +555,13 @@ export default function AdminPortal() {
     const { data } = await supabase.from('walk_requests').select('*, dogs(name), clients(user_id, users(name))').order('created_at', { ascending: false }).limit(20)
     if (data) setRequests(data)
     setLoadingRequests(false)
+  }
+
+  async function loadBoardings() {
+    setLoadingBoardings(true)
+    const { data } = await supabase.from('boarding_requests').select('*, dogs(name), clients(user_id, users(name))').order('created_at', { ascending: false }).limit(20)
+    if (data) setBoardings(data)
+    setLoadingBoardings(false)
   }
 
   async function loadWalkers() {
@@ -538,8 +602,32 @@ export default function AdminPortal() {
     loadStats()
   }
 
+  async function handleDeclineBoarding(id) {
+    await supabase.from('boarding_requests').update({ status: 'declined' }).eq('id', id)
+    setBoardings(prev => prev.map(b => b.id === id ? { ...b, status: 'declined' } : b))
+    loadStats()
+  }
+
+  async function handleAssignBoarding(id, walkerId) {
+    await supabase.from('boarding_requests').update({ status: 'assigned', assigned_walker_id: walkerId }).eq('id', id)
+    const req = boardings.find(b => b.id === id)
+    if (req?.clients?.user_id) {
+      const walkerName = walkers.find(w => w.id === walkerId)?.name || 'your walker'
+      await supabase.from('notifications').insert({
+        user_id: req.clients.user_id,
+        type: 'boarding_assigned',
+        message: `Your boarding request has been confirmed and assigned to ${walkerName}.`,
+        status: 'pending',
+      })
+    }
+    setBoardings(prev => prev.map(b => b.id === id ? { ...b, status: 'assigned', assigned_walker_id: walkerId } : b))
+    loadStats()
+  }
+
   const pendingRequests = requests.filter(r => r.status === 'pending')
   const otherRequests = requests.filter(r => r.status !== 'pending')
+  const pendingBoardings = boardings.filter(b => b.status === 'pending')
+  const otherBoardings = boardings.filter(b => b.status !== 'pending')
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 100px', fontFamily: 'Nunito, sans-serif' }}>
@@ -571,6 +659,7 @@ export default function AdminPortal() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
         <StatCard label="Walks Today" value={stats.walksToday} color="#5B4B8A" />
         <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" />
+        <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#D4A843" />
         <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" />
         <StatCard label="Walkers" value={stats.walkers} color="#636e72" />
       </div>
@@ -614,6 +703,31 @@ export default function AdminPortal() {
           )
         }
         <BroadcastPanel />
+      </div>
+
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+          Boarding Requests
+          {pendingBoardings.length > 0 && (
+            <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '0.75rem' }}>{pendingBoardings.length} pending</span>
+          )}
+        </div>
+        {loadingBoardings ? <EmptyState message="Loading boarding requests..." />
+          : boardings.length === 0 ? <EmptyState message="No boarding requests yet." />
+          : (
+            <>
+              {pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} />)}
+              {otherBoardings.length > 0 && (
+                <details style={{ marginTop: 8 }}>
+                  <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
+                    Show {otherBoardings.length} resolved boarding{otherBoardings.length > 1 ? 's' : ''}
+                  </summary>
+                  {otherBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} />)}
+                </details>
+              )}
+            </>
+          )
+        }
       </div>
 
       <div style={{ marginBottom: 32 }}>

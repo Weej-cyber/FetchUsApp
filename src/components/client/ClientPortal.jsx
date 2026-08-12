@@ -10,7 +10,7 @@ const C = {
   yellowBg: '#FEF9C3', yellow: '#92400E', purpleBg: '#E0E7FF', purple: '#3730A3',
 }
 
-const SERVICE_TYPES = ['30-min Walk', '60-min Walk', 'Drop-In Visit', 'Boarding']
+const SERVICE_TYPES = ['30-min Walk', '60-min Walk', 'Drop-In Visit']
 const TIME_SLOTS = ['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM']
 
 const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
@@ -70,6 +70,13 @@ export default function ClientPortal() {
 
   const [walks, setWalks] = useState([])
 
+  const [showBoard, setShowBoard] = useState(false)
+  const [boardForm, setBoardForm] = useState({ dog_id: '', check_in_date: '', check_out_date: '', notes: '' })
+  const [boardSubmitting, setBoardSubmitting] = useState(false)
+  const [boardSubmitted, setBoardSubmitted] = useState(false)
+  const [boardError, setBoardError] = useState(null)
+  const [boardings, setBoardings] = useState([])
+
   const [profile, setProfile] = useState({ name: '', email: '', phone: '', address: '', access_instructions: '', sms_consent: false })
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSaved, setProfileSaved] = useState(false)
@@ -93,6 +100,8 @@ export default function ClientPortal() {
       setDogs(dogList || [])
       const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name)').eq('client_id', clientData.id).order('preferred_date', { ascending: false }).limit(10)
       setWalks(walkList || [])
+      const { data: boardingList } = await supabase.from('boarding_requests').select('*, dogs(name)').eq('client_id', clientData.id).order('check_in_date', { ascending: false }).limit(10)
+      setBoardings(boardingList || [])
     } else {
       setProfile({ name: userData?.name || '', email: userData?.email || user.email || '', phone: userData?.phone || '', address: '', access_instructions: '', sms_consent: userData?.sms_consent || false })
     }
@@ -174,15 +183,45 @@ export default function ClientPortal() {
     try {
       await supabase.functions.invoke('send-sms-direct', {
         body: {
-          client_id: clientId,
-          event_type: 'new_booking',
+          event_type: 'new_walk_request',
+          client_name: profile.name,
           dog_name: bookedDog?.name || null,
+          service_type: bookForm.service_type,
           preferred_date: bookForm.preferred_date,
           preferred_time: bookForm.preferred_time,
         }
       })
     } catch (e) { console.error('New booking SMS error:', e) }
     setTimeout(() => { setBookSubmitted(false); setShowBook(false); setBookForm({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' }); loadAll() }, 2500)
+  }
+
+  async function submitBoard() {
+    if (!boardForm.check_in_date || !boardForm.check_out_date) { setBoardError('Please select check-in and check-out dates.'); return }
+    if (boardForm.check_out_date <= boardForm.check_in_date) { setBoardError('Check-out date must be after check-in date.'); return }
+    if (!clientId) { setBoardError('Profile not loaded. Please refresh.'); return }
+    setBoardSubmitting(true)
+    setBoardError(null)
+    const { error } = await supabase.from('boarding_requests').insert({
+      client_id: clientId, dog_id: boardForm.dog_id || null,
+      check_in_date: boardForm.check_in_date, check_out_date: boardForm.check_out_date,
+      notes: boardForm.notes || null, status: 'pending',
+    })
+    if (error) { setBoardError('Something went wrong. Please try again.'); setBoardSubmitting(false); return }
+    setBoardSubmitting(false)
+    setBoardSubmitted(true)
+    const boardedDog = dogs.find(d => d.id === boardForm.dog_id)
+    try {
+      await supabase.functions.invoke('send-sms-direct', {
+        body: {
+          event_type: 'new_boarding_request',
+          client_name: profile.name,
+          dog_name: boardedDog?.name || null,
+          check_in_date: boardForm.check_in_date,
+          check_out_date: boardForm.check_out_date,
+        }
+      })
+    } catch (e) { console.error('New boarding SMS error:', e) }
+    setTimeout(() => { setBoardSubmitted(false); setShowBoard(false); setBoardForm({ dog_id: '', check_in_date: '', check_out_date: '', notes: '' }); loadAll() }, 2500)
   }
 
   async function saveProfile() {
@@ -415,6 +454,79 @@ export default function ClientPortal() {
             </button>
           </div>
         </div>
+      )}
+
+      <SectionHeader title="🏠 Book Boarding" color={C.gold} />
+
+      {!showBoard ? (
+        <button onClick={() => setShowBoard(true)} style={{ width: '100%', background: C.gold, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
+          Request Boarding
+        </button>
+      ) : boardSubmitted ? (
+        <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>🐾</div>
+          <div style={{ fontWeight: 800, color: C.gold, fontSize: '1.1rem', marginBottom: 6 }}>Request Sent!</div>
+          <div style={{ fontSize: '0.85rem', color: C.light }}>
+            {formatDate(boardForm.check_in_date)} to {formatDate(boardForm.check_out_date)}
+          </div>
+          <div style={{ fontSize: '0.82rem', color: C.light, marginTop: 4 }}>We will text you to confirm.</div>
+        </div>
+      ) : (
+        <div style={{ ...cardStyle, borderLeft: `4px solid ${C.gold}` }}>
+          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.gold, marginBottom: 16 }}>New Boarding Request</div>
+          {dogs.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <label style={labelStyle}>Which Dog?</label>
+              <select style={inputStyle} value={boardForm.dog_id} onChange={e => setBoardForm({ ...boardForm, dog_id: e.target.value })}>
+                <option value="">Select a dog...</option>
+                {dogs.map(d => <option key={d.id} value={d.id}>{d.name}{d.breed ? ` (${d.breed})` : ''}</option>)}
+              </select>
+            </div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+            <div>
+              <label style={labelStyle}>Check-In Date</label>
+              <input type="date" style={inputStyle} value={boardForm.check_in_date} min={new Date().toISOString().split('T')[0]} onChange={e => setBoardForm({ ...boardForm, check_in_date: e.target.value })} />
+            </div>
+            <div>
+              <label style={labelStyle}>Check-Out Date</label>
+              <input type="date" style={inputStyle} value={boardForm.check_out_date} min={boardForm.check_in_date || new Date().toISOString().split('T')[0]} onChange={e => setBoardForm({ ...boardForm, check_out_date: e.target.value })} />
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Notes (optional)</label>
+            <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={boardForm.notes} onChange={e => setBoardForm({ ...boardForm, notes: e.target.value })} placeholder="Feeding schedule, medications, routine..." />
+          </div>
+          {boardError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12 }}>{boardError}</div>}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={submitBoard} disabled={boardSubmitting || !boardForm.check_in_date || !boardForm.check_out_date}
+              style={{ flex: 1, background: C.gold, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: (!boardForm.check_in_date || !boardForm.check_out_date) ? 0.5 : 1 }}>
+              {boardSubmitting ? 'Sending...' : 'Send Request 🐾'}
+            </button>
+            <button onClick={() => { setShowBoard(false); setBoardError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {boardings.length > 0 && (
+        <>
+          <SectionHeader title="🏡 My Boarding Requests" color={C.gold} />
+          {boardings.map(b => (
+            <div key={b.id} style={{ ...cardStyle }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontWeight: 700, color: C.charcoal }}>{b.dogs?.name ? `${b.dogs.name}'s Boarding` : 'Boarding'}</div>
+                  <div style={{ fontSize: '0.83rem', color: C.light, marginTop: 2 }}>
+                    {formatDate(b.check_in_date)} → {formatDate(b.check_out_date)}
+                  </div>
+                </div>
+                <StatusBadge status={b.status} />
+              </div>
+            </div>
+          ))}
+        </>
       )}
 
       <SectionHeader title="🦮 My Walks" color={C.indigo} />
