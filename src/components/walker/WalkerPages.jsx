@@ -35,6 +35,7 @@ function ActiveWalkScreen({ walk, onComplete }) {
   const [photoPreview, setPhotoPreview] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [completeError, setCompleteError] = useState(null)
   const intervalRef = useRef(null)
 
   useEffect(() => {
@@ -55,60 +56,69 @@ function ActiveWalkScreen({ walk, onComplete }) {
 
   async function handleComplete() {
     setSaving(true)
+    setCompleteError(null)
     clearInterval(intervalRef.current)
 
-    let photo_url = null
-    if (photoFile) {
-      const ext = photoFile.name.split('.').pop()
-      const path = `${walk.id}/${Date.now()}.${ext}`
-      const { data: uploadData } = await supabase.storage
-        .from('walk-photos')
-        .upload(path, photoFile, { upsert: true })
-      if (uploadData) {
-        const { data: urlData } = supabase.storage
-          .from('walk-photos')
-          .getPublicUrl(path)
-        photo_url = urlData?.publicUrl || null
-      }
-    }
-
-    await supabase.from('walks').update({
-      completed_at: new Date().toISOString(),
-      duration: Math.floor(seconds / 60),
-      notes: notes || null,
-      photo_url,
-    }).eq('id', walk.id)
-
-    if (walk.walk_request_id) {
-      await supabase.from('walk_requests').update({
-        status: 'completed',
-        notes: notes || null,
-      }).eq('id', walk.walk_request_id)
-    }
-
-    if (walk.client_user_id) {
-      await supabase.from('notifications').insert({
-        user_id: walk.client_user_id,
-        type: 'walk_complete',
-        message: `${walk.dog_name || 'Your dog'}'s walk is complete!${notes ? ` Walker note: ${notes}` : ''}`,
-        status: 'pending',
-      })
-    }
-    // Send SMS notification for walk complete
     try {
-      await supabase.functions.invoke('send-sms-direct', {
-        body: {
-          client_id: walk.client_id,
-          walker_name: 'Your walker',
-          dog_name: walk.dog_name || 'your dog',
-          event_type: 'walk_completed',
+      let photo_url = null
+      if (photoFile) {
+        const ext = photoFile.name.split('.').pop()
+        const path = `${walk.id}/${Date.now()}.${ext}`
+        const { data: uploadData } = await supabase.storage
+          .from('walk-photos')
+          .upload(path, photoFile, { upsert: true })
+        if (uploadData) {
+          const { data: urlData } = supabase.storage
+            .from('walk-photos')
+            .getPublicUrl(path)
+          photo_url = urlData?.publicUrl || null
         }
-      })
-    } catch (e) { console.error('SMS complete error:', e) }
+      }
 
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => onComplete(), 1500)
+      const { error: walkError } = await supabase.from('walks').update({
+        completed_at: new Date().toISOString(),
+        duration: Math.floor(seconds / 60),
+        notes: notes || null,
+        photo_url,
+      }).eq('id', walk.id)
+      if (walkError) throw walkError
+
+      if (walk.walk_request_id) {
+        const { error: reqError } = await supabase.from('walk_requests').update({
+          status: 'completed',
+          notes: notes || null,
+        }).eq('id', walk.walk_request_id)
+        if (reqError) throw reqError
+      }
+
+      if (walk.client_user_id) {
+        await supabase.from('notifications').insert({
+          user_id: walk.client_user_id,
+          type: 'walk_complete',
+          message: `${walk.dog_name || 'Your dog'}'s walk is complete!${notes ? ` Walker note: ${notes}` : ''}`,
+          status: 'pending',
+        })
+      }
+      // Send SMS notification for walk complete
+      try {
+        await supabase.functions.invoke('send-sms-direct', {
+          body: {
+            client_id: walk.client_id,
+            walker_name: 'Your walker',
+            dog_name: walk.dog_name || 'your dog',
+            event_type: 'walk_completed',
+          }
+        })
+      } catch (e) { console.error('SMS complete error:', e) }
+
+      setSaving(false)
+      setSaved(true)
+      setTimeout(() => onComplete(), 1500)
+    } catch (err) {
+      console.error('Complete walk failed:', err)
+      setSaving(false)
+      setCompleteError('Could not save this walk. Please check your connection and try again.')
+    }
   }
 
   if (saved) {
@@ -161,6 +171,12 @@ function ActiveWalkScreen({ walk, onComplete }) {
           </label>
         </div>
 
+        {completeError && (
+          <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: '1.3rem' }}>⚠️</span>
+            <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '0.95rem' }}>{completeError}</span>
+          </div>
+        )}
         <button
           onClick={handleComplete}
           disabled={saving}

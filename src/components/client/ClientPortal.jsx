@@ -61,6 +61,7 @@ export default function ClientPortal() {
   const [dogPhotoPreview, setDogPhotoPreview] = useState(null)
   const [savingDog, setSavingDog] = useState(false)
   const [dogSaved, setDogSaved] = useState(false)
+  const [dogError, setDogError] = useState(null)
 
   const [showBook, setShowBook] = useState(false)
   const [bookForm, setBookForm] = useState({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' })
@@ -134,36 +135,44 @@ export default function ClientPortal() {
   async function saveDog() {
     if (!dogForm.name.trim()) return
     setSavingDog(true)
+    setDogError(null)
 
-    let photo_url = dogForm.photo_url || null
-    const photoFile = dogPhotoFileRef.current
-    if (photoFile) {
-      const ext = photoFile.name.split('.').pop()
-      const path = `${clientId}/${Date.now()}.${ext}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('dog-photos')
-        .upload(path, photoFile, { upsert: true })
-      if (uploadError) {
-        console.error('Photo upload failed:', uploadError.message)
-      } else if (uploadData) {
-        const { data: urlData } = supabase.storage
+    try {
+      let photo_url = dogForm.photo_url || null
+      const photoFile = dogPhotoFileRef.current
+      if (photoFile) {
+        const ext = photoFile.name.split('.').pop()
+        const path = `${clientId}/${Date.now()}.${ext}`
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('dog-photos')
-          .getPublicUrl(path)
-        photo_url = urlData?.publicUrl || null
+          .upload(path, photoFile, { upsert: true })
+        if (uploadError) {
+          console.error('Photo upload failed:', uploadError.message)
+        } else if (uploadData) {
+          const { data: urlData } = supabase.storage
+            .from('dog-photos')
+            .getPublicUrl(path)
+          photo_url = urlData?.publicUrl || null
+        }
       }
-    }
 
-    const payload = { name: dogForm.name.trim(), breed: dogForm.breed.trim() || null, age: dogForm.age ? parseInt(dogForm.age) : null, behavioral_notes: dogForm.behavioral_notes.trim() || null, medical_needs: dogForm.medical_needs.trim() || null, client_id: clientId, photo_url }
-    if (editingDog) {
-      await supabase.from('dogs').update(payload).eq('id', editingDog.id)
-    } else {
-      await supabase.from('dogs').insert(payload)
+      const payload = { name: dogForm.name.trim(), breed: dogForm.breed.trim() || null, age: dogForm.age ? parseInt(dogForm.age) : null, behavioral_notes: dogForm.behavioral_notes.trim() || null, medical_needs: dogForm.medical_needs.trim() || null, client_id: clientId, photo_url }
+      const { error } = editingDog
+        ? await supabase.from('dogs').update(payload).eq('id', editingDog.id)
+        : await supabase.from('dogs').insert(payload)
+
+      if (error) throw error
+
+      dogPhotoFileRef.current = null
+      setSavingDog(false)
+      setDogSaved(true)
+      setTimeout(() => { setDogSaved(false); setShowAddDog(false) }, 1200)
+      loadAll()
+    } catch (err) {
+      console.error('Save dog failed:', err)
+      setSavingDog(false)
+      setDogError('Could not save. Please check your connection and try again.')
     }
-    dogPhotoFileRef.current = null
-    setSavingDog(false)
-    setDogSaved(true)
-    setTimeout(() => { setDogSaved(false); setShowAddDog(false) }, 1200)
-    loadAll()
   }
 
   async function submitBook() {
@@ -230,22 +239,31 @@ export default function ClientPortal() {
       return
     }
     setSavingProfile(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not signed in')
       const consentChanged = profile.phone.trim() && profile.sms_consent
-      await supabase.from('users').update({
+      const { error: userError } = await supabase.from('users').update({
         name: profile.name,
         phone: profile.phone,
         sms_consent: profile.sms_consent,
         ...(consentChanged ? { sms_consent_at: new Date().toISOString() } : {})
       }).eq('id', user.id)
+      if (userError) throw userError
+
       if (clientId) {
-        await supabase.from('clients').update({ address: profile.address, access_instructions: profile.access_instructions }).eq('id', clientId)
+        const { error: clientError } = await supabase.from('clients').update({ address: profile.address, access_instructions: profile.access_instructions }).eq('id', clientId)
+        if (clientError) throw clientError
       }
+
+      setSavingProfile(false)
+      setProfileSaved(true)
+      setTimeout(() => setProfileSaved(false), 2000)
+    } catch (err) {
+      console.error('Save profile failed:', err)
+      setSavingProfile(false)
+      setConsentError('Could not save. Please check your connection and try again.')
     }
-    setSavingProfile(false)
-    setProfileSaved(true)
-    setTimeout(() => setProfileSaved(false), 2000)
   }
 
   const upcomingWalks = walks.filter(w => w.status !== 'completed' && w.status !== 'declined')
@@ -370,6 +388,18 @@ export default function ClientPortal() {
             <label style={labelStyle}>Medical Needs</label>
             <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={dogForm.medical_needs} onChange={e => setDogForm({ ...dogForm, medical_needs: e.target.value })} placeholder="Allergies, medications, vet instructions..." />
           </div>
+          {dogSaved && (
+            <div style={{ background: '#D1FAE5', border: '2px solid #10B981', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '1.3rem' }}>✅</span>
+              <span style={{ fontWeight: 800, color: '#065F46', fontSize: '0.95rem' }}>Saved successfully!</span>
+            </div>
+          )}
+          {dogError && (
+            <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '1.3rem' }}>⚠️</span>
+              <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '0.95rem' }}>{dogError}</span>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={saveDog} disabled={savingDog || !dogForm.name.trim()} style={{ flex: 1, background: dogSaved ? C.teal : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !dogForm.name.trim() ? 0.5 : 1 }}>
               {dogSaved ? '✓ Saved!' : savingDog ? 'Saving...' : editingDog ? 'Save Changes' : 'Add Dog'}
@@ -581,9 +611,6 @@ export default function ClientPortal() {
               I agree to receive SMS notifications about my dog walk bookings, including walk confirmations, walker en route, walk start, and walk completion alerts. Message frequency varies. Message and data rates may apply. Reply STOP to opt out, HELP for help. A phone number cannot be saved without checking this box.
             </span>
           </label>
-          {consentError && (
-            <div style={{ color: '#DC2626', fontSize: '0.8rem', marginTop: 8, fontWeight: 600 }}>{consentError}</div>
-          )}
         </div>
         <div style={{ marginBottom: 10 }}>
           <label style={labelStyle}>Email</label>
@@ -597,6 +624,18 @@ export default function ClientPortal() {
           <label style={labelStyle}>Home Access Instructions</label>
           <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={profile.access_instructions} onChange={e => setProfile({ ...profile, access_instructions: e.target.value })} placeholder="Gate code, key location, entrance instructions..." />
         </div>
+        {profileSaved && (
+          <div style={{ background: '#D1FAE5', border: '2px solid #10B981', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: '1.3rem' }}>✅</span>
+            <span style={{ fontWeight: 800, color: '#065F46', fontSize: '0.95rem' }}>Profile saved successfully!</span>
+          </div>
+        )}
+        {consentError && (
+          <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: '1.3rem' }}>⚠️</span>
+            <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '0.95rem' }}>{consentError}</span>
+          </div>
+        )}
         <button onClick={saveProfile} disabled={savingProfile} style={{ width: '100%', background: profileSaved ? C.teal : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
           {profileSaved ? '✓ Profile Saved!' : savingProfile ? 'Saving...' : 'Save Profile'}
         </button>
