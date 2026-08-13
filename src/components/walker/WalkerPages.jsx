@@ -201,8 +201,18 @@ export function WalkerDashboard() {
 
   useEffect(() => { if (user?.id) fetchAll() }, [user?.id])
 
-  async function fetchAll() {
-    setLoading(true)
+  useEffect(() => {
+    if (!user?.id) return
+    const channel = supabase
+      .channel(`walker-requests-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'walk_requests', filter: `assigned_walker_id=eq.${user.id}` }, () => fetchAll(true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'walks', filter: `walker_id=eq.${user.id}` }, () => fetchAll(true))
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [user?.id])
+
+  async function fetchAll(silent = false) {
+    if (!silent) setLoading(true)
     if (!user?.id) { setLoading(false); return }
 
     const today = new Date().toISOString().split('T')[0]

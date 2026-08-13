@@ -85,6 +85,22 @@ export default function ClientPortal() {
 
   useEffect(() => { loadAll() }, [])
 
+  useEffect(() => {
+    if (!clientId) return
+    async function refreshRequests() {
+      const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name)').eq('client_id', clientId).order('preferred_date', { ascending: false }).limit(10)
+      setWalks(walkList || [])
+      const { data: boardingList } = await supabase.from('boarding_requests').select('*, dogs(name)').eq('client_id', clientId).order('check_in_date', { ascending: false }).limit(10)
+      setBoardings(boardingList || [])
+    }
+    const channel = supabase
+      .channel(`client-requests-${clientId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'walk_requests', filter: `client_id=eq.${clientId}` }, refreshRequests)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'boarding_requests', filter: `client_id=eq.${clientId}` }, refreshRequests)
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [clientId])
+
   async function loadAll() {
     setLoading(true)
     setLoadError(null)

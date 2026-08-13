@@ -324,6 +324,14 @@ function ClientsAndWalkersSection() {
 
   useEffect(() => { loadAll() }, [])
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-people')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => loadAll())
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
+
   async function loadAll() {
     setLoading(true)
     const [{ data: c }, { data: w }] = await Promise.all([
@@ -533,6 +541,15 @@ export default function AdminPortal() {
   const [activity, setActivity] = useState([])
 
   useEffect(() => { loadAll() }, [])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-requests')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'walk_requests' }, () => { loadStats(); loadRequests() })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'boarding_requests' }, () => { loadStats(); loadBoardings() })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function loadAll() {
     await Promise.all([loadStats(), loadRequests(), loadBoardings(), loadWalkers(), loadActivity()])
