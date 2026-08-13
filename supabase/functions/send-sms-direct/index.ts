@@ -7,6 +7,11 @@ const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = "sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4";
 
+// Automated UAT tests book real walks/boardings against this account on
+// every push. Skip sending real texts for it while still exercising the
+// rest of the notification pipeline (RPC calls, message building, logging).
+const UAT_TEST_CLIENT_EMAIL = "fetchusclient@test.com";
+
 async function sendTwilioSms(to: string, body: string) {
   const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
   const res = await fetch(twilioUrl, {
@@ -51,6 +56,14 @@ serve(async (req) => {
     if (event_type === "new_booking" || event_type === "new_boarding") {
       const { data: clientInfo } = await supabase.rpc("get_client_sms_info_by_client", { p_client_id: client_id });
       const clientName = clientInfo?.[0]?.name || "A pet parent";
+      const clientEmail = clientInfo?.[0]?.email || "";
+
+      if (clientEmail === UAT_TEST_CLIENT_EMAIL) {
+        return new Response(JSON.stringify({ skipped: true, reason: "UAT test client, no real SMS sent" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
 
       const { data: admins, error: adminErr } = await supabase.rpc("get_admin_sms_recipients");
       if (adminErr || !admins || admins.length === 0) {
@@ -98,7 +111,14 @@ serve(async (req) => {
       });
     }
 
-    const { phone, sms_consent, user_id } = data[0];
+    const { phone, sms_consent, user_id, email } = data[0];
+
+    if (email === UAT_TEST_CLIENT_EMAIL) {
+      return new Response(JSON.stringify({ skipped: true, reason: "UAT test client, no real SMS sent" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
 
     if (!phone || !sms_consent) {
       return new Response(JSON.stringify({ skipped: true, reason: "No phone or no consent", phone, sms_consent }), {
