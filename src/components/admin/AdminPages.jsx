@@ -307,7 +307,107 @@ function ScheduleSection({ walkers }) {
   )
 }
 
+function ReadOnlyStatusBadge({ status }) {
+  const map = {
+    pending:   { bg: '#FEF9C3', text: '#92400E', label: 'Pending' },
+    assigned:  { bg: '#D1FAE5', text: '#065F46', label: 'Confirmed' },
+    confirmed: { bg: '#E0E7FF', text: '#3730A3', label: 'In Progress' },
+    completed: { bg: '#F0F0F0', text: '#636e72', label: 'Completed' },
+    declined:  { bg: '#FEE2E2', text: '#991B1B', label: 'Declined' },
+  }
+  const s = map[status] || map.pending
+  return (
+    <span style={{ background: s.bg, color: s.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+      {s.label}
+    </span>
+  )
+}
+
+function ClientReadOnlyView({ userId, onBack }) {
+  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState(null)
+  const [dogs, setDogs] = useState([])
+  const [walks, setWalks] = useState([])
+  const [boardings, setBoardings] = useState([])
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true)
+      const { data: clientRow } = await supabase.from('clients').select('id, address, access_instructions, user_id, users(name, email, phone, sms_consent)').eq('user_id', userId).single()
+      setProfile(clientRow)
+      const clientId = clientRow?.id
+      if (!clientId) { setLoading(false); return }
+      const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', clientId)
+      setDogs(dogList || [])
+      const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name)').eq('client_id', clientId).order('preferred_date', { ascending: false })
+      setWalks(walkList || [])
+      const { data: boardingList } = await supabase.from('boarding_requests').select('*, dogs(name)').eq('client_id', clientId).order('check_in_date', { ascending: false })
+      setBoardings(boardingList || [])
+      setLoading(false)
+    }
+    load()
+  }, [userId])
+
+  if (loading) return <EmptyState message="Loading client view..." />
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#5B4B8A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: 0 }}>← Back to People</button>
+      </div>
+      <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '0.85rem', fontWeight: 700, color: '#92400E' }}>
+        👁 Viewing as {profile?.users?.name ?? 'this client'} — Read-only. No changes can be made from here.
+      </div>
+
+      <SectionHeader title="Profile" />
+      <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436', marginBottom: 6 }}>{profile?.users?.name}</div>
+        <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile?.users?.email}</div>
+        {profile?.users?.phone && <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile.users.phone} {profile.users.sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
+        {profile?.address && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile.address}</div>}
+        {profile?.access_instructions && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Access notes: </span>{profile.access_instructions}</div>}
+      </div>
+
+      <SectionHeader title={`Dogs (${dogs.length})`} />
+      {dogs.length === 0 ? <EmptyState message="No dogs on file." /> : dogs.map(d => (
+        <div key={d.id} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, color: '#2D3436' }}>{d.name}{d.breed ? ` — ${d.breed}` : ''}</div>
+          {d.behavioral_notes && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Behavioral: </span>{d.behavioral_notes}</div>}
+          {d.medical_needs && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Medical: </span>{d.medical_needs}</div>}
+        </div>
+      ))}
+
+      <SectionHeader title={`Walk Requests (${walks.length})`} />
+      {walks.length === 0 ? <EmptyState message="No walk requests." /> : walks.map(w => (
+        <div key={w.id} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontWeight: 700, color: '#2D3436' }}>{w.service_type}</div>
+              <div style={{ fontSize: '0.83rem', color: '#636e72', marginTop: 2 }}>{w.dogs?.name && `${w.dogs.name} · `}{formatDate(w.preferred_date)} at {w.preferred_time}</div>
+            </div>
+            <ReadOnlyStatusBadge status={w.status} />
+          </div>
+        </div>
+      ))}
+
+      <SectionHeader title={`Boarding Requests (${boardings.length})`} />
+      {boardings.length === 0 ? <EmptyState message="No boarding requests." /> : boardings.map(b => (
+        <div key={b.id} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontWeight: 700, color: '#2D3436' }}>{b.dogs?.name ? `${b.dogs.name}'s Boarding` : 'Boarding'}</div>
+              <div style={{ fontSize: '0.83rem', color: '#636e72', marginTop: 2 }}>{formatDate(b.check_in_date)} → {formatDate(b.check_out_date)}</div>
+            </div>
+            <ReadOnlyStatusBadge status={b.status} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function ClientsAndWalkersSection() {
+  const [viewingClientId, setViewingClientId] = useState(null)
   const [clients, setClients] = useState([])
   const [walkers, setWalkers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -415,6 +515,10 @@ function ClientsAndWalkersSection() {
   const filteredClients = clients.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()) || c.email?.toLowerCase().includes(search.toLowerCase()))
   const filteredWalkers = walkers.filter(w => w.name?.toLowerCase().includes(search.toLowerCase()) || w.email?.toLowerCase().includes(search.toLowerCase()))
 
+  if (viewingClientId) {
+    return <ClientReadOnlyView userId={viewingClientId} onBack={() => setViewingClientId(null)} />
+  }
+
   return (
     <div>
       <SectionHeader title="Clients & Walkers" action={
@@ -518,6 +622,7 @@ function ClientsAndWalkersSection() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ fontSize: '0.75rem', color: '#b2bec3' }}>{new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                  <button onClick={() => setViewingClientId(c.id)} style={{ background: 'none', border: '1.5px solid #5B4B8A', color: '#5B4B8A', borderRadius: 8, padding: '4px 10px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 700 }}>View</button>
                   <button onClick={() => handleDelete(c.id)} style={{ background: 'none', border: 'none', color: '#FCA5A5', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
                 </div>
               </div>
