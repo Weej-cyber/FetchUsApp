@@ -406,6 +406,185 @@ function ClientReadOnlyView({ userId, onBack }) {
   )
 }
 
+function ClientReportSection() {
+  const [clients, setClients] = useState([])
+  const [selectedClient, setSelectedClient] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [running, setRunning] = useState(false)
+  const [reportError, setReportError] = useState(null)
+  const [report, setReport] = useState(null)
+
+  useEffect(() => {
+    async function loadClients() {
+      const { data } = await getUsersByRole('client', 'id, name, email')
+      setClients(data || [])
+    }
+    loadClients()
+  }, [])
+
+  async function runReport() {
+    setReportError(null)
+    if (!selectedClient) { setReportError('Please select a client.'); return }
+    if (!startDate || !endDate) { setReportError('Please select a start and end date.'); return }
+    if (endDate < startDate) { setReportError('End date must be after start date.'); return }
+    setRunning(true)
+
+    try {
+      const { data: clientRow, error: clientErr } = await supabase.from('clients').select('id').eq('user_id', selectedClient).single()
+      if (clientErr || !clientRow) throw new Error('Could not find this client\'s account.')
+
+      const { data: walks, error: walkErr } = await supabase.from('walk_requests')
+        .select('id, service_type, status, preferred_date, dogs(name)')
+        .eq('client_id', clientRow.id)
+        .gte('preferred_date', startDate)
+        .lte('preferred_date', endDate)
+        .order('preferred_date', { ascending: true })
+      if (walkErr) throw walkErr
+
+      const { data: boardings, error: boardErr } = await supabase.from('boarding_requests')
+        .select('id, status, check_in_date, check_out_date, dogs(name)')
+        .eq('client_id', clientRow.id)
+        .gte('check_in_date', startDate)
+        .lte('check_out_date', endDate)
+        .order('check_in_date', { ascending: true })
+      if (boardErr) throw boardErr
+
+      const walksByType = {}
+      for (const w of (walks || [])) {
+        walksByType[w.service_type] = (walksByType[w.service_type] || 0) + 1
+      }
+      const totalNights = (boardings || []).reduce((sum, b) => {
+        const nights = (new Date(b.check_out_date) - new Date(b.check_in_date)) / (1000 * 60 * 60 * 24)
+        return sum + nights
+      }, 0)
+
+      setReport({
+        clientName: clients.find(c => c.id === selectedClient)?.name || 'Client',
+        walks: walks || [],
+        boardings: boardings || [],
+        walksByType,
+        totalNights,
+      })
+    } catch (err) {
+      console.error('Report failed:', err)
+      setReportError('Could not run this report. Please try again.')
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  function exportReport() {
+    if (!report) return
+    const lines = []
+    lines.push(`FetchUs Client Report`)
+    lines.push(`Client: ${report.clientName}`)
+    lines.push(`Date range: ${formatDate(startDate)} - ${formatDate(endDate)}`)
+    lines.push('')
+    lines.push(`WALKS (${report.walks.length} total)`)
+    if (Object.keys(report.walksByType).length === 0) {
+      lines.push('  None in this range.')
+    } else {
+      for (const [type, count] of Object.entries(report.walksByType)) {
+        lines.push(`  ${type}: ${count}`)
+      }
+    }
+    lines.push('')
+    lines.push(`BOARDING (${report.boardings.length} stay${report.boardings.length !== 1 ? 's' : ''}, ${report.totalNights} night${report.totalNights !== 1 ? 's' : ''} total)`)
+    if (report.boardings.length === 0) {
+      lines.push('  None in this range.')
+    } else {
+      for (const b of report.boardings) {
+        lines.push(`  ${b.dogs?.name ? b.dogs.name + ' - ' : ''}${formatDate(b.check_in_date)} to ${formatDate(b.check_out_date)} (${b.status})`)
+      }
+    }
+    lines.push('')
+    lines.push(`Generated ${new Date().toLocaleString('en-US')}`)
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const safeClient = report.clientName.replace(/[^a-z0-9]/gi, '_')
+    a.href = url
+    a.download = `FetchUs_${safeClient}_${startDate}_to_${endDate}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <SectionHeader title="📋 Client Report" />
+      <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
+        <div style={{ marginBottom: 12 }}>
+          <label style={labelStyle}>Client</label>
+          <select value={selectedClient} onChange={e => setSelectedClient(e.target.value)} style={inputStyle}>
+            <option value="">Select a client...</option>
+            {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div>
+            <label style={labelStyle}>Start Date</label>
+            <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
+          </div>
+          <div>
+            <label style={labelStyle}>End Date</label>
+            <input type="date" style={inputStyle} value={endDate} min={startDate || undefined} onChange={e => setEndDate(e.target.value)} />
+          </div>
+        </div>
+        {reportError && (
+          <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>{reportError}</div>
+        )}
+        <button onClick={runReport} disabled={running} style={{ width: '100%', background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+          {running ? 'Running...' : 'Run Report'}
+        </button>
+      </div>
+
+      {report && (
+        <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1rem', color: '#2D3436' }}>{report.clientName}</div>
+              <div style={{ fontSize: '0.8rem', color: '#636e72' }}>{formatDate(startDate)} — {formatDate(endDate)}</div>
+            </div>
+            <button onClick={exportReport} style={{ background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              ⬇ Export
+            </button>
+          </div>
+
+          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, marginTop: 14 }}>Walks ({report.walks.length})</div>
+          {Object.keys(report.walksByType).length === 0 ? (
+            <div style={{ fontSize: '0.85rem', color: '#b2bec3', marginBottom: 16 }}>No walks in this range.</div>
+          ) : (
+            <div style={{ marginBottom: 16 }}>
+              {Object.entries(report.walksByType).map(([type, count]) => (
+                <div key={type} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '4px 0', borderBottom: '1px solid #F1F1F1' }}>
+                  <span>{type}</span>
+                  <span style={{ fontWeight: 700 }}>{count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Boarding ({report.boardings.length} stay{report.boardings.length !== 1 ? 's' : ''}, {report.totalNights} night{report.totalNights !== 1 ? 's' : ''})</div>
+          {report.boardings.length === 0 ? (
+            <div style={{ fontSize: '0.85rem', color: '#b2bec3' }}>No boarding in this range.</div>
+          ) : (
+            report.boardings.map(b => (
+              <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '4px 0', borderBottom: '1px solid #F1F1F1' }}>
+                <span>{b.dogs?.name ? `${b.dogs.name} — ` : ''}{formatDate(b.check_in_date)} → {formatDate(b.check_out_date)}</span>
+                <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{b.status}</span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ClientsAndWalkersSection() {
   const [viewingClientId, setViewingClientId] = useState(null)
   const [clients, setClients] = useState([])
@@ -777,6 +956,8 @@ export default function AdminPortal() {
           </button>
         ))}
       </div>
+
+      <ClientReportSection />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
         <StatCard label="Walks Today" value={stats.walksToday} color="#5B4B8A" />
