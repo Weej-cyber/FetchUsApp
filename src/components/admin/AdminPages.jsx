@@ -842,9 +842,9 @@ export default function AdminPortal() {
   async function loadStats() {
     const today = new Date().toISOString().split('T')[0]
     const [{ count: walksToday }, { count: pending }, { count: pendingBoardings }, { data: clientList }, { data: walkerList }] = await Promise.all([
-      supabase.from('walk_requests').select('*', { count: 'exact', head: true }).eq('preferred_date', today).in('status', ['assigned', 'confirmed']),
-      supabase.from('walk_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('boarding_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('walk_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('preferred_date', today).in('status', ['assigned', 'confirmed']).eq('clients.users.is_active', true),
+      supabase.from('walk_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('status', 'pending').eq('clients.users.is_active', true),
+      supabase.from('boarding_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('status', 'pending').eq('clients.users.is_active', true),
       getUsersByRole('client', 'id'),
       getUsersByRole('walker', 'id'),
     ])
@@ -853,14 +853,14 @@ export default function AdminPortal() {
 
   async function loadRequests() {
     setLoadingRequests(true)
-    const { data } = await supabase.from('walk_requests').select('*, dogs(name), clients(user_id, users(name))').order('created_at', { ascending: false }).limit(20)
+    const { data } = await supabase.from('walk_requests').select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).order('created_at', { ascending: false }).limit(20)
     if (data) setRequests(data)
     setLoadingRequests(false)
   }
 
   async function loadBoardings() {
     setLoadingBoardings(true)
-    const { data } = await supabase.from('boarding_requests').select('*, dogs(name), clients(user_id, users(name))').order('created_at', { ascending: false }).limit(20)
+    const { data } = await supabase.from('boarding_requests').select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).order('created_at', { ascending: false }).limit(20)
     if (data) setBoardings(data)
     setLoadingBoardings(false)
   }
@@ -873,7 +873,7 @@ export default function AdminPortal() {
   async function loadActivity() {
     const { data: recentClients } = await getUsersByRole('client', 'name, created_at')
     const newClients = (recentClients ?? []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3)
-    const { data: recentRequests } = await supabase.from('walk_requests').select('id, service_type, created_at, status, dogs(name)').order('created_at', { ascending: false }).limit(3)
+    const { data: recentRequests } = await supabase.from('walk_requests').select('id, service_type, created_at, status, dogs(name), clients!inner(users!inner(is_active))').eq('clients.users.is_active', true).order('created_at', { ascending: false }).limit(3)
     const feed = [
       ...(newClients ?? []).map(c => ({ label: `New pet parent: ${c.name}`, ts: c.created_at })),
       ...(recentRequests ?? []).map(r => ({ label: `Walk request: ${r.dogs?.name ?? '?'} (${r.service_type}) — ${r.status}`, ts: r.created_at })),
