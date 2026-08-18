@@ -981,6 +981,31 @@ export default function AdminPortal() {
 
       {activeTab === 'home' && (
         <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+            {[
+              { id: 'requests', label: 'Requests', icon: '📋', color: '#5B4B8A', badge: pendingRequests.length + pendingBoardings.length },
+              { id: 'people', label: 'People', icon: '👥', color: '#2D9B8A' },
+              { id: 'schedule', label: 'Schedule', icon: '📅', color: '#D4A843' },
+              { id: 'tools', label: 'Tools', icon: '🛠️', color: '#636e72' },
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                style={{
+                  position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between',
+                  background: item.color, border: 'none', borderRadius: 16, padding: '18px 16px', height: 92,
+                  cursor: 'pointer', boxShadow: '0 3px 10px rgba(45,52,54,0.15)',
+                }}
+              >
+                <span style={{ fontSize: '1.7rem', lineHeight: 1 }}>{item.icon}</span>
+                <span style={{ color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem' }}>{item.label}</span>
+                {item.badge > 0 && (
+                  <span style={{ position: 'absolute', top: 12, right: 12, background: '#DC2626', color: 'white', borderRadius: 12, fontSize: '0.8rem', fontWeight: 800, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>{item.badge}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
             <StatCard label="Walks Today" value={stats.walksToday} color="#5B4B8A" />
             <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" />
