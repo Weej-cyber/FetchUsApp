@@ -824,6 +824,7 @@ function ClientsAndWalkersSection() {
 export default function AdminPortal() {
   const { signOut, setRole } = useAuth()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('home')
   const [stats, setStats] = useState({ walksToday: null, pending: null, clients: null, walkers: null, pendingBoardings: null })
   const [requests, setRequests] = useState([])
   const [boardings, setBoardings] = useState([])
@@ -938,8 +939,21 @@ export default function AdminPortal() {
   const pendingBoardings = boardings.filter(b => b.status === 'pending')
   const otherBoardings = boardings.filter(b => b.status !== 'pending')
 
+  const urgentItems = [
+    ...pendingRequests.map(r => ({ kind: 'walk', id: r.id, label: `${r.dogs?.name ?? 'Unknown dog'} — ${r.service_type}`, sub: `${formatDate(r.preferred_date)} at ${r.preferred_time}`, ts: r.created_at })),
+    ...pendingBoardings.map(b => ({ kind: 'boarding', id: b.id, label: `${b.dogs?.name ?? 'Unknown dog'} — Boarding`, sub: `${formatDate(b.check_in_date)} → ${formatDate(b.check_out_date)}`, ts: b.created_at })),
+  ].sort((a, b) => new Date(b.ts) - new Date(a.ts))
+
+  const TABS = [
+    { id: 'home', label: 'Home', icon: '🏠' },
+    { id: 'requests', label: 'Requests', icon: '📋', badge: pendingRequests.length + pendingBoardings.length },
+    { id: 'people', label: 'People', icon: '👥' },
+    { id: 'schedule', label: 'Schedule', icon: '📅' },
+    { id: 'tools', label: 'Tools', icon: '🛠️' },
+  ]
+
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 100px', fontFamily: 'Nunito, sans-serif' }}>
+    <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 90px', fontFamily: 'Nunito, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
           <h1 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.5rem', fontWeight: 700, color: '#5B4B8A', margin: 0 }}>Admin Portal</h1>
@@ -965,88 +979,148 @@ export default function AdminPortal() {
         ))}
       </div>
 
-      <ClientReportSection />
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
-        <StatCard label="Walks Today" value={stats.walksToday} color="#5B4B8A" />
-        <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" />
-        <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#D4A843" />
-        <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" />
-        <StatCard label="Walkers" value={stats.walkers} color="#636e72" />
-      </div>
-
-      {activity.length > 0 && (
-        <div style={{ marginBottom: 32 }}>
-          <SectionHeader title="Recent Activity" />
-          <div style={{ background: 'white', borderRadius: 12, padding: '4px 0', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
-            {activity.map((a, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: i < activity.length - 1 ? '1px solid #F0EDE5' : 'none' }}>
-                <span style={{ fontSize: '0.85rem', color: '#2D3436' }}>{a.label}</span>
-                <span style={{ fontSize: '0.75rem', color: '#b2bec3', whiteSpace: 'nowrap', marginLeft: 8 }}>{timeAgo(a.ts)}</span>
-              </div>
-            ))}
+      {activeTab === 'home' && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
+            <StatCard label="Walks Today" value={stats.walksToday} color="#5B4B8A" />
+            <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" />
+            <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#D4A843" />
+            <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" />
+            <StatCard label="Walkers" value={stats.walkers} color="#636e72" />
           </div>
+
+          {urgentItems.length > 0 && (
+            <div style={{ marginBottom: 32 }}>
+              <SectionHeader title="Needs Your Attention" />
+              <div style={{ background: 'white', borderRadius: 12, padding: '4px 0', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
+                {urgentItems.slice(0, 4).map((item, i) => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: i < Math.min(urgentItems.length, 4) - 1 ? '1px solid #F0EDE5' : 'none' }}>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#2D3436' }}>{item.label}</div>
+                      <div style={{ fontSize: '0.78rem', color: '#636e72', marginTop: 2 }}>{item.sub}</div>
+                    </div>
+                    <span style={{ background: '#FEF9C3', color: '#92400E', padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, whiteSpace: 'nowrap' }}>Pending</span>
+                  </div>
+                ))}
+              </div>
+              {urgentItems.length > 4 && (
+                <button onClick={() => setActiveTab('requests')} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#5B4B8A', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', padding: '6px' }}>
+                  View all {urgentItems.length} in Requests →
+                </button>
+              )}
+            </div>
+          )}
+
+          {activity.length > 0 && (
+            <div style={{ marginBottom: 32 }}>
+              <SectionHeader title="Recent Activity" />
+              <div style={{ background: 'white', borderRadius: 12, padding: '4px 0', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
+                {activity.map((a, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: i < activity.length - 1 ? '1px solid #F0EDE5' : 'none' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#2D3436' }}>{a.label}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#b2bec3', whiteSpace: 'nowrap', marginLeft: 8 }}>{timeAgo(a.ts)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {activeTab === 'requests' && (
+        <>
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+              Walk Requests
+              {pendingRequests.length > 0 && (
+                <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '0.75rem' }}>{pendingRequests.length} pending</span>
+              )}
+            </div>
+            {loadingRequests ? <EmptyState message="Loading requests..." />
+              : requests.length === 0 ? <EmptyState message="No walk requests yet." />
+              : (
+                <>
+                  {pendingRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} />)}
+                  {otherRequests.length > 0 && (
+                    <details style={{ marginTop: 8 }}>
+                      <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
+                        Show {otherRequests.length} resolved request{otherRequests.length > 1 ? 's' : ''}
+                      </summary>
+                      {otherRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} />)}
+                    </details>
+                  )}
+                </>
+              )
+            }
+          </div>
+
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+              Boarding Requests
+              {pendingBoardings.length > 0 && (
+                <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '0.75rem' }}>{pendingBoardings.length} pending</span>
+              )}
+            </div>
+            {loadingBoardings ? <EmptyState message="Loading boarding requests..." />
+              : boardings.length === 0 ? <EmptyState message="No boarding requests yet." />
+              : (
+                <>
+                  {pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} />)}
+                  {otherBoardings.length > 0 && (
+                    <details style={{ marginTop: 8 }}>
+                      <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
+                        Show {otherBoardings.length} resolved boarding{otherBoardings.length > 1 ? 's' : ''}
+                      </summary>
+                      {otherBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} />)}
+                    </details>
+                  )}
+                </>
+              )
+            }
+          </div>
+        </>
+      )}
+
+      {activeTab === 'people' && (
+        <div style={{ marginBottom: 32 }}>
+          <ClientsAndWalkersSection />
         </div>
       )}
 
-      <div style={{ marginBottom: 32 }}>
-        <SectionHeader title="Manage" />
-        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
-          Walk Requests
-          {pendingRequests.length > 0 && (
-            <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '0.75rem' }}>{pendingRequests.length} pending</span>
-          )}
+      {activeTab === 'schedule' && (
+        <div style={{ marginBottom: 32 }}>
+          <ScheduleSection walkers={walkers} />
         </div>
-        {loadingRequests ? <EmptyState message="Loading requests..." />
-          : requests.length === 0 ? <EmptyState message="No walk requests yet." />
-          : (
-            <>
-              {pendingRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} />)}
-              {otherRequests.length > 0 && (
-                <details style={{ marginTop: 8 }}>
-                  <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
-                    Show {otherRequests.length} resolved request{otherRequests.length > 1 ? 's' : ''}
-                  </summary>
-                  {otherRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} />)}
-                </details>
-              )}
-            </>
-          )
-        }
-        <BroadcastPanel />
-      </div>
+      )}
 
-      <div style={{ marginBottom: 32 }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
-          Boarding Requests
-          {pendingBoardings.length > 0 && (
-            <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '0.75rem' }}>{pendingBoardings.length} pending</span>
-          )}
-        </div>
-        {loadingBoardings ? <EmptyState message="Loading boarding requests..." />
-          : boardings.length === 0 ? <EmptyState message="No boarding requests yet." />
-          : (
-            <>
-              {pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} />)}
-              {otherBoardings.length > 0 && (
-                <details style={{ marginTop: 8 }}>
-                  <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
-                    Show {otherBoardings.length} resolved boarding{otherBoardings.length > 1 ? 's' : ''}
-                  </summary>
-                  {otherBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} />)}
-                </details>
-              )}
-            </>
-          )
-        }
-      </div>
+      {activeTab === 'tools' && (
+        <>
+          <ClientReportSection />
+          <div style={{ marginBottom: 32 }}>
+            <BroadcastPanel />
+          </div>
+        </>
+      )}
 
-      <div style={{ marginBottom: 32 }}>
-        <ScheduleSection walkers={walkers} />
-      </div>
-
-      <div style={{ marginBottom: 32 }}>
-        <ClientsAndWalkersSection />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #E8E4DA', display: 'flex', justifyContent: 'space-around', padding: '8px 4px', zIndex: 50 }}>
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+              background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', position: 'relative',
+              color: activeTab === tab.id ? '#5B4B8A' : '#b2bec3',
+              fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.7rem',
+            }}
+          >
+            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{tab.icon}</span>
+            {tab.label}
+            {tab.badge > 0 && (
+              <span style={{ position: 'absolute', top: -2, right: 0, background: '#DC2626', color: 'white', borderRadius: 10, fontSize: '0.62rem', fontWeight: 800, padding: '1px 5px', minWidth: 14, textAlign: 'center' }}>{tab.badge}</span>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   )
