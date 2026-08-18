@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { Home, ClipboardList, Users, Calendar, Wrench } from 'lucide-react'
 
 // Looks up active users holding a given role via user_roles, so multi-role
 // users (e.g. an admin who is also a walker or client) are included alongside
@@ -945,11 +946,11 @@ export default function AdminPortal() {
   ].sort((a, b) => new Date(b.ts) - new Date(a.ts))
 
   const TABS = [
-    { id: 'home', label: 'Home', icon: '🏠' },
-    { id: 'requests', label: 'Requests', icon: '📋', badge: pendingRequests.length + pendingBoardings.length },
-    { id: 'people', label: 'People', icon: '👥' },
-    { id: 'schedule', label: 'Schedule', icon: '📅' },
-    { id: 'tools', label: 'Tools', icon: '🛠️' },
+    { id: 'home', label: 'Home', Icon: Home },
+    { id: 'requests', label: 'Requests', Icon: ClipboardList, badge: pendingRequests.length + pendingBoardings.length },
+    { id: 'people', label: 'People', Icon: Users },
+    { id: 'schedule', label: 'Schedule', Icon: Calendar },
+    { id: 'tools', label: 'Tools', Icon: Wrench },
   ]
 
   return (
@@ -983,10 +984,10 @@ export default function AdminPortal() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
             {[
-              { id: 'requests', label: 'Requests', icon: '📋', color: '#5B4B8A', badge: pendingRequests.length + pendingBoardings.length },
-              { id: 'people', label: 'People', icon: '👥', color: '#2D9B8A' },
-              { id: 'schedule', label: 'Schedule', icon: '📅', color: '#D4A843' },
-              { id: 'tools', label: 'Tools', icon: '🛠️', color: '#636e72' },
+              { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#5B4B8A', badge: pendingRequests.length + pendingBoardings.length },
+              { id: 'people', label: 'People', Icon: Users, color: '#2D9B8A' },
+              { id: 'schedule', label: 'Schedule', Icon: Calendar, color: '#D4A843' },
+              { id: 'tools', label: 'Tools', Icon: Wrench, color: '#636e72' },
             ].map(item => (
               <button
                 key={item.id}
@@ -997,7 +998,7 @@ export default function AdminPortal() {
                   cursor: 'pointer', boxShadow: '0 3px 10px rgba(45,52,54,0.15)',
                 }}
               >
-                <span style={{ fontSize: '1.7rem', lineHeight: 1 }}>{item.icon}</span>
+                <item.Icon size={28} color="white" strokeWidth={2.2} />
                 <span style={{ color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem' }}>{item.label}</span>
                 {item.badge > 0 && (
                   <span style={{ position: 'absolute', top: 12, right: 12, background: '#DC2626', color: 'white', borderRadius: 12, fontSize: '0.8rem', fontWeight: 800, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>{item.badge}</span>
@@ -1139,7 +1140,7 @@ export default function AdminPortal() {
               fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.7rem',
             }}
           >
-            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{tab.icon}</span>
+            <tab.Icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
             {tab.label}
             {tab.badge > 0 && (
               <span style={{ position: 'absolute', top: -2, right: 0, background: '#DC2626', color: 'white', borderRadius: 10, fontSize: '0.62rem', fontWeight: 800, padding: '1px 5px', minWidth: 14, textAlign: 'center' }}>{tab.badge}</span>
