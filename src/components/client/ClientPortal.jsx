@@ -115,7 +115,7 @@ export default function ClientPortal() {
       setProfile({ name: userData?.name || '', email: userData?.email || user.email || '', phone: userData?.phone || '', address: clientData.address || '', access_instructions: clientData.access_instructions || '', sms_consent: userData?.sms_consent || false })
       const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', clientData.id).order('name')
       setDogs(dogList || [])
-      const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name)').eq('client_id', clientData.id).order('preferred_date', { ascending: false }).limit(10)
+      const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name), walks(photo_url, duration)').eq('client_id', clientData.id).order('preferred_date', { ascending: false }).limit(10)
       setWalks(walkList || [])
       const { data: boardingList } = await supabase.from('boarding_requests').select('*, dogs(name)').eq('client_id', clientData.id).order('check_in_date', { ascending: false }).limit(10)
       setBoardings(boardingList || [])
@@ -582,13 +582,16 @@ export default function ClientPortal() {
           <p style={{ fontSize: '0.84rem', marginTop: 4 }}>Book your first walk above</p>
         </div>
       ) : (
-        walks.map(walk => (
+        walks.map(walk => {
+          const walkRecord = walk.walks?.[0]
+          return (
           <div key={walk.id} style={{ ...cardStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
               <div>
                 <div style={{ fontWeight: 700, color: C.charcoal }}>{walk.service_type}</div>
                 <div style={{ fontSize: '0.83rem', color: C.light, marginTop: 2 }}>
                   {walk.dogs?.name && `${walk.dogs.name} · `}{formatDate(walk.preferred_date)} at {walk.preferred_time}
+                  {walkRecord?.duration && ` · ${walkRecord.duration} min`}
                 </div>
               </div>
               <StatusBadge status={walk.status} />
@@ -598,8 +601,12 @@ export default function ClientPortal() {
                 <span style={{ fontWeight: 700 }}>Walker note: </span>{walk.notes}
               </div>
             )}
+            {walkRecord?.photo_url && (
+              <img src={walkRecord.photo_url} alt="Walk photo" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 10, marginTop: 8 }} />
+            )}
           </div>
-        ))
+          )
+        })
       )}
 
       <SectionHeader title="👤 My Profile" color={C.indigo} />

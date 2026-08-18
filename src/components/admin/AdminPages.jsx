@@ -93,6 +93,9 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
         <span style={{ background: sc.bg, color: sc.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{req.status}</span>
       </div>
       {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: '#FAF8F3', borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
+      {req.walks?.[0]?.photo_url && (
+        <img src={req.walks[0].photo_url} alt="Walk photo" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8, marginBottom: 10 }} />
+      )}
       {req.assigned_walker_id && <div style={{ fontSize: '0.8rem', color: '#2D9B8A', fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
       {req.status === 'pending' && (
         <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
@@ -370,10 +373,15 @@ function ClientReadOnlyView({ userId, onBack }) {
 
       <SectionHeader title={`Dogs (${dogs.length})`} />
       {dogs.length === 0 ? <EmptyState message="No dogs on file." /> : dogs.map(d => (
-        <div key={d.id} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12 }}>
-          <div style={{ fontWeight: 700, color: '#2D3436' }}>{d.name}{d.breed ? ` — ${d.breed}` : ''}</div>
-          {d.behavioral_notes && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Behavioral: </span>{d.behavioral_notes}</div>}
-          {d.medical_needs && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Medical: </span>{d.medical_needs}</div>}
+        <div key={d.id} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, display: 'flex', gap: 14 }}>
+          {d.photo_url && (
+            <img src={d.photo_url} alt={d.name} style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, color: '#2D3436' }}>{d.name}{d.breed ? ` — ${d.breed}` : ''}</div>
+            {d.behavioral_notes && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Behavioral: </span>{d.behavioral_notes}</div>}
+            {d.medical_needs && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Medical: </span>{d.medical_needs}</div>}
+          </div>
         </div>
       ))}
 
@@ -853,7 +861,7 @@ export default function AdminPortal() {
 
   async function loadRequests() {
     setLoadingRequests(true)
-    const { data } = await supabase.from('walk_requests').select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).order('created_at', { ascending: false }).limit(20)
+    const { data } = await supabase.from('walk_requests').select('*, dogs(name), walks(photo_url), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).order('created_at', { ascending: false }).limit(20)
     if (data) setRequests(data)
     setLoadingRequests(false)
   }

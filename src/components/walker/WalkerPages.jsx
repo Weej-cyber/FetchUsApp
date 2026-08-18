@@ -197,6 +197,7 @@ export function WalkerDashboard() {
   const [activeWalk, setActiveWalk] = useState(null)
   const [todayWalks, setTodayWalks] = useState([])
   const [weekWalks, setWeekWalks] = useState([])
+  const [boardings, setBoardings] = useState([])
   const [history, setHistory] = useState([])
 
   useEffect(() => { if (user?.id) fetchAll() }, [user?.id])
@@ -206,6 +207,7 @@ export function WalkerDashboard() {
     const channel = supabase
       .channel(`walker-requests-${user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'walk_requests', filter: `assigned_walker_id=eq.${user.id}` }, () => fetchAll(true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'boarding_requests', filter: `assigned_walker_id=eq.${user.id}` }, () => fetchAll(true))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'walks', filter: `walker_id=eq.${user.id}` }, () => fetchAll(true))
       .subscribe()
     return () => { supabase.removeChannel(channel) }
@@ -220,16 +222,18 @@ export function WalkerDashboard() {
     tomorrow.setDate(tomorrow.getDate() + 1)
     const tomorrowStr = tomorrow.toISOString().split('T')[0]
 
-    const [{ data: todayData }, { data: weekData }, { data: historyData }, { data: activeData }] = await Promise.all([
+    const [{ data: todayData }, { data: weekData }, { data: historyData }, { data: activeData }, { data: boardingData }] = await Promise.all([
       supabase.from('walk_requests').select('*, dogs(name), clients(id, user_id, users(name, phone, sms_consent))').eq('assigned_walker_id', user.id).eq('preferred_date', today).in('status', ['assigned', 'confirmed', 'in_progress']).order('preferred_time', { ascending: true }),
       supabase.from('walk_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).gte('preferred_date', tomorrowStr).in('status', ['assigned', 'confirmed']).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }),
       supabase.from('walks').select('*').eq('walker_id', user.id).not('completed_at', 'is', null).order('completed_at', { ascending: false }).limit(5),
       supabase.from('walks').select('*').eq('walker_id', user.id).is('completed_at', null).not('started_at', 'is', null).limit(1),
+      supabase.from('boarding_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).in('status', ['assigned', 'confirmed']).order('check_in_date', { ascending: true }),
     ])
 
     setTodayWalks(todayData || [])
     setWeekWalks(weekData || [])
     setHistory(historyData || [])
+    setBoardings(boardingData || [])
     if (activeData?.length > 0) setActiveWalk(activeData[0])
     else setActiveWalk(null)
     setLoading(false)
@@ -342,6 +346,19 @@ export function WalkerDashboard() {
           <div key={w.id} style={{ background: 'white', borderRadius: 12, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.07)', marginBottom: 8 }}>
             <div style={{ fontWeight: 700, fontSize: '0.9rem', color: C.charcoal }}>{formatDate(w.preferred_date)} at {w.preferred_time}</div>
             <div style={{ fontSize: '0.82rem', color: C.light, marginTop: 2 }}>{w.dogs?.name ?? '—'} · {w.clients?.users?.name ?? '—'} · {w.service_type}</div>
+          </div>
+        ))}
+
+        <SectionHeader title="Boarding" />
+        {boardings.length === 0 ? (
+          <div style={{ background: 'white', borderRadius: 14, padding: '16px 20px', color: C.light, fontSize: '0.88rem', boxShadow: '0 1px 4px rgba(45,52,54,0.05)' }}>
+            No boarding assignments
+          </div>
+        ) : boardings.map(b => (
+          <div key={b.id} style={{ background: 'white', borderRadius: 12, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.07)', marginBottom: 8 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: C.charcoal }}>{formatDate(b.check_in_date)} → {formatDate(b.check_out_date)}</div>
+            <div style={{ fontSize: '0.82rem', color: C.light, marginTop: 2 }}>{b.dogs?.name ?? '—'} · {b.clients?.users?.name ?? '—'}</div>
+            {b.notes && <div style={{ fontSize: '0.82rem', color: C.charcoal, background: C.cream, borderRadius: 8, padding: '6px 10px', marginTop: 6 }}>"{b.notes}"</div>}
           </div>
         ))}
 
