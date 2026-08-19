@@ -46,23 +46,6 @@ function formatDate(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-// Given a start date, a set of weekday numbers (0=Sun..6=Sat), and a number
-// of weeks, returns every matching date as 'YYYY-MM-DD' strings.
-function computeRecurringDates(startDate, daysOfWeek, weeks) {
-  const dates = []
-  const start = new Date(startDate + 'T00:00:00')
-  const end = new Date(start)
-  end.setDate(end.getDate() + weeks * 7)
-  const cursor = new Date(start)
-  while (cursor < end) {
-    if (daysOfWeek.includes(cursor.getDay())) {
-      dates.push(cursor.toISOString().split('T')[0])
-    }
-    cursor.setDate(cursor.getDate() + 1)
-  }
-  return dates
-}
-
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default function ClientPortal() {
@@ -229,18 +212,7 @@ export default function ClientPortal() {
     if (error) { setBookError('Something went wrong. Please try again.'); setBookSubmitting(false); return }
     setBookSubmitting(false)
     setBookSubmitted(true)
-    const bookedDog = dogs.find(d => d.id === bookForm.dog_id)
-    try {
-      await supabase.functions.invoke('send-sms-direct', {
-        body: {
-          client_id: clientId,
-          event_type: 'new_booking',
-          dog_name: bookedDog?.name || null,
-          preferred_date: bookForm.preferred_date,
-          preferred_time: bookForm.preferred_time,
-        }
-      })
-    } catch (e) { console.error('New booking SMS error:', e) }
+    // Admins are notified automatically by a database trigger on walk_requests.
     setTimeout(() => { setBookSubmitted(false); setShowBook(false); setBookForm({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' }); loadAll() }, 2500)
   }
 
@@ -253,23 +225,14 @@ export default function ClientPortal() {
     setRecurringSubmitting(true)
 
     try {
-      const { data: recurringRow, error: recurringErr } = await supabase.from('recurring_walks').insert({
-        client_id: clientId, dog_id: recurringForm.dog_id || null,
-        service_type: recurringForm.service_type, preferred_time: recurringForm.preferred_time,
-        days_of_week: recurringForm.days, start_date: recurringForm.start_date,
-        weeks: recurringForm.weeks, notes: recurringForm.notes || null,
-      }).select().single()
-      if (recurringErr) throw recurringErr
-
-      const dates = computeRecurringDates(recurringForm.start_date, recurringForm.days, recurringForm.weeks)
-      const rows = dates.map(date => ({
-        client_id: clientId, dog_id: recurringForm.dog_id || null,
-        service_type: recurringForm.service_type, preferred_date: date,
-        preferred_time: recurringForm.preferred_time, notes: recurringForm.notes || null,
-        status: 'pending', recurring_walk_id: recurringRow.id,
-      }))
-      const { error: insertErr } = await supabase.from('walk_requests').insert(rows)
-      if (insertErr) throw insertErr
+      const { error: rpcErr } = await supabase.rpc('create_recurring_walk', {
+        p_client_id: clientId, p_dog_id: recurringForm.dog_id || null,
+        p_service_type: recurringForm.service_type, p_preferred_time: recurringForm.preferred_time,
+        p_days_of_week: recurringForm.days, p_start_date: recurringForm.start_date,
+        p_weeks: recurringForm.weeks, p_assigned_walker_id: null,
+        p_notes: recurringForm.notes || null,
+      })
+      if (rpcErr) throw rpcErr
 
       setRecurringSubmitting(false)
       setRecurringSubmitted(true)
@@ -295,18 +258,7 @@ export default function ClientPortal() {
     if (error) { setBoardError('Something went wrong. Please try again.'); setBoardSubmitting(false); return }
     setBoardSubmitting(false)
     setBoardSubmitted(true)
-    const boardedDog = dogs.find(d => d.id === boardForm.dog_id)
-    try {
-      await supabase.functions.invoke('send-sms-direct', {
-        body: {
-          client_id: clientId,
-          event_type: 'new_boarding',
-          dog_name: boardedDog?.name || null,
-          check_in_date: boardForm.check_in_date,
-          check_out_date: boardForm.check_out_date,
-        }
-      })
-    } catch (e) { console.error('New boarding SMS error:', e) }
+    // Admins are notified automatically by a database trigger on boarding_requests.
     setTimeout(() => { setBoardSubmitted(false); setShowBoard(false); setBoardForm({ dog_id: '', check_in_date: '', check_out_date: '', notes: '' }); loadAll() }, 2500)
   }
 

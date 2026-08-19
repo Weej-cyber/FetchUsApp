@@ -91,25 +91,8 @@ function ActiveWalkScreen({ walk, onComplete }) {
         if (reqError) throw reqError
       }
 
-      if (walk.client_user_id) {
-        await supabase.from('notifications').insert({
-          user_id: walk.client_user_id,
-          type: 'walk_complete',
-          message: `${walk.dog_name || 'Your dog'}'s walk is complete!${notes ? ` Walker note: ${notes}` : ''}`,
-          status: 'pending',
-        })
-      }
-      // Send SMS notification for walk complete
-      try {
-        await supabase.functions.invoke('send-sms-direct', {
-          body: {
-            client_id: walk.client_id,
-            walker_name: 'Your walker',
-            dog_name: walk.dog_name || 'your dog',
-            event_type: 'walk_completed',
-          }
-        })
-      } catch (e) { console.error('SMS complete error:', e) }
+      // The client is notified automatically by a database trigger on the
+      // walks table (fires when completed_at is set).
 
       setSaving(false)
       setSaved(true)
@@ -258,17 +241,8 @@ export function WalkerDashboard() {
         client_phone: req.clients?.users?.phone || null,
         sms_consent: req.clients?.users?.sms_consent || false,
       })
-      // Send SMS notification using client_id -- edge function looks up phone via SECURITY DEFINER
-      try {
-        await supabase.functions.invoke('send-sms-direct', {
-          body: {
-            client_id: req.client_id,
-            walker_name: user?.name || 'Your walker',
-            dog_name: req.dogs?.name || 'your dog',
-            event_type: 'walk_started',
-          }
-        })
-      } catch (e) { console.error('SMS error:', e) }
+      // The client is notified automatically by a database trigger on the
+      // walks table (fires when started_at is set).
     }
   }
 

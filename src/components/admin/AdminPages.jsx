@@ -415,21 +415,6 @@ function ClientReadOnlyView({ userId, onBack }) {
   )
 }
 
-function computeRecurringDates(startDate, daysOfWeek, weeks) {
-  const dates = []
-  const start = new Date(startDate + 'T00:00:00')
-  const end = new Date(start)
-  end.setDate(end.getDate() + weeks * 7)
-  const cursor = new Date(start)
-  while (cursor < end) {
-    if (daysOfWeek.includes(cursor.getDay())) {
-      dates.push(cursor.toISOString().split('T')[0])
-    }
-    cursor.setDate(cursor.getDate() + 1)
-  }
-  return dates
-}
-
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 function RecurringWalkSection() {
@@ -474,24 +459,13 @@ function RecurringWalkSection() {
       const { data: clientRow, error: clientErr } = await supabase.from('clients').select('id').eq('user_id', form.client_user_id).single()
       if (clientErr || !clientRow) throw new Error('Could not find this client.')
 
-      const { data: recurringRow, error: recurringErr } = await supabase.from('recurring_walks').insert({
-        client_id: clientRow.id, dog_id: form.dog_id || null,
-        service_type: form.service_type, preferred_time: form.preferred_time,
-        days_of_week: form.days, start_date: form.start_date, weeks: form.weeks,
-        assigned_walker_id: form.walker_id || null, notes: form.notes || null,
-      }).select().single()
-      if (recurringErr) throw recurringErr
-
-      const dates = computeRecurringDates(form.start_date, form.days, form.weeks)
-      const rows = dates.map(date => ({
-        client_id: clientRow.id, dog_id: form.dog_id || null,
-        service_type: form.service_type, preferred_date: date, preferred_time: form.preferred_time,
-        notes: form.notes || null, recurring_walk_id: recurringRow.id,
-        status: form.walker_id ? 'assigned' : 'pending',
-        assigned_walker_id: form.walker_id || null,
-      }))
-      const { error: insertErr } = await supabase.from('walk_requests').insert(rows)
-      if (insertErr) throw insertErr
+      const { error: rpcErr } = await supabase.rpc('create_recurring_walk', {
+        p_client_id: clientRow.id, p_dog_id: form.dog_id || null,
+        p_service_type: form.service_type, p_preferred_time: form.preferred_time,
+        p_days_of_week: form.days, p_start_date: form.start_date, p_weeks: form.weeks,
+        p_assigned_walker_id: form.walker_id || null, p_notes: form.notes || null,
+      })
+      if (rpcErr) throw rpcErr
 
       setSubmitting(false)
       setSubmitted(true)
@@ -1077,16 +1051,8 @@ export default function AdminPortal() {
 
   async function handleAssign(id, walkerId) {
     await supabase.from('walk_requests').update({ status: 'assigned', assigned_walker_id: walkerId }).eq('id', id)
-    const req = requests.find(r => r.id === id)
-    if (req?.clients?.user_id) {
-      const walkerName = walkers.find(w => w.id === walkerId)?.name || 'your walker'
-      await supabase.from('notifications').insert({
-        user_id: req.clients.user_id,
-        type: 'walk_assigned',
-        message: `Your walk has been confirmed and assigned to ${walkerName}.`,
-        status: 'pending',
-      })
-    }
+    // The client and the assigned walker are both notified automatically by
+    // a database trigger on walk_requests.
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'assigned', assigned_walker_id: walkerId } : r))
     loadStats()
   }
@@ -1099,16 +1065,8 @@ export default function AdminPortal() {
 
   async function handleAssignBoarding(id, walkerId) {
     await supabase.from('boarding_requests').update({ status: 'assigned', assigned_walker_id: walkerId }).eq('id', id)
-    const req = boardings.find(b => b.id === id)
-    if (req?.clients?.user_id) {
-      const walkerName = walkers.find(w => w.id === walkerId)?.name || 'your walker'
-      await supabase.from('notifications').insert({
-        user_id: req.clients.user_id,
-        type: 'boarding_assigned',
-        message: `Your boarding request has been confirmed and assigned to ${walkerName}.`,
-        status: 'pending',
-      })
-    }
+    // The client and the assigned walker are both notified automatically by
+    // a database trigger on boarding_requests.
     setBoardings(prev => prev.map(b => b.id === id ? { ...b, status: 'assigned', assigned_walker_id: walkerId } : b))
     loadStats()
   }
