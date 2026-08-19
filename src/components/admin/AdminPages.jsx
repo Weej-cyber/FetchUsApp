@@ -415,6 +415,184 @@ function ClientReadOnlyView({ userId, onBack }) {
   )
 }
 
+function computeRecurringDates(startDate, daysOfWeek, weeks) {
+  const dates = []
+  const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(start)
+  end.setDate(end.getDate() + weeks * 7)
+  const cursor = new Date(start)
+  while (cursor < end) {
+    if (daysOfWeek.includes(cursor.getDay())) {
+      dates.push(cursor.toISOString().split('T')[0])
+    }
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return dates
+}
+
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function RecurringWalkSection() {
+  const [clients, setClients] = useState([])
+  const [walkers, setWalkers] = useState([])
+  const [dogs, setDogs] = useState([])
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({ client_user_id: '', dog_id: '', service_type: '30-min Walk', preferred_time: '9:30 AM', days: [], start_date: '', weeks: 4, walker_id: '', notes: '' })
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    async function load() {
+      const { data: c } = await getUsersByRole('client', 'id, name')
+      setClients(c || [])
+      const { data: w } = await getUsersByRole('walker', 'id, name')
+      setWalkers(w || [])
+    }
+    load()
+  }, [])
+
+  useEffect(() => {
+    async function loadDogs() {
+      if (!form.client_user_id) { setDogs([]); return }
+      const { data: clientRow } = await supabase.from('clients').select('id').eq('user_id', form.client_user_id).single()
+      if (!clientRow) { setDogs([]); return }
+      const { data: dogList } = await supabase.from('dogs').select('id, name').eq('client_id', clientRow.id)
+      setDogs(dogList || [])
+    }
+    loadDogs()
+  }, [form.client_user_id])
+
+  async function submit() {
+    setError(null)
+    if (!form.client_user_id) { setError('Please select a client.'); return }
+    if (form.days.length === 0) { setError('Please select at least one day of the week.'); return }
+    if (!form.start_date) { setError('Please select a start date.'); return }
+    setSubmitting(true)
+
+    try {
+      const { data: clientRow, error: clientErr } = await supabase.from('clients').select('id').eq('user_id', form.client_user_id).single()
+      if (clientErr || !clientRow) throw new Error('Could not find this client.')
+
+      const { data: recurringRow, error: recurringErr } = await supabase.from('recurring_walks').insert({
+        client_id: clientRow.id, dog_id: form.dog_id || null,
+        service_type: form.service_type, preferred_time: form.preferred_time,
+        days_of_week: form.days, start_date: form.start_date, weeks: form.weeks,
+        assigned_walker_id: form.walker_id || null, notes: form.notes || null,
+      }).select().single()
+      if (recurringErr) throw recurringErr
+
+      const dates = computeRecurringDates(form.start_date, form.days, form.weeks)
+      const rows = dates.map(date => ({
+        client_id: clientRow.id, dog_id: form.dog_id || null,
+        service_type: form.service_type, preferred_date: date, preferred_time: form.preferred_time,
+        notes: form.notes || null, recurring_walk_id: recurringRow.id,
+        status: form.walker_id ? 'assigned' : 'pending',
+        assigned_walker_id: form.walker_id || null,
+      }))
+      const { error: insertErr } = await supabase.from('walk_requests').insert(rows)
+      if (insertErr) throw insertErr
+
+      setSubmitting(false)
+      setSubmitted(true)
+      setTimeout(() => { setSubmitted(false); setOpen(false); setForm({ client_user_id: '', dog_id: '', service_type: '30-min Walk', preferred_time: '9:30 AM', days: [], start_date: '', weeks: 4, walker_id: '', notes: '' }) }, 2000)
+    } catch (err) {
+      console.error('Recurring walk setup failed:', err)
+      setSubmitting(false)
+      setError('Could not set this up. Please try again.')
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <SectionHeader title="🔁 Recurring Walks" />
+      {!open ? (
+        <button onClick={() => setOpen(true)} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+          Set Up Recurring Walk
+        </button>
+      ) : submitted ? (
+        <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', textAlign: 'center' }}>
+          <div style={{ fontWeight: 800, color: '#2D9B8A' }}>Recurring walk set up for the next {form.weeks} weeks.</div>
+        </div>
+      ) : (
+        <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', borderLeft: '4px solid #2D9B8A' }}>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Client</label>
+            <select style={inputStyle} value={form.client_user_id} onChange={e => setForm({ ...form, client_user_id: e.target.value, dog_id: '' })}>
+              <option value="">Select a client...</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          {dogs.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <label style={labelStyle}>Dog</label>
+              <select style={inputStyle} value={form.dog_id} onChange={e => setForm({ ...form, dog_id: e.target.value })}>
+                <option value="">Select a dog...</option>
+                {dogs.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div>
+              <label style={labelStyle}>Service Type</label>
+              <select style={inputStyle} value={form.service_type} onChange={e => setForm({ ...form, service_type: e.target.value })}>
+                <option>30-min Walk</option><option>60-min Walk</option><option>Drop-In Visit</option>
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Assign Walker</label>
+              <select style={inputStyle} value={form.walker_id} onChange={e => setForm({ ...form, walker_id: e.target.value })}>
+                <option value="">Unassigned</option>
+                {walkers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Days of the Week</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {WEEKDAY_LABELS.map((label, i) => {
+                const selected = form.days.includes(i)
+                return (
+                  <button key={i} type="button"
+                    onClick={() => setForm({ ...form, days: selected ? form.days.filter(d => d !== i) : [...form.days, i] })}
+                    style={{ padding: '7px 11px', borderRadius: 8, border: selected ? '1.5px solid #2D9B8A' : '1.5px solid #E0E0E0', background: selected ? '#2D9B8A' : 'white', color: selected ? 'white' : '#2D3436', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div>
+              <label style={labelStyle}>Time</label>
+              <select style={inputStyle} value={form.preferred_time} onChange={e => setForm({ ...form, preferred_time: e.target.value })}>
+                {['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Start Date</label>
+              <input type="date" style={inputStyle} value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} />
+            </div>
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Number of Weeks</label>
+            <input type="number" min={1} max={52} style={inputStyle} value={form.weeks} onChange={e => setForm({ ...form, weeks: Math.max(1, Math.min(52, parseInt(e.target.value) || 1)) })} />
+          </div>
+          {error && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12, fontWeight: 600 }}>{error}</div>}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={submit} disabled={submitting} style={{ flex: 1, background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+              {submitting ? 'Setting up...' : 'Confirm'}
+            </button>
+            <button onClick={() => { setOpen(false); setError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#636e72', cursor: 'pointer' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ClientReportSection() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('')
@@ -1055,6 +1233,7 @@ export default function AdminPortal() {
 
       {activeTab === 'requests' && (
         <>
+          <RecurringWalkSection />
           <div style={{ marginBottom: 32 }}>
             <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
               Walk Requests

@@ -46,6 +46,25 @@ function formatDate(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
+// Given a start date, a set of weekday numbers (0=Sun..6=Sat), and a number
+// of weeks, returns every matching date as 'YYYY-MM-DD' strings.
+function computeRecurringDates(startDate, daysOfWeek, weeks) {
+  const dates = []
+  const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(start)
+  end.setDate(end.getDate() + weeks * 7)
+  const cursor = new Date(start)
+  while (cursor < end) {
+    if (daysOfWeek.includes(cursor.getDay())) {
+      dates.push(cursor.toISOString().split('T')[0])
+    }
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return dates
+}
+
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
 export default function ClientPortal() {
   const { dbRole, setRole, signOut } = useAuth()
   const navigate = useNavigate()
@@ -68,6 +87,12 @@ export default function ClientPortal() {
   const [bookSubmitting, setBookSubmitting] = useState(false)
   const [bookSubmitted, setBookSubmitted] = useState(false)
   const [bookError, setBookError] = useState(null)
+
+  const [showRecurring, setShowRecurring] = useState(false)
+  const [recurringForm, setRecurringForm] = useState({ service_type: '30-min Walk', dog_id: '', preferred_time: '', start_date: '', weeks: 4, days: [], notes: '' })
+  const [recurringSubmitting, setRecurringSubmitting] = useState(false)
+  const [recurringSubmitted, setRecurringSubmitted] = useState(false)
+  const [recurringError, setRecurringError] = useState(null)
 
   const [walks, setWalks] = useState([])
 
@@ -217,6 +242,43 @@ export default function ClientPortal() {
       })
     } catch (e) { console.error('New booking SMS error:', e) }
     setTimeout(() => { setBookSubmitted(false); setShowBook(false); setBookForm({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' }); loadAll() }, 2500)
+  }
+
+  async function submitRecurring() {
+    setRecurringError(null)
+    if (recurringForm.days.length === 0) { setRecurringError('Please select at least one day of the week.'); return }
+    if (!recurringForm.preferred_time) { setRecurringError('Please select a time.'); return }
+    if (!recurringForm.start_date) { setRecurringError('Please select a start date.'); return }
+    if (!clientId) { setRecurringError('Profile not loaded. Please refresh.'); return }
+    setRecurringSubmitting(true)
+
+    try {
+      const { data: recurringRow, error: recurringErr } = await supabase.from('recurring_walks').insert({
+        client_id: clientId, dog_id: recurringForm.dog_id || null,
+        service_type: recurringForm.service_type, preferred_time: recurringForm.preferred_time,
+        days_of_week: recurringForm.days, start_date: recurringForm.start_date,
+        weeks: recurringForm.weeks, notes: recurringForm.notes || null,
+      }).select().single()
+      if (recurringErr) throw recurringErr
+
+      const dates = computeRecurringDates(recurringForm.start_date, recurringForm.days, recurringForm.weeks)
+      const rows = dates.map(date => ({
+        client_id: clientId, dog_id: recurringForm.dog_id || null,
+        service_type: recurringForm.service_type, preferred_date: date,
+        preferred_time: recurringForm.preferred_time, notes: recurringForm.notes || null,
+        status: 'pending', recurring_walk_id: recurringRow.id,
+      }))
+      const { error: insertErr } = await supabase.from('walk_requests').insert(rows)
+      if (insertErr) throw insertErr
+
+      setRecurringSubmitting(false)
+      setRecurringSubmitted(true)
+      setTimeout(() => { setRecurringSubmitted(false); setShowRecurring(false); setRecurringForm({ service_type: '30-min Walk', dog_id: '', preferred_time: '', start_date: '', weeks: 4, days: [], notes: '' }); loadAll() }, 2200)
+    } catch (err) {
+      console.error('Recurring walk setup failed:', err)
+      setRecurringSubmitting(false)
+      setRecurringError('Could not set this up. Please try again.')
+    }
   }
 
   async function submitBoard() {
@@ -495,6 +557,84 @@ export default function ClientPortal() {
               {bookSubmitting ? 'Sending...' : 'Send Request 🐾'}
             </button>
             <button onClick={() => { setShowBook(false); setBookError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <SectionHeader title="🔁 Set Up a Recurring Walk" color={C.teal} />
+
+      {!showRecurring ? (
+        <button onClick={() => setShowRecurring(true)} style={{ width: '100%', background: C.teal, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
+          Set Up Recurring Walk
+        </button>
+      ) : recurringSubmitted ? (
+        <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>🔁</div>
+          <div style={{ fontWeight: 800, color: C.teal, fontSize: '1.1rem', marginBottom: 6 }}>Recurring Walk Set Up!</div>
+          <div style={{ fontSize: '0.85rem', color: C.light }}>Your walks have been requested for the next {recurringForm.weeks} weeks.</div>
+        </div>
+      ) : (
+        <div style={{ ...cardStyle, borderLeft: `4px solid ${C.teal}` }}>
+          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.teal, marginBottom: 16 }}>New Recurring Walk</div>
+          {dogs.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <label style={labelStyle}>Which Dog?</label>
+              <select style={inputStyle} value={recurringForm.dog_id} onChange={e => setRecurringForm({ ...recurringForm, dog_id: e.target.value })}>
+                <option value="">Select a dog...</option>
+                {dogs.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+          )}
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Service</label>
+            <select style={inputStyle} value={recurringForm.service_type} onChange={e => setRecurringForm({ ...recurringForm, service_type: e.target.value })}>
+              {SERVICE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Days of the Week</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {WEEKDAY_LABELS.map((label, i) => {
+                const selected = recurringForm.days.includes(i)
+                return (
+                  <button key={i} type="button"
+                    onClick={() => setRecurringForm({ ...recurringForm, days: selected ? recurringForm.days.filter(d => d !== i) : [...recurringForm.days, i] })}
+                    style={{ padding: '8px 12px', borderRadius: 8, border: selected ? `1.5px solid ${C.teal}` : '1.5px solid #E0E0E0', background: selected ? C.teal : 'white', color: selected ? 'white' : C.charcoal, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Time</label>
+            <select style={inputStyle} value={recurringForm.preferred_time} onChange={e => setRecurringForm({ ...recurringForm, preferred_time: e.target.value })}>
+              <option value="">Select a time...</option>
+              {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+            <div>
+              <label style={labelStyle}>Start Date</label>
+              <input type="date" style={inputStyle} value={recurringForm.start_date} min={new Date().toISOString().split('T')[0]} onChange={e => setRecurringForm({ ...recurringForm, start_date: e.target.value })} />
+            </div>
+            <div>
+              <label style={labelStyle}>Number of Weeks</label>
+              <input type="number" min={1} max={52} style={inputStyle} value={recurringForm.weeks} onChange={e => setRecurringForm({ ...recurringForm, weeks: Math.max(1, Math.min(52, parseInt(e.target.value) || 1)) })} />
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Notes (optional)</label>
+            <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={recurringForm.notes} onChange={e => setRecurringForm({ ...recurringForm, notes: e.target.value })} />
+          </div>
+          {recurringError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12 }}>{recurringError}</div>}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={submitRecurring} disabled={recurringSubmitting} style={{ flex: 1, background: C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+              {recurringSubmitting ? 'Setting up...' : 'Confirm Recurring Walk'}
+            </button>
+            <button onClick={() => { setShowRecurring(false); setRecurringError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
               Cancel
             </button>
           </div>
