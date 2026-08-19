@@ -975,7 +975,7 @@ function ClientsAndWalkersSection() {
 }
 
 export default function AdminPortal() {
-  const { signOut, setRole } = useAuth()
+  const { signOut, setRole, user } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('home')
   const [stats, setStats] = useState({ walksToday: null, pending: null, clients: null, walkers: null, pendingBoardings: null })
@@ -985,6 +985,41 @@ export default function AdminPortal() {
   const [loadingRequests, setLoadingRequests] = useState(true)
   const [loadingBoardings, setLoadingBoardings] = useState(true)
   const [activity, setActivity] = useState([])
+  const [phoneRequired, setPhoneRequired] = useState(false)
+  const [phoneCheckDone, setPhoneCheckDone] = useState(false)
+  const [gatePhone, setGatePhone] = useState('')
+  const [gateConsent, setGateConsent] = useState(false)
+  const [gateSubmitting, setGateSubmitting] = useState(false)
+  const [gateError, setGateError] = useState(null)
+
+  useEffect(() => {
+    async function checkPhone() {
+      if (!user?.id) return
+      const { data } = await supabase.from('users').select('phone').eq('id', user.id).single()
+      setPhoneRequired(!data?.phone || !data.phone.trim())
+      setPhoneCheckDone(true)
+    }
+    checkPhone()
+  }, [user?.id])
+
+  async function submitGate() {
+    setGateError(null)
+    if (!gatePhone.trim()) { setGateError('A phone number is required.'); return }
+    setGateSubmitting(true)
+    const { error } = await supabase.from('users').update({
+      phone: gatePhone,
+      sms_consent: gateConsent,
+      ...(gateConsent ? { sms_consent_at: new Date().toISOString() } : {}),
+    }).eq('id', user.id)
+    if (error) {
+      console.error('Save phone failed:', error)
+      setGateSubmitting(false)
+      setGateError('Could not save. Please check your connection and try again.')
+      return
+    }
+    setGateSubmitting(false)
+    setPhoneRequired(false)
+  }
 
   useEffect(() => { loadAll() }, [])
 
@@ -1069,6 +1104,32 @@ export default function AdminPortal() {
     // a database trigger on boarding_requests.
     setBoardings(prev => prev.map(b => b.id === id ? { ...b, status: 'assigned', assigned_walker_id: walkerId } : b))
     loadStats()
+  }
+
+  if (phoneCheckDone && phoneRequired) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#FAF8F3', fontFamily: 'Nunito, sans-serif', padding: 20 }}>
+        <div style={{ background: 'white', borderRadius: 14, padding: '24px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', maxWidth: 420, width: '100%' }}>
+          <div style={{ fontSize: '2rem', marginBottom: 8, textAlign: 'center' }}>📱</div>
+          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#5B4B8A', marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
+          <p style={{ fontSize: '0.9rem', color: '#636e72', textAlign: 'center', marginBottom: 20 }}>
+            A phone number is required before you can use FetchUs admin. This is how you'll be notified about new requests.
+          </p>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>Phone Number</label>
+            <input type="tel" style={{ width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '0.9rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box' }} value={gatePhone} onChange={e => setGatePhone(e.target.value)} placeholder="(555) 123-4567" autoFocus />
+          </div>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 18, cursor: 'pointer' }}>
+            <input type="checkbox" checked={gateConsent} onChange={e => setGateConsent(e.target.checked)} style={{ marginTop: 3 }} />
+            <span style={{ fontSize: '0.82rem', color: '#2D3436' }}>I agree to receive text messages from FetchUs about new requests and assignments. Message and data rates may apply. Reply STOP to opt out.</span>
+          </label>
+          {gateError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14, fontWeight: 600 }}>{gateError}</div>}
+          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !gatePhone.trim() ? 0.5 : 1 }}>
+            {gateSubmitting ? 'Saving...' : 'Continue'}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   const pendingRequests = requests.filter(r => r.status === 'pending')

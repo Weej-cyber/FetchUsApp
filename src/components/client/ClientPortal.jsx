@@ -87,6 +87,9 @@ export default function ClientPortal() {
   const [boardings, setBoardings] = useState([])
 
   const [profile, setProfile] = useState({ name: '', email: '', phone: '', address: '', access_instructions: '', sms_consent: false })
+  const [phoneRequired, setPhoneRequired] = useState(false)
+  const [gateSubmitting, setGateSubmitting] = useState(false)
+  const [gateError, setGateError] = useState(null)
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSaved, setProfileSaved] = useState(false)
   const [consentError, setConsentError] = useState(null)
@@ -117,6 +120,7 @@ export default function ClientPortal() {
 
     const { data: userData } = await supabase.from('users').select('name, email, phone, sms_consent').eq('id', user.id).single()
     const { data: clientData } = await supabase.from('clients').select('id, address, access_instructions').eq('user_id', user.id).maybeSingle()
+    setPhoneRequired(!userData?.phone || !userData.phone.trim())
 
     if (clientData) {
       setClientId(clientData.id)
@@ -262,10 +266,31 @@ export default function ClientPortal() {
     setTimeout(() => { setBoardSubmitted(false); setShowBoard(false); setBoardForm({ dog_id: '', check_in_date: '', check_out_date: '', notes: '' }); loadAll() }, 2500)
   }
 
+  async function submitGate() {
+    setGateError(null)
+    if (!profile.phone.trim()) { setGateError('A phone number is required.'); return }
+    setGateSubmitting(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not signed in')
+      const { error } = await supabase.from('users').update({
+        phone: profile.phone,
+        sms_consent: profile.sms_consent,
+        ...(profile.sms_consent ? { sms_consent_at: new Date().toISOString() } : {}),
+      }).eq('id', user.id)
+      if (error) throw error
+      setPhoneRequired(false)
+    } catch (err) {
+      console.error('Save phone failed:', err)
+      setGateSubmitting(false)
+      setGateError('Could not save. Please check your connection and try again.')
+    }
+  }
+
   async function saveProfile() {
     setConsentError(null)
-    if (profile.phone.trim() && !profile.sms_consent) {
-      setConsentError('You must check the SMS consent box to save a phone number.')
+    if (!profile.phone.trim()) {
+      setConsentError('A phone number is required to save your profile.')
       return
     }
     setSavingProfile(true)
@@ -315,6 +340,32 @@ export default function ClientPortal() {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', marginBottom: 12 }}>⚠️</div>
           <p style={{ color: C.red, fontWeight: 600 }}>{loadError}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (phoneRequired) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif', padding: 20 }}>
+        <div style={{ ...cardStyle, maxWidth: 420, width: '100%' }}>
+          <div style={{ fontSize: '2rem', marginBottom: 8, textAlign: 'center' }}>📱</div>
+          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: C.indigo, marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
+          <p style={{ fontSize: '0.9rem', color: C.light, textAlign: 'center', marginBottom: 20 }}>
+            A phone number is required before you can use FetchUs. This is how we let you know about your walks and boarding.
+          </p>
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Phone Number</label>
+            <input type="tel" style={inputStyle} value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} placeholder="(555) 123-4567" autoFocus />
+          </div>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 18, cursor: 'pointer' }}>
+            <input type="checkbox" checked={profile.sms_consent} onChange={e => setProfile({ ...profile, sms_consent: e.target.checked })} style={{ marginTop: 3 }} />
+            <span style={{ fontSize: '0.82rem', color: C.charcoal }}>I agree to receive text messages from FetchUs about my walks and boarding. Message and data rates may apply. Reply STOP to opt out.</span>
+          </label>
+          {gateError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14 }}>{gateError}</div>}
+          <button onClick={submitGate} disabled={gateSubmitting || !profile.phone.trim()} style={{ width: '100%', background: C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !profile.phone.trim() ? 0.5 : 1 }}>
+            {gateSubmitting ? 'Saving...' : 'Continue'}
+          </button>
         </div>
       </div>
     )

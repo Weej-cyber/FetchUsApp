@@ -182,6 +182,11 @@ export function WalkerDashboard() {
   const [weekWalks, setWeekWalks] = useState([])
   const [boardings, setBoardings] = useState([])
   const [history, setHistory] = useState([])
+  const [phoneRequired, setPhoneRequired] = useState(false)
+  const [gatePhone, setGatePhone] = useState('')
+  const [gateConsent, setGateConsent] = useState(false)
+  const [gateSubmitting, setGateSubmitting] = useState(false)
+  const [gateError, setGateError] = useState(null)
 
   useEffect(() => { if (user?.id) fetchAll() }, [user?.id])
 
@@ -205,14 +210,16 @@ export function WalkerDashboard() {
     tomorrow.setDate(tomorrow.getDate() + 1)
     const tomorrowStr = tomorrow.toISOString().split('T')[0]
 
-    const [{ data: todayData }, { data: weekData }, { data: historyData }, { data: activeData }, { data: boardingData }] = await Promise.all([
+    const [{ data: todayData }, { data: weekData }, { data: historyData }, { data: activeData }, { data: boardingData }, { data: myUser }] = await Promise.all([
       supabase.from('walk_requests').select('*, dogs(name), clients(id, user_id, users(name, phone, sms_consent))').eq('assigned_walker_id', user.id).eq('preferred_date', today).in('status', ['assigned', 'confirmed', 'in_progress']).order('preferred_time', { ascending: true }),
       supabase.from('walk_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).gte('preferred_date', tomorrowStr).in('status', ['assigned', 'confirmed']).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }),
       supabase.from('walks').select('*').eq('walker_id', user.id).not('completed_at', 'is', null).order('completed_at', { ascending: false }).limit(5),
       supabase.from('walks').select('*').eq('walker_id', user.id).is('completed_at', null).not('started_at', 'is', null).limit(1),
       supabase.from('boarding_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).in('status', ['assigned', 'confirmed']).order('check_in_date', { ascending: true }),
+      supabase.from('users').select('phone, sms_consent').eq('id', user.id).single(),
     ])
 
+    setPhoneRequired(!myUser?.phone || !myUser.phone.trim())
     setTodayWalks(todayData || [])
     setWeekWalks(weekData || [])
     setHistory(historyData || [])
@@ -220,6 +227,25 @@ export function WalkerDashboard() {
     if (activeData?.length > 0) setActiveWalk(activeData[0])
     else setActiveWalk(null)
     setLoading(false)
+  }
+
+  async function submitGate() {
+    setGateError(null)
+    if (!gatePhone.trim()) { setGateError('A phone number is required.'); return }
+    setGateSubmitting(true)
+    const { error } = await supabase.from('users').update({
+      phone: gatePhone,
+      sms_consent: gateConsent,
+      ...(gateConsent ? { sms_consent_at: new Date().toISOString() } : {}),
+    }).eq('id', user.id)
+    if (error) {
+      console.error('Save phone failed:', error)
+      setGateSubmitting(false)
+      setGateError('Could not save. Please check your connection and try again.')
+      return
+    }
+    setGateSubmitting(false)
+    setPhoneRequired(false)
   }
 
   async function startWalk(req) {
@@ -256,6 +282,32 @@ export function WalkerDashboard() {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', marginBottom: 12 }}>🐾</div>
           <p style={{ color: C.teal, fontWeight: 600 }}>Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (phoneRequired) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif', padding: 20 }}>
+        <div style={{ background: 'white', borderRadius: 14, padding: '24px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', maxWidth: 420, width: '100%' }}>
+          <div style={{ fontSize: '2rem', marginBottom: 8, textAlign: 'center' }}>📱</div>
+          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: C.teal, marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
+          <p style={{ fontSize: '0.9rem', color: C.light, textAlign: 'center', marginBottom: 20 }}>
+            A phone number is required before you can use FetchUs. This is how you'll be notified about walk assignments.
+          </p>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: C.light, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>Phone Number</label>
+            <input type="tel" style={{ width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '0.9rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box' }} value={gatePhone} onChange={e => setGatePhone(e.target.value)} placeholder="(555) 123-4567" autoFocus />
+          </div>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 18, cursor: 'pointer' }}>
+            <input type="checkbox" checked={gateConsent} onChange={e => setGateConsent(e.target.checked)} style={{ marginTop: 3 }} />
+            <span style={{ fontSize: '0.82rem', color: C.charcoal }}>I agree to receive text messages from FetchUs about my walk assignments. Message and data rates may apply. Reply STOP to opt out.</span>
+          </label>
+          {gateError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14, fontWeight: 600 }}>{gateError}</div>}
+          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !gatePhone.trim() ? 0.5 : 1 }}>
+            {gateSubmitting ? 'Saving...' : 'Continue'}
+          </button>
         </div>
       </div>
     )
