@@ -104,11 +104,16 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
           <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
         </div>
       )}
-      {showAssign && req.status === 'pending' && (
+      {(req.status === 'assigned' || req.status === 'confirmed') && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+          <button onClick={() => setShowAssign(!showAssign)} style={{ background: 'white', border: '1.5px solid #5B4B8A', color: '#5B4B8A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Reassign Walker</button>
+        </div>
+      )}
+      {showAssign && (req.status === 'pending' || req.status === 'assigned' || req.status === 'confirmed') && (
         <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <select value={selectedWalker} onChange={e => setSelectedWalker(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid #DDD6FE', padding: '6px 10px', fontSize: '0.85rem', flex: 1, minWidth: 140, background: 'white' }}>
             <option value="">Select walker...</option>
-            {walkers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+            {walkers.filter(w => w.id !== req.assigned_walker_id).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
           <button onClick={handleAssign} disabled={!selectedWalker || assigning} style={{ background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', opacity: !selectedWalker ? 0.5 : 1 }}>
             {assigning ? 'Saving...' : 'Confirm'}
