@@ -82,12 +82,17 @@ export default function LoginPage() {
 
       {/* Logo bar */}
       <div style={{ padding: "28px 24px 20px", textAlign: "center" }}>
-        <img
-          src="/fetchus-logo.png"
-          alt="FetchUs"
-          style={{ height: "92px", width: "auto", margin: "0 auto", display: "block", filter: "drop-shadow(0 4px 14px rgba(0,0,0,0.25))" }}
-        />
-        <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#B9CBDE", fontSize: "15px", margin: "10px 0 0" }}>We love them like you do ❤️</p>
+        <div style={{
+          display: "inline-block", background: "#EEF3F8", borderRadius: "20px",
+          padding: "18px 28px", boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
+        }}>
+          <img
+            src="/fetchus-logo.png"
+            alt="FetchUs"
+            style={{ height: "76px", width: "auto", display: "block" }}
+          />
+        </div>
+        <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#B9CBDE", fontSize: "15px", margin: "14px 0 0" }}>We love them like you do ❤️</p>
       </div>
 
       {/* Login Form — first thing on the page */}
