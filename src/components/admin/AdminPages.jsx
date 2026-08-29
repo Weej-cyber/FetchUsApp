@@ -35,7 +35,7 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-function StatCard({ label, value, color = '#5B4B8A' }) {
+function StatCard({ label, value, color = '#182B4A' }) {
   return (
     <div style={{ background: 'white', borderRadius: 14, padding: '18px 20px', boxShadow: '0 2px 12px rgba(45,52,54,0.08)', borderTop: `4px solid ${color}` }}>
       <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1 }}>{value ?? '—'}</div>
@@ -47,7 +47,7 @@ function StatCard({ label, value, color = '#5B4B8A' }) {
 function SectionHeader({ title, action }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-      <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#5B4B8A', margin: 0 }}>{title}</h2>
+      <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#182B4A', margin: 0 }}>{title}</h2>
       {action}
     </div>
   )
@@ -59,7 +59,7 @@ function EmptyState({ message }) {
 
 const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
 const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', background: 'white' }
-const saveBtnStyle = { background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
+const saveBtnStyle = { background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
 const cancelBtnStyle = { background: 'white', color: '#636e72', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
 
 function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
@@ -71,7 +71,7 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
     pending:   { bg: '#FEF9C3', text: '#92400E' },
     assigned:  { bg: '#D1FAE5', text: '#065F46' },
     declined:  { bg: '#FEE2E2', text: '#991B1B' },
-    confirmed: { bg: '#E0E7FF', text: '#3730A3' },
+    confirmed: { bg: '#E3EAF2', text: '#1F3A5F' },
   }
   const sc = statusColors[req.status] || statusColors.pending
 
@@ -84,7 +84,7 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
   }
 
   return (
-    <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, borderLeft: '4px solid #5B4B8A' }}>
+    <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, borderLeft: '4px solid #182B4A' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#2D3436' }}>{req.dogs?.name ?? 'Unknown dog'} — {req.service_type}</div>
@@ -101,17 +101,17 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
       {req.status === 'pending' && (
         <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
           <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
-          <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
+          <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
         </div>
       )}
       {(req.status === 'assigned' || req.status === 'confirmed') && (
         <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-          <button onClick={() => setShowAssign(!showAssign)} style={{ background: 'white', border: '1.5px solid #5B4B8A', color: '#5B4B8A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Reassign Walker</button>
+          <button onClick={() => setShowAssign(!showAssign)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Reassign Walker</button>
         </div>
       )}
       {showAssign && (req.status === 'pending' || req.status === 'assigned' || req.status === 'confirmed') && (
         <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <select value={selectedWalker} onChange={e => setSelectedWalker(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid #DDD6FE', padding: '6px 10px', fontSize: '0.85rem', flex: 1, minWidth: 140, background: 'white' }}>
+          <select value={selectedWalker} onChange={e => setSelectedWalker(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid #E0E8F0', padding: '6px 10px', fontSize: '0.85rem', flex: 1, minWidth: 140, background: 'white' }}>
             <option value="">Select walker...</option>
             {walkers.filter(w => w.id !== req.assigned_walker_id).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
@@ -133,7 +133,7 @@ function BoardingRequestCard({ req, walkers, onDecline, onAssign }) {
     pending:   { bg: '#FEF9C3', text: '#92400E' },
     assigned:  { bg: '#D1FAE5', text: '#065F46' },
     declined:  { bg: '#FEE2E2', text: '#991B1B' },
-    confirmed: { bg: '#E0E7FF', text: '#3730A3' },
+    confirmed: { bg: '#E3EAF2', text: '#1F3A5F' },
   }
   const sc = statusColors[req.status] || statusColors.pending
 
@@ -160,12 +160,12 @@ function BoardingRequestCard({ req, walkers, onDecline, onAssign }) {
       {req.status === 'pending' && (
         <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
           <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
-          <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
+          <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
         </div>
       )}
       {showAssign && req.status === 'pending' && (
         <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <select value={selectedWalker} onChange={e => setSelectedWalker(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid #DDD6FE', padding: '6px 10px', fontSize: '0.85rem', flex: 1, minWidth: 140, background: 'white' }}>
+          <select value={selectedWalker} onChange={e => setSelectedWalker(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid #E0E8F0', padding: '6px 10px', fontSize: '0.85rem', flex: 1, minWidth: 140, background: 'white' }}>
             <option value="">Select walker...</option>
             {walkers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
@@ -212,7 +212,7 @@ function BroadcastPanel() {
       <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Message all clients..." rows={3} style={{ width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '10px 12px', fontSize: '0.88rem', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
         <span style={{ fontSize: '0.78rem', color: '#b2bec3' }}>{message.length} chars</span>
-        <button onClick={sendBroadcast} disabled={!message.trim() || sending} style={{ background: sent ? '#2D9B8A' : '#5B4B8A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', opacity: !message.trim() ? 0.5 : 1 }}>
+        <button onClick={sendBroadcast} disabled={!message.trim() || sending} style={{ background: sent ? '#2D9B8A' : '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', opacity: !message.trim() ? 0.5 : 1 }}>
           {sending ? 'Sending...' : sent ? 'Sent!' : 'Send to All Clients'}
         </button>
       </div>
@@ -308,7 +308,7 @@ function ScheduleSection({ walkers }) {
               <div style={{ fontSize: '0.8rem', color: '#636e72', marginTop: 2 }}>{formatDate(w.preferred_date)} · {w.preferred_time}</div>
               <div style={{ fontSize: '0.78rem', color: '#b2bec3', marginTop: 1 }}>Owner: {w.clients?.users?.name ?? '—'} · Walker: {w.assigned_walker?.name ?? 'Unassigned'}</div>
             </div>
-            <span style={{ background: '#E0E7FF', color: '#3730A3', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{w.status}</span>
+            <span style={{ background: '#E3EAF2', color: '#1F3A5F', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{w.status}</span>
           </div>
         ))
       }
@@ -320,7 +320,7 @@ function ReadOnlyStatusBadge({ status }) {
   const map = {
     pending:   { bg: '#FEF9C3', text: '#92400E', label: 'Pending' },
     assigned:  { bg: '#D1FAE5', text: '#065F46', label: 'Confirmed' },
-    confirmed: { bg: '#E0E7FF', text: '#3730A3', label: 'In Progress' },
+    confirmed: { bg: '#E3EAF2', text: '#1F3A5F', label: 'In Progress' },
     completed: { bg: '#F0F0F0', text: '#636e72', label: 'Completed' },
     declined:  { bg: '#FEE2E2', text: '#991B1B', label: 'Declined' },
   }
@@ -362,7 +362,7 @@ function ClientReadOnlyView({ userId, onBack }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#5B4B8A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: 0 }}>← Back to People</button>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: 0 }}>← Back to People</button>
       </div>
       <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '0.85rem', fontWeight: 700, color: '#92400E' }}>
         👁 Viewing as {profile?.users?.name ?? 'this client'} — Read-only. No changes can be made from here.
@@ -703,7 +703,7 @@ function ClientReportSection() {
         {reportError && (
           <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>{reportError}</div>
         )}
-        <button onClick={runReport} disabled={running} style={{ width: '100%', background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+        <button onClick={runReport} disabled={running} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
           {running ? 'Running...' : 'Run Report'}
         </button>
       </div>
@@ -971,7 +971,7 @@ function ClientsAndWalkersSection() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ fontSize: '0.75rem', color: '#b2bec3' }}>{new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                  <button onClick={() => setViewingClientId(c.id)} style={{ background: 'none', border: '1.5px solid #5B4B8A', color: '#5B4B8A', borderRadius: 8, padding: '4px 10px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 700 }}>View</button>
+                  <button onClick={() => setViewingClientId(c.id)} style={{ background: 'none', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '4px 10px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 700 }}>View</button>
                   <button onClick={() => handleDelete(c.id)} style={{ background: 'none', border: 'none', color: '#FCA5A5', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
                 </div>
               </div>
@@ -1120,7 +1120,7 @@ export default function AdminPortal() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#FAF8F3', fontFamily: 'Nunito, sans-serif', padding: 20 }}>
         <div style={{ background: 'white', borderRadius: 14, padding: '24px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', maxWidth: 420, width: '100%' }}>
           <div style={{ fontSize: '2rem', marginBottom: 8, textAlign: 'center' }}>📱</div>
-          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#5B4B8A', marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
+          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#182B4A', marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
           <p style={{ fontSize: '0.9rem', color: '#636e72', textAlign: 'center', marginBottom: 20 }}>
             A phone number is required before you can use FetchUs admin. This is how you'll be notified about new requests.
           </p>
@@ -1133,7 +1133,7 @@ export default function AdminPortal() {
             <span style={{ fontSize: '0.82rem', color: '#2D3436' }}>I agree to receive text messages from FetchUs about new requests and assignments. Message and data rates may apply. Reply STOP to opt out.</span>
           </label>
           {gateError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14, fontWeight: 600 }}>{gateError}</div>}
-          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: '#5B4B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !gatePhone.trim() ? 0.5 : 1 }}>
+          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !gatePhone.trim() ? 0.5 : 1 }}>
             {gateSubmitting ? 'Saving...' : 'Continue'}
           </button>
         </div>
@@ -1163,16 +1163,16 @@ export default function AdminPortal() {
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 90px', fontFamily: 'Nunito, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
-          <h1 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.5rem', fontWeight: 700, color: '#5B4B8A', margin: 0 }}>Admin Portal</h1>
+          <h1 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.5rem', fontWeight: 700, color: '#182B4A', margin: 0 }}>Admin Portal</h1>
           <p style={{ color: '#636e72', fontSize: '0.85rem', margin: '4px 0 0' }}>FetchUs Pet Care</p>
         </div>
         <button onClick={signOut} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, color: '#636e72', cursor: 'pointer' }}>Sign Out</button>
       </div>
 
-      <div style={{ background: '#F5F3FF', borderRadius: 10, padding: '10px 14px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#5B4B8A', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>View as</span>
+      <div style={{ background: '#F0F4F8', borderRadius: 10, padding: '10px 14px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#182B4A', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>View as</span>
         {[
-          { role: 'admin', label: 'Admin', color: '#5B4B8A', path: '/admin' },
+          { role: 'admin', label: 'Admin', color: '#182B4A', path: '/admin' },
           { role: 'walker', label: 'Walker', color: '#2D9B8A', path: '/walker' },
           { role: 'client', label: 'Pet Parent', color: '#D4A843', path: '/client' },
         ].map(r => (
@@ -1190,7 +1190,7 @@ export default function AdminPortal() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
             {[
-              { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#5B4B8A', badge: pendingRequests.length + pendingBoardings.length },
+              { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#182B4A', badge: pendingRequests.length + pendingBoardings.length },
               { id: 'people', label: 'People', Icon: Users, color: '#2D9B8A' },
               { id: 'schedule', label: 'Schedule', Icon: Calendar, color: '#D4A843' },
               { id: 'tools', label: 'Tools', Icon: Wrench, color: '#636e72' },
@@ -1214,7 +1214,7 @@ export default function AdminPortal() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
-            <StatCard label="Walks Today" value={stats.walksToday} color="#5B4B8A" />
+            <StatCard label="Walks Today" value={stats.walksToday} color="#182B4A" />
             <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" />
             <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#D4A843" />
             <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" />
@@ -1236,7 +1236,7 @@ export default function AdminPortal() {
                 ))}
               </div>
               {urgentItems.length > 4 && (
-                <button onClick={() => setActiveTab('requests')} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#5B4B8A', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', padding: '6px' }}>
+                <button onClick={() => setActiveTab('requests')} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', padding: '6px' }}>
                   View all {urgentItems.length} in Requests →
                 </button>
               )}
@@ -1343,7 +1343,7 @@ export default function AdminPortal() {
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', position: 'relative',
-              color: activeTab === tab.id ? '#5B4B8A' : '#b2bec3',
+              color: activeTab === tab.id ? '#182B4A' : '#b2bec3',
               fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.7rem',
             }}
           >

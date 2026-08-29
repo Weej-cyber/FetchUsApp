@@ -2,11 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useNavigate } from 'react-router-dom'
-
-const C = {
-  teal: '#2D9B8A', cream: '#FAF8F3', charcoal: '#2D3436',
-  light: '#636e72', indigo: '#5B4B8A', gold: '#D4A843',
-}
+import { COLORS as C } from '../../theme'
 
 function formatTimer(seconds) {
   const h = Math.floor(seconds / 3600).toString().padStart(2, '0')
@@ -22,7 +18,7 @@ function formatDate(dateStr) {
 
 function SectionHeader({ title }) {
   return (
-    <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: C.charcoal, margin: '28px 0 12px', borderBottom: `2px solid ${C.teal}`, paddingBottom: 8 }}>
+    <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: C.charcoal, margin: '28px 0 12px', borderBottom: `2px solid ${C.teal}`, paddingBottom: 8 }}>
       {title}
     </h2>
   )
@@ -317,7 +313,7 @@ export function WalkerDashboard() {
     <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 0 48px', fontFamily: 'Nunito, sans-serif', background: C.cream, minHeight: '100vh' }}>
 
       {dbRole && (
-        <div style={{ background: '#5B4B8A', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#182B4A', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ color: 'white', fontSize: '0.78rem', fontWeight: 700, opacity: 0.85 }}>Viewing as Walker</span>
           <button onClick={() => { setRole('admin'); navigate('/admin') }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '5px 14px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
             ← Back to Admin
@@ -328,7 +324,7 @@ export function WalkerDashboard() {
       <div style={{ background: `linear-gradient(135deg, ${C.teal}, #3DB89A)`, padding: '50px 24px 24px', color: 'white' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>My Walks</h1>
+            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Baloo 2, sans-serif' }}>My Walks</h1>
             <p style={{ margin: '4px 0 0', opacity: 0.8, fontSize: '0.88rem' }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
@@ -355,7 +351,7 @@ export function WalkerDashboard() {
                 <div style={{ fontSize: '0.88rem', color: C.light, marginTop: 2 }}>{req.dogs?.name ?? '—'}</div>
                 <div style={{ fontSize: '0.83rem', color: C.light }}>{req.clients?.users?.name ?? '—'}</div>
               </div>
-              <span style={{ background: '#E0E7FF', color: '#3730A3', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{req.service_type}</span>
+              <span style={{ background: '#E3EAF2', color: '#1F3A5F', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{req.service_type}</span>
             </div>
             <button onClick={() => startWalk(req)} style={{ width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: `linear-gradient(135deg, ${C.teal}, #3DB89A)`, color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
               Start Walk

@@ -2,13 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
-
-const C = {
-  indigo: '#5B4B8A', teal: '#2D9B8A', gold: '#D4A843',
-  cream: '#FAF8F3', charcoal: '#2D3436', light: '#636e72',
-  redBg: '#FEE2E2', red: '#991B1B', greenBg: '#D1FAE5', green: '#065F46',
-  yellowBg: '#FEF9C3', yellow: '#92400E', purpleBg: '#E0E7FF', purple: '#3730A3',
-}
+import { COLORS as C } from '../../theme'
 
 const SERVICE_TYPES = ['30-min Walk', '60-min Walk', 'Drop-In Visit']
 const TIME_SLOTS = ['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM']
@@ -19,7 +13,7 @@ const cardStyle = { background: 'white', borderRadius: 14, padding: '18px 20px',
 
 function SectionHeader({ title, color = C.indigo }) {
   return (
-    <h2 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.15rem', fontWeight: 700, color, margin: '28px 0 14px', borderBottom: `2px solid ${color}`, paddingBottom: 8 }}>
+    <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.15rem', fontWeight: 700, color, margin: '28px 0 14px', borderBottom: `2px solid ${color}`, paddingBottom: 8 }}>
       {title}
     </h2>
   )
@@ -375,7 +369,7 @@ export default function ClientPortal() {
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 60px', fontFamily: 'Nunito, sans-serif', background: C.cream, minHeight: '100vh' }}>
 
       {dbRole && (
-        <div style={{ background: '#5B4B8A', borderRadius: 10, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#182B4A', borderRadius: 10, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ color: 'white', fontSize: '0.78rem', fontWeight: 700, opacity: 0.85 }}>Viewing as Client</span>
           <button onClick={() => { setRole('admin'); navigate('/admin') }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '5px 14px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
             ← Back to Admin
@@ -387,7 +381,7 @@ export default function ClientPortal() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '0.8rem', fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Welcome back</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Poppins, sans-serif', marginBottom: 6 }}>{profile.name || 'Pet Parent'}</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Baloo 2, sans-serif', marginBottom: 6 }}>{profile.name || 'Pet Parent'}</div>
             <div style={{ fontSize: '0.88rem', opacity: 0.9 }}>
               {upcomingWalks.length > 0
                 ? `Next walk: ${formatDate(upcomingWalks[0].preferred_date)} at ${upcomingWalks[0].preferred_time}`

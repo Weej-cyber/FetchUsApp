@@ -78,43 +78,39 @@ export default function LoginPage() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#4A3880", fontFamily: "'Nunito', sans-serif", WebkitFontSmoothing: "antialiased" }}>
+    <div style={{ minHeight: "100vh", background: "#0F1F38", fontFamily: "'Nunito', sans-serif", WebkitFontSmoothing: "antialiased" }}>
 
       {/* Logo bar */}
       <div style={{ padding: "28px 24px 20px", textAlign: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-          <svg width="40" height="35" viewBox="0 0 48 42" fill="none">
-            <ellipse cx="10" cy="12" rx="5" ry="7" fill="white"/>
-            <ellipse cx="24" cy="7" rx="6" ry="8" fill="white"/>
-            <ellipse cx="38" cy="12" rx="5" ry="7" fill="white"/>
-            <path d="M24 18 C13 18 8 27 10 34 C12 40 18 42 24 42 C30 42 36 40 38 34 C40 27 35 18 24 18Z" fill="white"/>
-          </svg>
-          <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "30px", color: "#fff", lineHeight: 1 }}>FetchUs</span>
-        </div>
-        <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#D4BBFF", fontSize: "15px", margin: "8px 0 0" }}>We love them like you do ❤️</p>
+        <img
+          src="/fetchus-logo.png"
+          alt="FetchUs"
+          style={{ height: "92px", width: "auto", margin: "0 auto", display: "block", filter: "drop-shadow(0 4px 14px rgba(0,0,0,0.25))" }}
+        />
+        <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#B9CBDE", fontSize: "15px", margin: "10px 0 0" }}>We love them like you do ❤️</p>
       </div>
 
       {/* Login Form — first thing on the page */}
       <div style={{ padding: "8px 24px 40px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ width: "100%", maxWidth: "400px", background: "#F3EEFF", border: "1px solid #D4BBFF", borderRadius: "16px", padding: "32px 26px", boxShadow: "0 12px 40px rgba(0,0,0,0.35)" }}>
+        <div style={{ width: "100%", maxWidth: "400px", background: "#EEF3F8", border: "1px solid #B9CBDE", borderRadius: "16px", padding: "32px 26px", boxShadow: "0 12px 40px rgba(0,0,0,0.35)" }}>
           {sent ? (
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>📬</div>
-              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#3D2E6E", marginBottom: "8px" }}>Check your email</h2>
-              <p style={{ color: "#5B4B8A", fontSize: "15px", lineHeight: 1.6, fontWeight: 600 }}>
-                We sent a magic link to <strong style={{ color: "#3D2E6E" }}>{email}</strong>. Click it to sign in.
+              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#12203A", marginBottom: "8px" }}>Check your email</h2>
+              <p style={{ color: "#182B4A", fontSize: "15px", lineHeight: 1.6, fontWeight: 600 }}>
+                We sent a magic link to <strong style={{ color: "#12203A" }}>{email}</strong>. Click it to sign in.
               </p>
               <button
                 onClick={() => { setSent(false); setEmail(""); }}
-                style={{ marginTop: "24px", background: "none", border: "none", color: "#7C3AED", fontSize: "14px", cursor: "pointer", fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}
+                style={{ marginTop: "24px", background: "none", border: "none", color: "#2D9B8A", fontSize: "14px", cursor: "pointer", fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}
               >
                 Use a different email
               </button>
             </div>
           ) : (
             <>
-              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#3D2E6E", marginBottom: "6px" }}>Sign in to FetchUs</h2>
-              <p style={{ color: "#5B4B8A", fontSize: "14px", marginBottom: "22px", lineHeight: 1.6, fontWeight: 600 }}>FetchUs is invite-only. Enter your email and we'll send you a secure link to sign in.</p>
+              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#12203A", marginBottom: "6px" }}>Sign in to FetchUs</h2>
+              <p style={{ color: "#182B4A", fontSize: "14px", marginBottom: "22px", lineHeight: 1.6, fontWeight: 600 }}>FetchUs is invite-only. Enter your email and we'll send you a secure link to sign in.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 <input
                   type="email"
@@ -122,13 +118,13 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                  style={{ width: "100%", padding: "13px 16px", borderRadius: "10px", border: "1.5px solid #C4B5FD", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", background: "#fff", color: "#3D2E6E", fontWeight: 600 }}
+                  style={{ width: "100%", padding: "13px 16px", borderRadius: "10px", border: "1.5px solid #C9D6E5", fontSize: "15px", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", background: "#fff", color: "#12203A", fontWeight: 600 }}
                 />
                 {error && <p style={{ color: "#B91C1C", fontSize: "13px", marginTop: "-4px", fontWeight: 700 }}>{error}</p>}
                 <button
                   onClick={handleSubmit}
                   disabled={loading || !email.trim()}
-                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: loading || !email.trim() ? "#D4C6F0" : "linear-gradient(135deg, #7C3AED, #5B4B8A)", color: "#fff", fontSize: "15px", fontWeight: 800, fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: loading || !email.trim() ? "#D6E1EC" : "linear-gradient(135deg, #2D9B8A, #182B4A)", color: "#fff", fontSize: "15px", fontWeight: 800, fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}
                 >
                   {loading ? "Sending..." : "Send Magic Link"}
                 </button>
@@ -139,18 +135,18 @@ export default function LoginPage() {
       </div>
 
       {/* Hero */}
-      <div style={{ background: "linear-gradient(160deg, #5B4B8A 0%, #3D2E6E 100%)", padding: "52px 24px 48px", textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+      <div style={{ background: "linear-gradient(160deg, #182B4A 0%, #12203A 100%)", padding: "52px 24px 48px", textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <p style={{ fontSize: "17px", fontWeight: 800, color: "#ffffff", textTransform: "uppercase", letterSpacing: "2px", margin: "0 0 14px" }}>
           FetchUs's private dog walking service
         </p>
-        <h1 style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: "clamp(28px, 6vw, 44px)", color: "#C4B5FD", lineHeight: 1.25, margin: "0 auto 28px", maxWidth: "560px" }}>
+        <h1 style={{ fontFamily: "Baloo 2, sans-serif", fontWeight: 800, fontSize: "clamp(28px, 6vw, 44px)", color: "#C9D6E5", lineHeight: 1.25, margin: "0 auto 28px", maxWidth: "560px" }}>
           Real relationships. Real trust. Real walks.
         </h1>
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           {["Real-Time Updates", "SMS Notifications", "Invite-Only"].map((b, i) => (
             <span key={b} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               {i > 0 && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px" }}>•</span>}
-              <span style={{ color: "#E0D8FF", fontSize: "13px", fontWeight: 700, letterSpacing: "0.3px" }}>{b}</span>
+              <span style={{ color: "#E4ECF3", fontSize: "13px", fontWeight: 700, letterSpacing: "0.3px" }}>{b}</span>
             </span>
           ))}
         </div>
@@ -162,7 +158,7 @@ export default function LoginPage() {
           <div key={f.title} style={{ padding: "28px 16px", textAlign: "center", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
             <div style={iconStyle}>{f.icon}</div>
             <div style={{ fontSize: "13px", fontWeight: 800, color: "#fff", marginBottom: "6px" }}>{f.title}</div>
-            <div style={{ fontSize: "12px", color: "#D4BBFF", lineHeight: 1.5, fontWeight: 600 }}>{f.desc}</div>
+            <div style={{ fontSize: "12px", color: "#B9CBDE", lineHeight: 1.5, fontWeight: 600 }}>{f.desc}</div>
           </div>
         ))}
       </div>
@@ -170,8 +166,8 @@ export default function LoginPage() {
       {/* About */}
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px" }}>
-          <p style={{ fontSize: "12px", fontWeight: 800, color: "#C4B5FD", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>About FetchUs</p>
-          <p style={{ fontSize: "15px", color: "#E0D8FF", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
+          <p style={{ fontSize: "12px", fontWeight: 800, color: "#C9D6E5", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>About FetchUs</p>
+          <p style={{ fontSize: "15px", color: "#E4ECF3", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
             FetchUs is the professional dog walking service operated by FetchUs LLC. Pet parents and walkers access their accounts through a secure, invitation-based system. SMS notifications about your dog walk status are a required part of using FetchUs.
           </p>
         </div>
@@ -179,12 +175,12 @@ export default function LoginPage() {
 
       {/* Footer */}
       <div style={{ background: "rgba(0,0,0,0.25)", padding: "22px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-        <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: "14px", color: "#D4BBFF" }}>FetchUs LLC</span>
+        <span style={{ fontFamily: "Baloo 2, sans-serif", fontWeight: 700, fontSize: "14px", color: "#B9CBDE" }}>FetchUs LLC</span>
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
-          <a href="mailto:fetchus2022@gmail.com" style={{ fontSize: "13px", color: "#D4BBFF", textDecoration: "none", fontWeight: 600 }}>fetchus2022@gmail.com</a>
-          <a href="https://fetch-us.com" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#D4BBFF", textDecoration: "none", fontWeight: 600 }}>fetch-us.com</a>
-          <a href="/privacy" style={{ fontSize: "13px", color: "#D4BBFF", textDecoration: "none", fontWeight: 600 }}>Privacy Policy</a>
-          <a href="/terms" style={{ fontSize: "13px", color: "#D4BBFF", textDecoration: "none", fontWeight: 600 }}>Terms of Service</a>
+          <a href="mailto:fetchus2022@gmail.com" style={{ fontSize: "13px", color: "#B9CBDE", textDecoration: "none", fontWeight: 600 }}>fetchus2022@gmail.com</a>
+          <a href="https://fetch-us.com" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#B9CBDE", textDecoration: "none", fontWeight: 600 }}>fetch-us.com</a>
+          <a href="/privacy" style={{ fontSize: "13px", color: "#B9CBDE", textDecoration: "none", fontWeight: 600 }}>Privacy Policy</a>
+          <a href="/terms" style={{ fontSize: "13px", color: "#B9CBDE", textDecoration: "none", fontWeight: 600 }}>Terms of Service</a>
         </div>
       </div>
 
