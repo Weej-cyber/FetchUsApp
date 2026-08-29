@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
-import { Home, ClipboardList, Users, Calendar, Wrench } from 'lucide-react'
+import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone } from 'lucide-react'
 
 // Looks up active users holding a given role via user_roles, so multi-role
 // users (e.g. an admin who is also a walker or client) are included alongside
@@ -44,10 +44,10 @@ function StatCard({ label, value, color = '#182B4A' }) {
   )
 }
 
-function SectionHeader({ title, action }) {
+function SectionHeader({ title, action, icon }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-      <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#182B4A', margin: 0 }}>{title}</h2>
+      <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#182B4A', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>{icon}{title}</h2>
       {action}
     </div>
   )
@@ -364,8 +364,9 @@ function ClientReadOnlyView({ userId, onBack }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: 0 }}>← Back to People</button>
       </div>
-      <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '0.85rem', fontWeight: 700, color: '#92400E' }}>
-        👁 Viewing as {profile?.users?.name ?? 'this client'} — Read-only. No changes can be made from here.
+      <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '0.85rem', fontWeight: 700, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Eye size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+        Viewing as {profile?.users?.name ?? 'this client'} — Read-only. No changes can be made from here.
       </div>
 
       <SectionHeader title="Profile" />
@@ -484,7 +485,7 @@ function RecurringWalkSection() {
 
   return (
     <div style={{ marginBottom: 32 }}>
-      <SectionHeader title="🔁 Recurring Walks" />
+      <SectionHeader title="Recurring Walks" icon={<Repeat size={18} color="#182B4A" />} />
       {!open ? (
         <button onClick={() => setOpen(true)} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
           Set Up Recurring Walk
@@ -681,7 +682,7 @@ function ClientReportSection() {
 
   return (
     <div style={{ marginBottom: 32 }}>
-      <SectionHeader title="📋 Client Report" />
+      <SectionHeader title="Client Report" icon={<FileText size={18} color="#182B4A" />} />
       <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>Client</label>
@@ -883,7 +884,7 @@ function ClientsAndWalkersSection() {
       {showAddForm && (
         <form onSubmit={handleAdd} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 16, borderLeft: `4px solid ${borderColor}` }}>
           <div style={{ fontWeight: 700, marginBottom: 14, color: '#2D3436' }}>
-            {magicLinkSent ? '✓ Magic link sent!' : `Add ${addingRole === 'walker' ? 'Walker' : 'Client'}`}
+            {magicLinkSent ? 'Magic link sent!' : `Add ${addingRole === 'walker' ? 'Walker' : 'Client'}`}
           </div>
           {!magicLinkSent && (
             <>
@@ -1119,7 +1120,7 @@ export default function AdminPortal() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#FAF8F3', fontFamily: 'Nunito, sans-serif', padding: 20 }}>
         <div style={{ background: 'white', borderRadius: 14, padding: '24px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', maxWidth: 420, width: '100%' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 8, textAlign: 'center' }}>📱</div>
+          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}><Smartphone size={30} color="#182B4A" /></div>
           <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#182B4A', marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
           <p style={{ fontSize: '0.9rem', color: '#636e72', textAlign: 'center', marginBottom: 20 }}>
             A phone number is required before you can use FetchUs admin. This is how you'll be notified about new requests.

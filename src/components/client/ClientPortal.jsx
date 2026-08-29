@@ -11,12 +11,52 @@ const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, col
 const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '0.9rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box', background: 'white' }
 const cardStyle = { background: 'white', borderRadius: 14, padding: '18px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', marginBottom: 12 }
 
-function SectionHeader({ title, color = C.indigo }) {
+function SectionHeader({ title, icon, color = C.indigo }) {
   return (
-    <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.15rem', fontWeight: 700, color, margin: '28px 0 14px', borderBottom: `2px solid ${color}`, paddingBottom: 8 }}>
+    <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.15rem', fontWeight: 700, color, margin: '28px 0 14px', borderBottom: `2px solid ${color}`, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+      {icon}
       {title}
     </h2>
   )
+}
+
+const Icon = {
+  paw: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}><circle cx="7" cy="7" r="2.6"/><circle cx="13.5" cy="5.5" r="2.6"/><circle cx="18.5" cy="10" r="2.4"/><ellipse cx="12" cy="16" rx="6" ry="5"/></svg>
+  ),
+  calendar: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+  ),
+  repeat: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+  ),
+  home: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  ),
+  route: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a4 4 0 0 0 4-4v-1a4 4 0 0 0-4-4H9a4 4 0 0 1-4-4v-1"/></svg>
+  ),
+  person: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  ),
+  check: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  ),
+  warning: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  ),
+  phone: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+  ),
+  medical: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  ),
+  eye: (color, size = 16) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  ),
+  document: (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+  ),
 }
 
 function StatusBadge({ status }) {
@@ -321,7 +361,7 @@ export default function ClientPortal() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 12 }}>🐾</div>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>{Icon.paw(C.indigo, 32)}</div>
           <p style={{ color: C.indigo, fontWeight: 600 }}>Loading...</p>
         </div>
       </div>
@@ -332,7 +372,7 @@ export default function ClientPortal() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 12 }}>⚠️</div>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>{Icon.warning(C.red, 32)}</div>
           <p style={{ color: C.red, fontWeight: 600 }}>{loadError}</p>
         </div>
       </div>
@@ -343,7 +383,7 @@ export default function ClientPortal() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif', padding: 20 }}>
         <div style={{ ...cardStyle, maxWidth: 420, width: '100%' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 8, textAlign: 'center' }}>📱</div>
+          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>{Icon.phone(C.indigo, 32)}</div>
           <div style={{ fontWeight: 800, fontSize: '1.15rem', color: C.indigo, marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
           <p style={{ fontSize: '0.9rem', color: C.light, textAlign: 'center', marginBottom: 20 }}>
             A phone number is required before you can use FetchUs. This is how we let you know about your walks and boarding.
@@ -394,13 +434,13 @@ export default function ClientPortal() {
         </div>
       </div>
 
-      <SectionHeader title="🐕 My Dogs" color={C.indigo} />
+      <SectionHeader title="My Dogs" icon={Icon.paw(C.indigo)} color={C.indigo} />
 
       {dogs.map(dog => (
         <div key={dog.id} style={{ ...cardStyle, cursor: 'pointer' }} onClick={() => openEditDog(dog)}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
             <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#F0EDE5', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem' }}>
-              {dog.photo_url ? <img src={dog.photo_url} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🐕'}
+              {dog.photo_url ? <img src={dog.photo_url} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : Icon.paw(C.indigo, 26)}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800, fontSize: '1rem', color: C.charcoal }}>{dog.name}</div>
@@ -410,7 +450,7 @@ export default function ClientPortal() {
               {dog.behavioral_notes && <div style={{ fontSize: '0.82rem', color: C.light, marginTop: 4 }}>{dog.behavioral_notes}</div>}
               {dog.medical_needs && (
                 <div style={{ marginTop: 6, background: '#FEF9C3', borderRadius: 6, padding: '4px 8px', fontSize: '0.8rem', color: C.yellow, fontWeight: 600 }}>
-                  ⚕️ {dog.medical_needs}
+                  {Icon.medical(C.yellow, 13)} {dog.medical_needs}
                 </div>
               )}
             </div>
@@ -421,7 +461,7 @@ export default function ClientPortal() {
 
       {dogs.length === 0 && !showAddDog && (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 8 }}>🐾</div>
+          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>{Icon.paw(C.light, 44)}</div>
           <p style={{ fontWeight: 700, color: C.charcoal, marginBottom: 4 }}>No dogs added yet</p>
           <p style={{ fontSize: '0.85rem', color: C.light }}>Add your first pup to get started</p>
         </div>
@@ -434,7 +474,7 @@ export default function ClientPortal() {
           </div>
           <div style={{ marginBottom: 14, textAlign: 'center' }}>
             <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#F0EDE5', overflow: 'hidden', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>
-              {dogPhotoPreview ? <img src={dogPhotoPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🐕'}
+              {dogPhotoPreview ? <img src={dogPhotoPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : Icon.paw(C.indigo, 26)}
             </div>
             <label style={{ display: 'inline-block', background: '#F0EDE5', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 700, color: C.indigo, cursor: 'pointer' }}>
               {dogPhotoPreview ? 'Change Photo' : '+ Add Photo'}
@@ -465,19 +505,19 @@ export default function ClientPortal() {
           </div>
           {dogSaved && (
             <div style={{ background: '#D1FAE5', border: '2px solid #10B981', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '1.3rem' }}>✅</span>
+              <span>{Icon.check('#065F46', 20)}</span>
               <span style={{ fontWeight: 800, color: '#065F46', fontSize: '0.95rem' }}>Saved successfully!</span>
             </div>
           )}
           {dogError && (
             <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '1.3rem' }}>⚠️</span>
+              <span>{Icon.warning('#991B1B', 20)}</span>
               <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '0.95rem' }}>{dogError}</span>
             </div>
           )}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={saveDog} disabled={savingDog || !dogForm.name.trim()} style={{ flex: 1, background: dogSaved ? C.teal : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !dogForm.name.trim() ? 0.5 : 1 }}>
-              {dogSaved ? '✓ Saved!' : savingDog ? 'Saving...' : editingDog ? 'Save Changes' : 'Add Dog'}
+              {dogSaved ? 'Saved!' : savingDog ? 'Saving...' : editingDog ? 'Save Changes' : 'Add Dog'}
             </button>
             <button onClick={() => setShowAddDog(false)} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
               Cancel
@@ -490,7 +530,7 @@ export default function ClientPortal() {
         </button>
       )}
 
-      <SectionHeader title="📅 Book a Walk" color={C.teal} />
+      <SectionHeader title="Book a Walk" icon={Icon.calendar(C.teal)} color={C.teal} />
 
       {!showBook ? (
         <button onClick={() => setShowBook(true)} style={{ width: '100%', background: C.teal, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
@@ -498,7 +538,7 @@ export default function ClientPortal() {
         </button>
       ) : bookSubmitted ? (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>🐾</div>
+          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.check(C.teal, 36)}</div>
           <div style={{ fontWeight: 800, color: C.teal, fontSize: '1.1rem', marginBottom: 6 }}>Request Sent!</div>
           <div style={{ fontSize: '0.85rem', color: C.light }}>
             {bookForm.service_type} on {formatDate(bookForm.preferred_date)} at {bookForm.preferred_time}
@@ -551,7 +591,7 @@ export default function ClientPortal() {
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={submitBook} disabled={bookSubmitting || !bookForm.preferred_date || !bookForm.preferred_time}
               style={{ flex: 1, background: C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: (!bookForm.preferred_date || !bookForm.preferred_time) ? 0.5 : 1 }}>
-              {bookSubmitting ? 'Sending...' : 'Send Request 🐾'}
+              {bookSubmitting ? 'Sending...' : 'Send Request'}
             </button>
             <button onClick={() => { setShowBook(false); setBookError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
               Cancel
@@ -560,7 +600,7 @@ export default function ClientPortal() {
         </div>
       )}
 
-      <SectionHeader title="🔁 Set Up a Recurring Walk" color={C.teal} />
+      <SectionHeader title="Set Up a Recurring Walk" icon={Icon.repeat(C.teal)} color={C.teal} />
 
       {!showRecurring ? (
         <button onClick={() => setShowRecurring(true)} style={{ width: '100%', background: C.teal, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
@@ -568,7 +608,7 @@ export default function ClientPortal() {
         </button>
       ) : recurringSubmitted ? (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>🔁</div>
+          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.repeat(C.light, 40)}</div>
           <div style={{ fontWeight: 800, color: C.teal, fontSize: '1.1rem', marginBottom: 6 }}>Recurring Walk Set Up!</div>
           <div style={{ fontSize: '0.85rem', color: C.light }}>Your walks have been requested for the next {recurringForm.weeks} weeks.</div>
         </div>
@@ -638,7 +678,7 @@ export default function ClientPortal() {
         </div>
       )}
 
-      <SectionHeader title="🏠 Book Boarding" color={C.gold} />
+      <SectionHeader title="Book Boarding" icon={Icon.home(C.gold)} color={C.gold} />
 
       {!showBoard ? (
         <button onClick={() => setShowBoard(true)} style={{ width: '100%', background: C.gold, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
@@ -646,7 +686,7 @@ export default function ClientPortal() {
         </button>
       ) : boardSubmitted ? (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>🐾</div>
+          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.check(C.gold, 36)}</div>
           <div style={{ fontWeight: 800, color: C.gold, fontSize: '1.1rem', marginBottom: 6 }}>Request Sent!</div>
           <div style={{ fontSize: '0.85rem', color: C.light }}>
             {formatDate(boardForm.check_in_date)} to {formatDate(boardForm.check_out_date)}
@@ -683,7 +723,7 @@ export default function ClientPortal() {
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={submitBoard} disabled={boardSubmitting || !boardForm.check_in_date || !boardForm.check_out_date}
               style={{ flex: 1, background: C.gold, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: (!boardForm.check_in_date || !boardForm.check_out_date) ? 0.5 : 1 }}>
-              {boardSubmitting ? 'Sending...' : 'Send Request 🐾'}
+              {boardSubmitting ? 'Sending...' : 'Send Request'}
             </button>
             <button onClick={() => { setShowBoard(false); setBoardError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
               Cancel
@@ -694,7 +734,7 @@ export default function ClientPortal() {
 
       {boardings.length > 0 && (
         <>
-          <SectionHeader title="🏡 My Boarding Requests" color={C.gold} />
+          <SectionHeader title="My Boarding Requests" icon={Icon.home(C.gold)} color={C.gold} />
           {boardings.map(b => (
             <div key={b.id} style={{ ...cardStyle }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -711,7 +751,7 @@ export default function ClientPortal() {
         </>
       )}
 
-      <SectionHeader title="🦮 My Walks" color={C.indigo} />
+      <SectionHeader title="My Walks" icon={Icon.route(C.indigo)} color={C.indigo} />
 
       {walks.length === 0 ? (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '28px 20px', color: C.light }}>
@@ -746,7 +786,7 @@ export default function ClientPortal() {
         })
       )}
 
-      <SectionHeader title="👤 My Profile" color={C.indigo} />
+      <SectionHeader title="My Profile" icon={Icon.person(C.indigo)} color={C.indigo} />
 
       <div style={cardStyle}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
@@ -786,18 +826,18 @@ export default function ClientPortal() {
         </div>
         {profileSaved && (
           <div style={{ background: '#D1FAE5', border: '2px solid #10B981', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '1.3rem' }}>✅</span>
+            <span>{Icon.check('#065F46', 20)}</span>
             <span style={{ fontWeight: 800, color: '#065F46', fontSize: '0.95rem' }}>Profile saved successfully!</span>
           </div>
         )}
         {consentError && (
           <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '1.3rem' }}>⚠️</span>
+            <span>{Icon.warning('#991B1B', 20)}</span>
             <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '0.95rem' }}>{consentError}</span>
           </div>
         )}
         <button onClick={saveProfile} disabled={savingProfile} style={{ width: '100%', background: profileSaved ? C.teal : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
-          {profileSaved ? '✓ Profile Saved!' : savingProfile ? 'Saving...' : 'Save Profile'}
+          {profileSaved ? 'Profile Saved!' : savingProfile ? 'Saving...' : 'Save Profile'}
         </button>
       </div>
 
