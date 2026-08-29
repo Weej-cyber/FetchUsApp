@@ -7,10 +7,10 @@ const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = "sb_publishable_eXLygIqAXfuXO6dYHwz0pA_iSC0dec4";
 
-// Automated UAT tests book real walks/boardings against this account on
-// every push. Skip sending real texts for it while still exercising the
-// rest of the notification pipeline (RPC calls, message building, logging).
-const UAT_TEST_CLIENT_EMAIL = "fetchusclient@test.com";
+function formatPhone(raw: string) {
+  const digits = raw.replace(/\D/g, "");
+  return digits.startsWith("1") ? `+${digits}` : `+1${digits}`;
+}
 
 async function sendTwilioSms(to: string, body: string) {
   const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
@@ -26,133 +26,72 @@ async function sendTwilioSms(to: string, body: string) {
   return { ok: res.ok, data };
 }
 
-function formatPhone(raw: string) {
-  const digits = raw.replace(/\D/g, "");
-  return digits.startsWith("1") ? `+${digits}` : `+1${digits}`;
-}
-
+// This function is a pure dispatcher. It does not decide who gets notified,
+// what the message says, or whether someone has consented -- all of that
+// lives in the database (the notifications_before_insert trigger and the
+// application code that creates each row). This function's only job: given
+// an already-fully-formed, already-approved notification, send it and
+// record the result.
+//
+// Every call must come from the database's own dispatch trigger, proven via
+// the x-internal-key header (checked against a secret stored in Vault) --
+// never called directly by client, walker, or admin app code.
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+        "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-key",
       },
     });
   }
 
   try {
-    const { client_id, walker_name, dog_name, event_type, preferred_date, preferred_time, check_in_date, check_out_date } = await req.json();
+    const internalKey = req.headers.get("x-internal-key");
+    const { notification_id } = await req.json();
 
-    if (!client_id) {
-      return new Response(JSON.stringify({ skipped: true, reason: "No client_id" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      });
-    }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    if (event_type === "new_booking" || event_type === "new_boarding") {
-      const { data: clientInfo } = await supabase.rpc("get_client_sms_info_by_client", { p_client_id: client_id });
-      const clientName = clientInfo?.[0]?.name || "A pet parent";
-      const clientEmail = clientInfo?.[0]?.email || "";
-
-      if (clientEmail === UAT_TEST_CLIENT_EMAIL) {
-        return new Response(JSON.stringify({ skipped: true, reason: "UAT test client, no real SMS sent" }), {
-          status: 200,
-          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        });
-      }
-
-      const { data: admins, error: adminErr } = await supabase.rpc("get_admin_sms_recipients");
-      if (adminErr || !admins || admins.length === 0) {
-        return new Response(JSON.stringify({ skipped: true, reason: "No admin recipients", adminErr }), {
-          status: 200,
-          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        });
-      }
-
-      let message;
-      if (event_type === "new_booking") {
-        const when = preferred_date && preferred_time ? ` on ${preferred_date} at ${preferred_time}` : "";
-        message = `FetchUs: New walk request from ${clientName} for ${dog_name || "their dog"}${when}. Reply STOP to opt out.`;
-      } else {
-        const when = check_in_date && check_out_date ? ` ${check_in_date} to ${check_out_date}` : "";
-        message = `FetchUs: New boarding request from ${clientName} for ${dog_name || "their dog"},${when}. Reply STOP to opt out.`;
-      }
-
-      const results = [];
-      for (const admin of admins) {
-        const formattedPhone = formatPhone(admin.phone);
-        const { ok, data } = await sendTwilioSms(formattedPhone, message);
-        await supabase.from("notifications").insert({
-          user_id: admin.user_id,
-          type: event_type,
-          message,
-          phone: formattedPhone,
-          status: ok ? "sent" : "failed",
-        });
-        results.push({ to: formattedPhone, ok, data });
-      }
-
-      return new Response(JSON.stringify({ success: true, sentTo: results.length, results }), {
-        status: 200,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      });
-    }
-
-    const { data, error } = await supabase.rpc("get_client_sms_info_by_client", { p_client_id: client_id });
-
-    if (error || !data || data.length === 0) {
-      return new Response(JSON.stringify({ skipped: true, reason: "Client not found", error }), {
-        status: 200,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      });
-    }
-
-    const { phone, sms_consent, user_id, email } = data[0];
-
-    if (email === UAT_TEST_CLIENT_EMAIL) {
-      return new Response(JSON.stringify({ skipped: true, reason: "UAT test client, no real SMS sent" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      });
-    }
-
-    if (!phone || !sms_consent) {
-      return new Response(JSON.stringify({ skipped: true, reason: "No phone or no consent", phone, sms_consent }), {
-        status: 200,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      });
-    }
-
-    let message = "";
-    if (event_type === "walk_started") {
-      message = `FetchUs: ${walker_name || 'Your walker'} has started ${dog_name || 'your dog'}'s walk. Reply STOP to opt out.`;
-    } else if (event_type === "walk_completed") {
-      message = `FetchUs: ${walker_name || 'Your walker'} has completed ${dog_name || 'your dog'}'s walk. Have a great day! Reply STOP to opt out.`;
-    } else {
-      return new Response(JSON.stringify({ error: "Unknown event_type" }), {
+    if (!internalKey || !notification_id) {
+      return new Response(JSON.stringify({ error: "Missing internal key or notification_id" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    const formattedPhone = formatPhone(phone);
-    const { ok: success, data: twilioData } = await sendTwilioSms(formattedPhone, message);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    await supabase.from("notifications").insert({
-      user_id: user_id || null,
-      type: event_type,
-      message,
-      phone: formattedPhone,
-      status: success ? "sent" : "failed",
+    const { data: rows, error: fetchErr } = await supabase.rpc("get_notification_for_dispatch", {
+      p_id: notification_id,
+      p_key: internalKey,
     });
 
-    return new Response(JSON.stringify({ success, message, to: formattedPhone, twilioData }), {
-      status: success ? 200 : 500,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    if (fetchErr || !rows || rows.length === 0) {
+      return new Response(JSON.stringify({ error: "Not authorized or notification not found" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const notification = rows[0];
+
+    if (notification.status !== "pending") {
+      return new Response(JSON.stringify({ skipped: true, reason: `Status is '${notification.status}', not 'pending'` }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const formattedPhone = formatPhone(notification.phone);
+    const { ok, data } = await sendTwilioSms(formattedPhone, notification.message);
+
+    await supabase.rpc("update_notification_status", {
+      p_id: notification_id,
+      p_key: internalKey,
+      p_status: ok ? "sent" : "failed",
+    });
+
+    return new Response(JSON.stringify({ success: ok, twilioData: data }), {
+      status: ok ? 200 : 500,
+      headers: { "Content-Type": "application/json" },
     });
 
   } catch (err) {

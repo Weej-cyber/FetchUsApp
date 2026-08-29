@@ -798,9 +798,11 @@ function ClientsAndWalkersSection() {
 
   async function handleDelete(id) {
     if (!window.confirm('Are you sure you want to delete this user?')) return
-    const { error } = await supabase.from('users').update({ is_active: false }).eq('id', id)
-    if (error) {
-      window.alert('Could not delete this user: ' + error.message)
+    const { data, error } = await supabase.functions.invoke('set-user-active', {
+      body: { user_id: id, is_active: false },
+    })
+    if (error || data?.error) {
+      window.alert('Could not delete this user: ' + (data?.error || error.message))
       return
     }
     loadAll()
@@ -824,9 +826,11 @@ function ClientsAndWalkersSection() {
   }
 
   async function handleReactivate(id) {
-    const { error } = await supabase.from('users').update({ is_active: true }).eq('id', id)
-    if (error) {
-      window.alert('Could not reactivate this user: ' + error.message)
+    const { data, error } = await supabase.functions.invoke('set-user-active', {
+      body: { user_id: id, is_active: true },
+    })
+    if (error || data?.error) {
+      window.alert('Could not reactivate this user: ' + (data?.error || error.message))
       return
     }
     loadDeactivated()
