@@ -77,7 +77,7 @@ export default function LoginPage() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FAF8F3", fontFamily: "'Nunito', sans-serif", WebkitFontSmoothing: "antialiased" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #AEE0F5 0%, #C9EAF6 12%, #E4F3E6 32%, #F3EFDD 48%, #F0EEDC 62%, #E3EFDC 78%, #CFE7CE 92%, #B9DDBB 100%)", fontFamily: "'Nunito', sans-serif", WebkitFontSmoothing: "antialiased" }}>
 
       {/* Logo bar */}
       <div style={{ padding: "36px 24px 20px", textAlign: "center" }}>
