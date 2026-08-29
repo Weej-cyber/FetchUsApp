@@ -104,7 +104,9 @@ function ActiveWalkScreen({ walk, onComplete }) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>✅</div>
+          <div style={{ width: 56, height: 56, margin: '0 auto 12px', borderRadius: '50%', background: '#EEF3F8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
           <div style={{ fontWeight: 800, fontSize: '1.2rem', color: C.teal }}>Walk Complete!</div>
           <div style={{ fontSize: '0.88rem', color: C.light, marginTop: 6 }}>Client has been notified.</div>
         </div>
@@ -144,15 +146,16 @@ function ActiveWalkScreen({ walk, onComplete }) {
               <img src={photoPreview} alt="walk" style={{ width: '100%', borderRadius: 10, maxHeight: 200, objectFit: 'cover' }} />
             </div>
           )}
-          <label style={{ display: 'inline-block', background: '#F0EDE5', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 700, color: C.indigo, cursor: 'pointer' }}>
-            {photoPreview ? '📷 Change Photo' : '📷 Add Photo'}
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#F0EDE5', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 700, color: C.indigo, cursor: 'pointer' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.indigo} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            {photoPreview ? 'Change Photo' : 'Add Photo'}
             <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
           </label>
         </div>
 
         {completeError && (
           <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '1.3rem' }}>⚠️</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#991B1B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '0.95rem' }}>{completeError}</span>
           </div>
         )}
@@ -161,7 +164,7 @@ function ActiveWalkScreen({ walk, onComplete }) {
           disabled={saving}
           style={{ width: '100%', padding: '16px', borderRadius: 12, border: 'none', background: saving ? '#b2bec3' : C.charcoal, color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem', cursor: saving ? 'not-allowed' : 'pointer' }}
         >
-          {saving ? 'Saving...' : '✓ Complete Walk'}
+          {saving ? 'Saving...' : 'Complete Walk'}
         </button>
         <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#b2bec3', marginTop: 10 }}>Note and photo will be sent to the pet parent.</p>
       </div>
@@ -276,7 +279,7 @@ export function WalkerDashboard() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 12 }}>🐾</div>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill={C.teal} style={{ margin: '0 auto 12px', display: 'block' }}><circle cx="7" cy="7" r="2.6"/><circle cx="13.5" cy="5.5" r="2.6"/><circle cx="18.5" cy="10" r="2.4"/><ellipse cx="12" cy="16" rx="6" ry="5"/></svg>
           <p style={{ color: C.teal, fontWeight: 600 }}>Loading...</p>
         </div>
       </div>
@@ -287,7 +290,7 @@ export function WalkerDashboard() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif', padding: 20 }}>
         <div style={{ background: 'white', borderRadius: 14, padding: '24px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', maxWidth: 420, width: '100%' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 8, textAlign: 'center' }}>📱</div>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px', display: 'block' }}><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
           <div style={{ fontWeight: 800, fontSize: '1.15rem', color: C.teal, marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
           <p style={{ fontSize: '0.9rem', color: C.light, textAlign: 'center', marginBottom: 20 }}>
             A phone number is required before you can use FetchUs. This is how you'll be notified about walk assignments.
@@ -340,7 +343,7 @@ export function WalkerDashboard() {
         <SectionHeader title="Today" />
         {todayWalks.length === 0 ? (
           <div style={{ background: 'white', borderRadius: 14, padding: '28px 20px', textAlign: 'center', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
-            <div style={{ fontSize: '2rem', marginBottom: 8 }}>🎉</div>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px', display: 'block' }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 15l2 2 4-4"/></svg>
             <p style={{ fontWeight: 700, color: C.charcoal, margin: 0 }}>No walks today</p>
           </div>
         ) : todayWalks.map(req => (
