@@ -83,10 +83,9 @@ export default function LoginPage() {
       <div style={{ padding: "36px 24px 20px", textAlign: "center" }}>
         <img
           src="/fetchus-logo.png"
-          alt="FetchUs"
-          style={{ height: "88px", width: "auto", margin: "0 auto", display: "block" }}
+          alt="FetchUs — Pet Services: Walking, Sitting, Boarding, Drop-In Visits"
+          style={{ height: "150px", width: "auto", margin: "0 auto", display: "block" }}
         />
-        <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#636e72", fontSize: "15px", margin: "10px 0 0" }}>We love them like you do ❤️</p>
       </div>
 
       {/* Login Form — first thing on the page */}
