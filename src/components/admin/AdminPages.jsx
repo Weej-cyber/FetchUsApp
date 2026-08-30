@@ -335,27 +335,54 @@ function ReadOnlyStatusBadge({ status }) {
 function ClientReadOnlyView({ userId, onBack }) {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
+  const [clientId, setClientId] = useState(null)
   const [dogs, setDogs] = useState([])
   const [walks, setWalks] = useState([])
   const [boardings, setBoardings] = useState([])
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      const { data: clientRow } = await supabase.from('clients').select('id, address, access_instructions, user_id, users(name, email, phone, sms_consent)').eq('user_id', userId).single()
-      setProfile(clientRow)
-      const clientId = clientRow?.id
-      if (!clientId) { setLoading(false); return }
-      const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', clientId)
-      setDogs(dogList || [])
-      const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name)').eq('client_id', clientId).order('preferred_date', { ascending: false })
-      setWalks(walkList || [])
-      const { data: boardingList } = await supabase.from('boarding_requests').select('*, dogs(name)').eq('client_id', clientId).order('check_in_date', { ascending: false })
-      setBoardings(boardingList || [])
-      setLoading(false)
-    }
-    load()
-  }, [userId])
+  const [showBook, setShowBook] = useState(false)
+  const [bookForm, setBookForm] = useState({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' })
+  const [bookSubmitting, setBookSubmitting] = useState(false)
+  const [bookSubmitted, setBookSubmitted] = useState(false)
+  const [bookError, setBookError] = useState(null)
+
+  async function loadAll() {
+    setLoading(true)
+    const { data: clientRow } = await supabase.from('clients').select('id, address, access_instructions, user_id, users(name, email, phone, sms_consent)').eq('user_id', userId).single()
+    setProfile(clientRow)
+    const cId = clientRow?.id
+    setClientId(cId)
+    if (!cId) { setLoading(false); return }
+    const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', cId)
+    setDogs(dogList || [])
+    const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name)').eq('client_id', cId).order('preferred_date', { ascending: false })
+    setWalks(walkList || [])
+    const { data: boardingList } = await supabase.from('boarding_requests').select('*, dogs(name)').eq('client_id', cId).order('check_in_date', { ascending: false })
+    setBoardings(boardingList || [])
+    setLoading(false)
+  }
+
+  useEffect(() => { loadAll() }, [userId])
+
+  async function submitBook() {
+    if (!bookForm.preferred_date || !bookForm.preferred_time) { setBookError('Please select a date and time.'); return }
+    if (!clientId) { setBookError('Profile not loaded. Please refresh.'); return }
+    setBookSubmitting(true)
+    setBookError(null)
+    const { error } = await supabase.from('walk_requests').insert({
+      client_id: clientId, dog_id: bookForm.dog_id || null,
+      service_type: bookForm.service_type, preferred_date: bookForm.preferred_date,
+      preferred_time: bookForm.preferred_time, notes: bookForm.notes || null, status: 'pending',
+    })
+    if (error) { setBookError('Something went wrong. Please try again.'); setBookSubmitting(false); return }
+    setBookSubmitting(false)
+    setBookSubmitted(true)
+    setTimeout(() => {
+      setBookSubmitted(false); setShowBook(false)
+      setBookForm({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' })
+      loadAll()
+    }, 2000)
+  }
 
   if (loading) return <EmptyState message="Loading client view..." />
 
@@ -367,6 +394,63 @@ function ClientReadOnlyView({ userId, onBack }) {
       <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '0.85rem', fontWeight: 700, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8 }}>
         <Eye size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
         Viewing as {profile?.users?.name ?? 'this client'} — Read-only. No changes can be made from here.
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        {!showBook ? (
+          <button onClick={() => setShowBook(true)} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+            Book a Walk for {profile?.users?.name ?? 'this client'}
+          </button>
+        ) : bookSubmitted ? (
+          <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', textAlign: 'center' }}>
+            <div style={{ fontWeight: 800, color: '#2D9B8A' }}>Walk request submitted.</div>
+          </div>
+        ) : (
+          <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', borderLeft: '4px solid #2D9B8A' }}>
+            <div style={{ fontWeight: 700, color: '#2D3436', marginBottom: 12 }}>Book a Walk</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div>
+                <label style={labelStyle}>Service Type</label>
+                <select style={inputStyle} value={bookForm.service_type} onChange={e => setBookForm({ ...bookForm, service_type: e.target.value })}>
+                  <option>30-min Walk</option><option>60-min Walk</option><option>Drop-In Visit</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Dog</label>
+                <select style={inputStyle} value={bookForm.dog_id} onChange={e => setBookForm({ ...bookForm, dog_id: e.target.value })}>
+                  <option value="">Select a dog...</option>
+                  {dogs.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div>
+                <label style={labelStyle}>Date</label>
+                <input type="date" style={inputStyle} value={bookForm.preferred_date} min={new Date().toISOString().split('T')[0]} onChange={e => setBookForm({ ...bookForm, preferred_date: e.target.value })} />
+              </div>
+              <div>
+                <label style={labelStyle}>Time</label>
+                <select style={inputStyle} value={bookForm.preferred_time} onChange={e => setBookForm({ ...bookForm, preferred_time: e.target.value })}>
+                  <option value="">Select a time...</option>
+                  {['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM'].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={labelStyle}>Notes</label>
+              <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={bookForm.notes} onChange={e => setBookForm({ ...bookForm, notes: e.target.value })} placeholder="Gate code, where to find the leash, etc." />
+            </div>
+            {bookError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12, fontWeight: 600 }}>{bookError}</div>}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={submitBook} disabled={bookSubmitting} style={{ flex: 1, background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+                {bookSubmitting ? 'Booking...' : 'Confirm'}
+              </button>
+              <button onClick={() => { setShowBook(false); setBookError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#636e72', cursor: 'pointer' }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <SectionHeader title="Profile" />
