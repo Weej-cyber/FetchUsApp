@@ -393,7 +393,7 @@ function ClientReadOnlyView({ userId, onBack }) {
       </div>
       <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '0.85rem', fontWeight: 700, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8 }}>
         <Eye size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
-        Viewing as {profile?.users?.name ?? 'this client'} — Read-only. No changes can be made from here.
+        Viewing as {profile?.users?.name ?? 'this client'} — Read-only, except booking a walk on their behalf.
       </div>
 
       <div style={{ marginBottom: 20 }}>
