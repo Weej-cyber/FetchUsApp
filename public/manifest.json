@@ -4,8 +4,8 @@
   "description": "FetchUs Dog Walking Service",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#5B4B8A",
-  "theme_color": "#5B4B8A",
+  "background_color": "#B3E0FD",
+  "theme_color": "#B3E0FD",
   "orientation": "portrait",
   "icons": [
     {
