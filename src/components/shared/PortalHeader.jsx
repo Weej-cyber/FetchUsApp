@@ -12,8 +12,8 @@ export default function PortalHeader({
   if (variant === 'plain') {
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="/fetchus-mark.png" alt="" style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 64, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
           <div>
             <h1 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.5rem', fontWeight: 700, color: '#182B4A', margin: 0 }}>{title}</h1>
             <p style={{ color: '#636e72', fontSize: '0.85rem', margin: '4px 0 0' }}>{subtitle}</p>
@@ -30,8 +30,8 @@ export default function PortalHeader({
     return (
       <div style={{ background, padding: '50px 24px 24px', color: 'white' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/fetchus-mark.png" alt="" style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0, background: 'white', borderRadius: '50%', padding: 3 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 64, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
             <div>
               <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Baloo 2, sans-serif' }}>{title}</h1>
               <p style={{ margin: '4px 0 0', opacity: 0.8, fontSize: '0.88rem' }}>{subtitle}</p>
@@ -49,8 +49,8 @@ export default function PortalHeader({
   return (
     <div style={{ background, borderRadius: 16, padding: '22px 24px', marginBottom: 8, color: 'white' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-          <img src="/fetchus-mark.png" alt="" style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0, background: 'white', borderRadius: '50%', padding: 3, marginTop: eyebrow ? 2 : 0 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 64, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
           <div>
             {eyebrow && (
               <div style={{ fontSize: '0.8rem', fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{eyebrow}</div>
