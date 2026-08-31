@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { COLORS as C } from '../../theme'
+import PortalHeader from '../shared/PortalHeader'
 
 const SERVICE_TYPES = ['30-min Walk', '60-min Walk', 'Drop-In Visit']
 const TIME_SLOTS = ['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM']
@@ -417,22 +418,16 @@ export default function ClientPortal() {
         </div>
       )}
 
-      <div style={{ background: `linear-gradient(135deg, ${C.gold}, #E8B84B)`, borderRadius: 16, padding: '22px 24px', marginBottom: 8, color: 'white' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Welcome back</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Baloo 2, sans-serif', marginBottom: 6 }}>{profile.name || 'Pet Parent'}</div>
-            <div style={{ fontSize: '0.88rem', opacity: 0.9 }}>
-              {upcomingWalks.length > 0
-                ? `Next walk: ${formatDate(upcomingWalks[0].preferred_date)} at ${upcomingWalks[0].preferred_time}`
-                : 'No upcoming walks scheduled'}
-            </div>
-          </div>
-          <button onClick={signOut} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-            Sign Out
-          </button>
-        </div>
-      </div>
+      <PortalHeader
+        variant="card"
+        background={`linear-gradient(135deg, ${C.gold}, #E8B84B)`}
+        eyebrow="Welcome back"
+        title={profile.name || 'Pet Parent'}
+        subtitle={upcomingWalks.length > 0
+          ? `Next walk: ${formatDate(upcomingWalks[0].preferred_date)} at ${upcomingWalks[0].preferred_time}`
+          : 'No upcoming walks scheduled'}
+        onSignOut={signOut}
+      />
 
       <SectionHeader title="My Dogs" icon={Icon.paw(C.indigo)} color={C.indigo} />
 

@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 import { COLORS as C } from '../../theme'
+import PortalHeader from '../shared/PortalHeader'
 
 function formatTimer(seconds) {
   const h = Math.floor(seconds / 3600).toString().padStart(2, '0')
@@ -324,19 +325,13 @@ export function WalkerDashboard() {
         </div>
       )}
 
-      <div style={{ background: `linear-gradient(135deg, ${C.teal}, #3DB89A)`, padding: '50px 24px 24px', color: 'white' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Baloo 2, sans-serif' }}>My Walks</h1>
-            <p style={{ margin: '4px 0 0', opacity: 0.8, fontSize: '0.88rem' }}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-            </p>
-          </div>
-          <button onClick={signOut} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>
-            Sign Out
-          </button>
-        </div>
-      </div>
+      <PortalHeader
+        variant="banner"
+        background={`linear-gradient(135deg, ${C.teal}, #3DB89A)`}
+        title="My Walks"
+        subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        onSignOut={signOut}
+      />
 
       <div style={{ padding: '8px 20px 0' }}>
 

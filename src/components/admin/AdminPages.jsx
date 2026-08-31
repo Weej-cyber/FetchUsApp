@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone } from 'lucide-react'
+import PortalHeader from '../shared/PortalHeader'
 
 // Looks up active users holding a given role via user_roles, so multi-role
 // users (e.g. an admin who is also a walker or client) are included alongside
@@ -1246,13 +1247,7 @@ export default function AdminPortal() {
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 90px', fontFamily: 'Nunito, sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div>
-          <h1 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.5rem', fontWeight: 700, color: '#182B4A', margin: 0 }}>Admin Portal</h1>
-          <p style={{ color: '#636e72', fontSize: '0.85rem', margin: '4px 0 0' }}>FetchUs Pet Care</p>
-        </div>
-        <button onClick={signOut} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, color: '#636e72', cursor: 'pointer' }}>Sign Out</button>
-      </div>
+      <PortalHeader variant="plain" title="Admin Portal" subtitle="FetchUs Pet Care" onSignOut={signOut} />
 
       <div style={{ background: '#F0F4F8', borderRadius: 10, padding: '10px 14px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#182B4A', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>View as</span>
