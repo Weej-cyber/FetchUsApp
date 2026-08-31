@@ -18,7 +18,9 @@ export default function PortalHeader({
           Sign Out
         </button>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain' }} />
+          <div style={{ background: '#B3E0FD', borderRadius: 12, padding: '6px 14px', boxShadow: '0 1px 4px rgba(45,52,54,0.08)' }}>
+            <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain', display: 'block' }} />
+          </div>
           <h1 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.15rem', fontWeight: 700, color: '#182B4A', margin: '6px 0 0' }}>{title}</h1>
           <p style={{ color: '#636e72', fontSize: '0.82rem', margin: '2px 0 0' }}>{subtitle}</p>
         </div>
@@ -33,7 +35,9 @@ export default function PortalHeader({
           Sign Out
         </button>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain' }} />
+          <div style={{ background: '#B3E0FD', borderRadius: 12, padding: '6px 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }}>
+            <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain', display: 'block' }} />
+          </div>
           <h1 style={{ margin: '6px 0 0', fontSize: '1.15rem', fontWeight: 800, fontFamily: 'Baloo 2, sans-serif' }}>{title}</h1>
           <p style={{ margin: '2px 0 0', opacity: 0.85, fontSize: '0.82rem' }}>{subtitle}</p>
         </div>
@@ -48,7 +52,9 @@ export default function PortalHeader({
         Sign Out
       </button>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain' }} />
+        <div style={{ background: '#B3E0FD', borderRadius: 12, padding: '6px 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }}>
+          <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain', display: 'block' }} />
+        </div>
         {eyebrow && (
           <div style={{ fontSize: '0.78rem', fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 0' }}>{eyebrow}</div>
         )}
