@@ -1581,14 +1581,14 @@ export default function AdminPortal() {
       <div style={{ background: '#F0F4F8', borderRadius: 10, padding: '10px 14px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#182B4A', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>View as</span>
         {[
-          { role: 'admin', label: 'Admin', color: '#182B4A', path: '/admin' },
-          { role: 'walker', label: 'Walker', color: '#2D9B8A', path: '/walker' },
-          { role: 'client', label: 'Pet Parent', color: '#D4A843', path: '/client' },
+          { role: 'admin', label: 'Admin', path: '/admin' },
+          { role: 'walker', label: 'Walker', path: '/walker' },
+          { role: 'client', label: 'Pet Parent', path: '/client' },
         ].map(r => (
           <button
             key={r.role}
             onClick={() => { setRole(r.role); navigate(r.path) }}
-            style={{ padding: '5px 14px', borderRadius: 20, border: 'none', background: r.color, color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
+            style={{ padding: '5px 14px', borderRadius: 20, border: 'none', background: '#182B4A', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
           >
             {r.label}
           </button>
