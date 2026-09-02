@@ -118,10 +118,10 @@ function ActiveWalkScreen({ walk, onComplete }) {
   return (
     <div style={{ background: C.cream, minHeight: '100vh', maxWidth: '430px', margin: '0 auto', fontFamily: 'Nunito, sans-serif' }}>
       <div style={{ background: `linear-gradient(135deg, ${C.teal}, #3DB89A)`, padding: '50px 24px 32px', color: 'white', textAlign: 'center' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 700, opacity: 0.85, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Walk In Progress</div>
+        <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Walk In Progress</div>
         <div style={{ fontSize: '3.5rem', fontWeight: 800, fontFamily: 'monospace', letterSpacing: '0.04em' }}>{formatTimer(seconds)}</div>
         <div style={{ fontSize: '1rem', fontWeight: 700, marginTop: 8 }}>{walk.dog_name || 'Walk'}</div>
-        <div style={{ fontSize: '0.85rem', opacity: 0.8, marginTop: 4 }}>{walk.client_name}</div>
+        <div style={{ fontSize: '0.85rem', marginTop: 4 }}>{walk.client_name}</div>
       </div>
 
       <div style={{ padding: '24px 20px 48px' }}>
@@ -305,7 +305,7 @@ export function WalkerDashboard() {
             <span style={{ fontSize: '0.82rem', color: C.charcoal }}>I agree to receive text messages from FetchUs about my walk assignments. Message and data rates may apply. Reply STOP to opt out.</span>
           </label>
           {gateError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14, fontWeight: 600 }}>{gateError}</div>}
-          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !gatePhone.trim() ? 0.5 : 1 }}>
+          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: !gatePhone.trim() ? '#636e72' : C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
             {gateSubmitting ? 'Saving...' : 'Continue'}
           </button>
         </div>
@@ -318,7 +318,7 @@ export function WalkerDashboard() {
 
       {dbRole && (
         <div style={{ background: '#182B4A', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ color: 'white', fontSize: '0.78rem', fontWeight: 700, opacity: 0.85 }}>Viewing as Walker</span>
+          <span style={{ color: 'white', fontSize: '0.78rem', fontWeight: 700 }}>Viewing as Walker</span>
           <button onClick={() => { setRole('admin'); navigate('/admin') }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '5px 14px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
             ← Back to Admin
           </button>

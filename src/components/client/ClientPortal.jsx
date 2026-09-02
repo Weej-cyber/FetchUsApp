@@ -400,7 +400,7 @@ export default function ClientPortal() {
             <span style={{ fontSize: '0.82rem', color: C.charcoal }}>I agree to receive text messages from FetchUs about my walks and boarding. Message and data rates may apply. Reply STOP to opt out.</span>
           </label>
           {gateError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14 }}>{gateError}</div>}
-          <button onClick={submitGate} disabled={gateSubmitting || !profile.phone.trim()} style={{ width: '100%', background: C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !profile.phone.trim() ? 0.5 : 1 }}>
+          <button onClick={submitGate} disabled={gateSubmitting || !profile.phone.trim()} style={{ width: '100%', background: !profile.phone.trim() ? '#636e72' : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
             {gateSubmitting ? 'Saving...' : 'Continue'}
           </button>
         </div>
@@ -413,7 +413,7 @@ export default function ClientPortal() {
 
       {dbRole && (
         <div style={{ background: '#182B4A', borderRadius: 10, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ color: 'white', fontSize: '0.78rem', fontWeight: 700, opacity: 0.85 }}>Viewing as Client</span>
+          <span style={{ color: 'white', fontSize: '0.78rem', fontWeight: 700 }}>Viewing as Client</span>
           <button onClick={() => { setRole('admin'); navigate('/admin') }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '5px 14px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
             ← Back to Admin
           </button>
@@ -514,7 +514,7 @@ export default function ClientPortal() {
             </div>
           )}
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={saveDog} disabled={savingDog || !dogForm.name.trim()} style={{ flex: 1, background: dogSaved ? C.teal : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !dogForm.name.trim() ? 0.5 : 1 }}>
+            <button onClick={saveDog} disabled={savingDog || !dogForm.name.trim()} style={{ flex: 1, background: !dogForm.name.trim() ? '#636e72' : (dogSaved ? C.teal : C.indigo), color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
               {dogSaved ? 'Saved!' : savingDog ? 'Saving...' : editingDog ? 'Save Changes' : 'Add Dog'}
             </button>
             <button onClick={() => setShowAddDog(false)} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
@@ -590,7 +590,7 @@ export default function ClientPortal() {
           {bookError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12 }}>{bookError}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={submitBook} disabled={bookSubmitting || !bookForm.preferred_date || !bookForm.preferred_time}
-              style={{ flex: 1, background: C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: (!bookForm.preferred_date || !bookForm.preferred_time) ? 0.5 : 1 }}>
+              style={{ flex: 1, background: (!bookForm.preferred_date || !bookForm.preferred_time) ? '#636e72' : C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
               {bookSubmitting ? 'Sending...' : 'Send Request'}
             </button>
             <button onClick={() => { setShowBook(false); setBookError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
@@ -722,7 +722,7 @@ export default function ClientPortal() {
           {boardError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12 }}>{boardError}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={submitBoard} disabled={boardSubmitting || !boardForm.check_in_date || !boardForm.check_out_date}
-              style={{ flex: 1, background: C.gold, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: (!boardForm.check_in_date || !boardForm.check_out_date) ? 0.5 : 1 }}>
+              style={{ flex: 1, background: (!boardForm.check_in_date || !boardForm.check_out_date) ? '#636e72' : C.gold, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
               {boardSubmitting ? 'Sending...' : 'Send Request'}
             </button>
             <button onClick={() => { setShowBoard(false); setBoardError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>

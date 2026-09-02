@@ -118,7 +118,7 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
             <option value="">Select walker...</option>
             {walkers.filter(w => w.id !== req.assigned_walker_id).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
-          <button onClick={handleAssign} disabled={!selectedWalker || assigning} style={{ background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', opacity: !selectedWalker ? 0.5 : 1 }}>
+          <button onClick={handleAssign} disabled={!selectedWalker || assigning} style={{ background: !selectedWalker ? '#636e72' : '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
             {assigning ? 'Saving...' : 'Confirm'}
           </button>
         </div>
@@ -172,7 +172,7 @@ function BoardingRequestCard({ req, walkers, onDecline, onAssign }) {
             <option value="">Select walker...</option>
             {walkers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
-          <button onClick={handleAssign} disabled={!selectedWalker || assigning} style={{ background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', opacity: !selectedWalker ? 0.5 : 1 }}>
+          <button onClick={handleAssign} disabled={!selectedWalker || assigning} style={{ background: !selectedWalker ? '#636e72' : '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
             {assigning ? 'Saving...' : 'Confirm'}
           </button>
         </div>
@@ -215,7 +215,7 @@ function BroadcastPanel() {
       <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Message all clients..." rows={3} style={{ width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '10px 12px', fontSize: '0.88rem', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
         <span style={{ fontSize: '0.78rem', color: '#b2bec3' }}>{message.length} chars</span>
-        <button onClick={sendBroadcast} disabled={!message.trim() || sending} style={{ background: sent ? '#2D9B8A' : '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', opacity: !message.trim() ? 0.5 : 1 }}>
+        <button onClick={sendBroadcast} disabled={!message.trim() || sending} style={{ background: !message.trim() ? '#636e72' : (sent ? '#2D9B8A' : '#182B4A'), color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
           {sending ? 'Sending...' : sent ? 'Sent!' : 'Send to All Clients'}
         </button>
       </div>
@@ -1548,7 +1548,7 @@ export default function AdminPortal() {
             <span style={{ fontSize: '0.82rem', color: '#2D3436' }}>I agree to receive text messages from FetchUs about new requests and assignments. Message and data rates may apply. Reply STOP to opt out.</span>
           </label>
           {gateError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14, fontWeight: 600 }}>{gateError}</div>}
-          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', opacity: !gatePhone.trim() ? 0.5 : 1 }}>
+          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: !gatePhone.trim() ? '#636e72' : '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
             {gateSubmitting ? 'Saving...' : 'Continue'}
           </button>
         </div>
