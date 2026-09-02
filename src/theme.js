@@ -11,7 +11,7 @@ export const COLORS = {
   tealAlt: '#3DB89A',
   gold: '#D4A843',
   goldAlt: '#E8B84B',
-  cream: '#FAF8F3',
+  cream: '#AEE0F5', // page background — matches marketing site's body gradient top stop
   charcoal: '#2D3436',
   light: '#636e72',
 

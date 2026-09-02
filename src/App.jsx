@@ -10,7 +10,7 @@ import TermsOfService from './components/legal/TermsOfService'
 
 function LoadingScreen() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FAF8F3', fontFamily: 'Nunito, sans-serif', color: '#182B4A', fontWeight: 700 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#AEE0F5', fontFamily: 'Nunito, sans-serif', color: '#182B4A', fontWeight: 700 }}>
       Loading...
     </div>
   )

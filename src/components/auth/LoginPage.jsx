@@ -164,7 +164,7 @@ export default function LoginPage() {
       </div>
 
       {/* About */}
-      <div style={{ background: "#FAF8F3", borderBottom: "1px solid #E0E0E0" }}>
+      <div style={{ background: "#AEE0F5", borderBottom: "1px solid #E0E0E0" }}>
         <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px" }}>
           <p style={{ fontSize: "12px", fontWeight: 800, color: "#2D9B8A", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>About FetchUs</p>
           <p style={{ fontSize: "15px", color: "#4B5563", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>

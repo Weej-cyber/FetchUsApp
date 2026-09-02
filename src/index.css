@@ -4,7 +4,8 @@
 
 @layer base {
   body {
-    @apply bg-cream font-sans text-charcoal;
+    background: #AEE0F5; /* single source of truth — matches marketing site's body gradient top stop */
+    @apply font-sans text-charcoal;
     font-weight: 500;
   }
 }

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
 import jsPDF from 'jspdf'
+import { COLORS as C } from '../../theme'
 
 // Looks up active users holding a given role via user_roles, so multi-role
 // users (e.g. an admin who is also a walker or client) are included alongside
@@ -95,7 +96,7 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
         </div>
         <span style={{ background: sc.bg, color: sc.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{req.status}</span>
       </div>
-      {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: '#FAF8F3', borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
+      {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: C.cream, borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
       {req.walks?.[0]?.photo_url && (
         <img src={req.walks[0].photo_url} alt="Walk photo" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8, marginBottom: 10 }} />
       )}
@@ -157,7 +158,7 @@ function BoardingRequestCard({ req, walkers, onDecline, onAssign }) {
         </div>
         <span style={{ background: sc.bg, color: sc.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{req.status}</span>
       </div>
-      {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: '#FAF8F3', borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
+      {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: C.cream, borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
       {req.assigned_walker_id && <div style={{ fontSize: '0.8rem', color: '#2D9B8A', fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
       {req.status === 'pending' && (
         <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
@@ -1531,7 +1532,7 @@ export default function AdminPortal() {
 
   if (phoneCheckDone && phoneRequired) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#FAF8F3', fontFamily: 'Nunito, sans-serif', padding: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: C.cream, fontFamily: 'Nunito, sans-serif', padding: 20 }}>
         <div style={{ background: 'white', borderRadius: 14, padding: '24px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', maxWidth: 420, width: '100%' }}>
           <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}><Smartphone size={30} color="#182B4A" /></div>
           <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#182B4A', marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
