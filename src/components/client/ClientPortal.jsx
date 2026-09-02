@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { COLORS as C } from '../../theme'
 import PortalHeader from '../shared/PortalHeader'
+import { PawPrint, CalendarPlus, Route, User } from 'lucide-react'
 
 const SERVICE_TYPES = ['30-min Walk', '60-min Walk', 'Drop-In Visit']
 const TIME_SLOTS = ['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM']
@@ -86,6 +87,7 @@ const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export default function ClientPortal() {
   const { dbRole, setRole, signOut } = useAuth()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('dogs')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [clientId, setClientId] = useState(null)
@@ -407,7 +409,7 @@ export default function ClientPortal() {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 60px', fontFamily: 'Nunito, sans-serif', background: C.cream, minHeight: '100vh' }}>
+    <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 90px', fontFamily: 'Nunito, sans-serif', background: C.cream, minHeight: '100vh' }}>
 
       {dbRole && (
         <div style={{ background: '#182B4A', borderRadius: 10, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -429,6 +431,7 @@ export default function ClientPortal() {
         onSignOut={signOut}
       />
 
+      {activeTab === 'dogs' && (<>
       <SectionHeader title="My Dogs" icon={Icon.paw(C.indigo)} color={C.indigo} />
 
       {dogs.map(dog => (
@@ -524,7 +527,9 @@ export default function ClientPortal() {
           + Add Dog
         </button>
       )}
+      </>)}
 
+      {activeTab === 'book' && (<>
       <SectionHeader title="Book a Walk" icon={Icon.calendar(C.teal)} color={C.teal} />
 
       {!showBook ? (
@@ -726,7 +731,9 @@ export default function ClientPortal() {
           </div>
         </div>
       )}
+      </>)}
 
+      {activeTab === 'activity' && (<>
       {boardings.length > 0 && (
         <>
           <SectionHeader title="My Boarding Requests" icon={Icon.home(C.gold)} color={C.gold} />
@@ -780,7 +787,9 @@ export default function ClientPortal() {
           )
         })
       )}
+      </>)}
 
+      {activeTab === 'profile' && (<>
       <SectionHeader title="My Profile" icon={Icon.person(C.indigo)} color={C.indigo} />
 
       <div style={cardStyle}>
@@ -834,6 +843,31 @@ export default function ClientPortal() {
         <button onClick={saveProfile} disabled={savingProfile} style={{ width: '100%', background: profileSaved ? C.teal : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
           {profileSaved ? 'Profile Saved!' : savingProfile ? 'Saving...' : 'Save Profile'}
         </button>
+      </div>
+      </>)}
+
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #E8E4DA', display: 'flex', justifyContent: 'space-around', padding: '8px 4px', zIndex: 50 }}>
+        {[
+          { id: 'dogs', label: 'Dogs', Icon: PawPrint },
+          { id: 'book', label: 'Book', Icon: CalendarPlus },
+          { id: 'activity', label: 'Activity', Icon: Route },
+          { id: 'profile', label: 'Profile', Icon: User },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+              background: activeTab === tab.id ? '#E8EEF5' : 'none',
+              border: 'none', borderRadius: 14, cursor: 'pointer', padding: '6px 12px',
+              color: activeTab === tab.id ? '#182B4A' : '#636e72',
+              fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.7rem',
+            }}
+          >
+            <tab.Icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
+            {tab.label}
+          </button>
+        ))}
       </div>
 
     </div>
