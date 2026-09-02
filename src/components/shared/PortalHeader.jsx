@@ -21,10 +21,10 @@ export default function PortalHeader({
           <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain', display: 'block' }} />
         </div>
         {eyebrow && (
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 0' }}>{eyebrow}</div>
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#2D3436', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 0' }}>{eyebrow}</div>
         )}
         <h1 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.15rem', fontWeight: 700, color: '#182B4A', margin: '4px 0 0' }}>{title}</h1>
-        <p style={{ color: '#636e72', fontSize: '0.82rem', margin: '2px 0 0' }}>{subtitle}</p>
+        <p style={{ color: '#2D3436', fontWeight: 600, fontSize: '0.95rem', margin: '2px 0 0' }}>{subtitle}</p>
       </div>
     </div>
   )

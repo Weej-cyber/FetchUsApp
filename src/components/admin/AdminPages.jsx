@@ -1599,9 +1599,9 @@ export default function AdminPortal() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
             {[
-              { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#182B4A', badge: pendingRequests.length + pendingBoardings.length },
-              { id: 'people', label: 'People', Icon: Users, color: '#2D9B8A' },
-              { id: 'schedule', label: 'Schedule', Icon: Calendar, color: '#D4A843' },
+              { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#A14B5C', badge: pendingRequests.length + pendingBoardings.length },
+              { id: 'people', label: 'People', Icon: Users, color: '#3F7A52' },
+              { id: 'schedule', label: 'Schedule', Icon: Calendar, color: '#A8552F' },
               { id: 'tools', label: 'Tools', Icon: Wrench, color: '#636e72' },
             ].map(item => (
               <button
