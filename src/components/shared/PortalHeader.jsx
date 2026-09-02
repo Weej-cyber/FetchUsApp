@@ -39,7 +39,7 @@ export default function PortalHeader({
             <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain', display: 'block' }} />
           </div>
           <h1 style={{ margin: '6px 0 0', fontSize: '1.15rem', fontWeight: 800, fontFamily: 'Baloo 2, sans-serif' }}>{title}</h1>
-          <p style={{ margin: '2px 0 0', opacity: 0.85, fontSize: '0.82rem' }}>{subtitle}</p>
+          <p style={{ margin: '2px 0 0', fontSize: '0.82rem' }}>{subtitle}</p>
         </div>
       </div>
     )
@@ -56,10 +56,10 @@ export default function PortalHeader({
           <img src="/fetchus-mark.png" alt="FetchUs" style={{ height: 72, width: 'auto', objectFit: 'contain', display: 'block' }} />
         </div>
         {eyebrow && (
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 0' }}>{eyebrow}</div>
+          <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 0' }}>{eyebrow}</div>
         )}
         <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'Baloo 2, sans-serif', margin: '2px 0 0' }}>{title}</div>
-        <div style={{ fontSize: '0.82rem', opacity: 0.9, marginTop: 2 }}>{subtitle}</div>
+        <div style={{ fontSize: '0.82rem', marginTop: 2 }}>{subtitle}</div>
       </div>
     </div>
   )
