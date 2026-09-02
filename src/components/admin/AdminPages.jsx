@@ -817,6 +817,20 @@ function InvoiceSection() {
     return doc
   }
 
+  function previewInvoice() {
+    setGenError(null)
+    if (lineItems.length === 0) { setGenError('Add at least one line item before previewing.'); return }
+    for (const item of lineItems) {
+      if (!item.price || parseFloat(item.price) <= 0) { setGenError('Every line item needs a price greater than $0.'); return }
+      if (item.isCustom && !item.description.trim()) { setGenError('Custom line items need a description.'); return }
+    }
+    const client = clients.find(c => c.id === selectedClient)
+    const draftInvoice = { invoice_number: 'PREVIEW — NOT YET ISSUED', issue_date: new Date().toISOString().split('T')[0] }
+    const doc = buildPdf(draftInvoice, client, lineItems)
+    const blobUrl = doc.output('bloburl')
+    window.open(blobUrl, '_blank')
+  }
+
   async function generateInvoice() {
     setGenError(null)
     if (lineItems.length === 0) { setGenError('Add at least one line item before generating an invoice.'); return }
@@ -937,15 +951,18 @@ function InvoiceSection() {
           {genError && (
             <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginTop: 14, fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>{genError}</div>
           )}
-          <button onClick={generateInvoice} disabled={generating} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 14 }}>
-            {generating ? 'Generating...' : 'Generate Invoice (PDF)'}
+          <button onClick={previewInvoice} style={{ width: '100%', background: 'white', color: '#182B4A', border: '2px solid #182B4A', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 14 }}>
+            👁 Preview PDF (no invoice number yet)
+          </button>
+          <button onClick={generateInvoice} disabled={generating} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 10 }}>
+            {generating ? 'Finalizing...' : 'Finalize Invoice — Assign Number & Save'}
           </button>
         </div>
       )}
 
       {lastInvoice && (
         <div style={{ background: '#E8F8F5', border: '2px solid #2D9B8A', borderRadius: 12, padding: 16, marginTop: 16, fontWeight: 700, color: '#0F5C4E' }}>
-          Invoice {lastInvoice.invoice_number} created and downloaded.
+          Invoice {lastInvoice.invoice_number} finalized, saved, and downloaded.
         </div>
       )}
 
