@@ -1751,8 +1751,9 @@ export default function AdminPortal() {
             onClick={() => setActiveTab(tab.id)}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-              background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', position: 'relative',
-              color: activeTab === tab.id ? '#182B4A' : '#b2bec3',
+              background: activeTab === tab.id ? '#E8EEF5' : 'none',
+              border: 'none', borderRadius: 14, cursor: 'pointer', padding: '6px 12px', position: 'relative',
+              color: activeTab === tab.id ? '#182B4A' : '#636e72',
               fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.7rem',
             }}
           >
