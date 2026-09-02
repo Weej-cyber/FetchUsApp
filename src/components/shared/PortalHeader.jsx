@@ -31,7 +31,7 @@ export default function PortalHeader({
   if (variant === 'banner') {
     return (
       <div style={{ background, padding: '26px 20px 18px', color: 'white', position: 'relative' }}>
-        <button onClick={onSignOut} style={{ position: 'absolute', top: 14, right: 18, background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>
+        <button onClick={onSignOut} style={{ position: 'absolute', top: 14, right: 18, background: 'rgba(0,0,0,0.35)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}>
           Sign Out
         </button>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -48,7 +48,7 @@ export default function PortalHeader({
   // variant === 'card'
   return (
     <div style={{ background, borderRadius: 16, padding: '20px 20px 16px', marginBottom: 8, color: 'white', position: 'relative' }}>
-      <button onClick={onSignOut} style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+      <button onClick={onSignOut} style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(0,0,0,0.35)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
         Sign Out
       </button>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

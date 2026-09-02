@@ -414,7 +414,7 @@ export default function ClientPortal() {
       {dbRole && (
         <div style={{ background: '#182B4A', borderRadius: 10, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ color: 'white', fontSize: '0.78rem', fontWeight: 700 }}>Viewing as Client</span>
-          <button onClick={() => { setRole('admin'); navigate('/admin') }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '5px 14px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+          <button onClick={() => { setRole('admin'); navigate('/admin') }} style={{ background: 'rgba(0,0,0,0.35)', border: 'none', color: 'white', padding: '5px 14px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
             ← Back to Admin
           </button>
         </div>
