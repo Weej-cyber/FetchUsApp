@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
-import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone } from 'lucide-react'
+import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
+import jsPDF from 'jspdf'
 
 // Looks up active users holding a given role via user_roles, so multi-role
 // users (e.g. an admin who is also a walker or client) are included alongside
@@ -652,6 +653,316 @@ function RecurringWalkSection() {
               Cancel
             </button>
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function InvoiceSection() {
+  const [clients, setClients] = useState([])
+  const [selectedClient, setSelectedClient] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState(null)
+  const [lineItems, setLineItems] = useState([]) // { key, description, source_type, source_id, service_date, price }
+  const [businessInfo, setBusinessInfo] = useState({ address: '' })
+  const [generating, setGenerating] = useState(false)
+  const [genError, setGenError] = useState(null)
+  const [lastInvoice, setLastInvoice] = useState(null)
+  const [history, setHistory] = useState([])
+
+  useEffect(() => {
+    async function loadClients() {
+      const { data } = await getUsersByRole('client', 'id, name, email')
+      setClients(data || [])
+    }
+    loadClients()
+  }, [])
+
+  useEffect(() => {
+    if (!selectedClient) { setHistory([]); return }
+    loadHistory()
+  }, [selectedClient])
+
+  async function loadHistory() {
+    const { data: clientRow } = await supabase.from('clients').select('id').eq('user_id', selectedClient).single()
+    if (!clientRow) { setHistory([]); return }
+    const { data } = await supabase.from('invoices').select('*').eq('client_id', clientRow.id).order('issue_date', { ascending: false })
+    setHistory(data || [])
+  }
+
+  async function loadBillable() {
+    setLoadError(null)
+    setLastInvoice(null)
+    if (!selectedClient) { setLoadError('Please select a client.'); return }
+    if (!startDate || !endDate) { setLoadError('Please select a start and end date.'); return }
+    if (endDate < startDate) { setLoadError('End date must be after start date.'); return }
+    setLoading(true)
+    try {
+      const { data: clientRow, error: clientErr } = await supabase.from('clients').select('id, address').eq('user_id', selectedClient).single()
+      if (clientErr || !clientRow) throw new Error('Could not find this client\'s account.')
+      setBusinessInfo({ address: clientRow.address || '' })
+
+      const { data: walks, error: walkErr } = await supabase.from('walk_requests')
+        .select('id, service_type, preferred_date, dogs(name)')
+        .eq('client_id', clientRow.id).eq('status', 'completed')
+        .gte('preferred_date', startDate).lte('preferred_date', endDate)
+        .order('preferred_date', { ascending: true })
+      if (walkErr) throw walkErr
+
+      const { data: boardings, error: boardErr } = await supabase.from('boarding_requests')
+        .select('id, check_in_date, check_out_date, dogs(name)')
+        .eq('client_id', clientRow.id).eq('status', 'completed')
+        .gte('check_in_date', startDate).lte('check_out_date', endDate)
+        .order('check_in_date', { ascending: true })
+      if (boardErr) throw boardErr
+
+      const walkIds = (walks || []).map(w => w.id)
+      const boardingIds = (boardings || []).map(b => b.id)
+      const allIds = [...walkIds, ...boardingIds]
+      let alreadyInvoiced = new Set()
+      if (allIds.length > 0) {
+        const { data: existing } = await supabase.from('invoice_line_items').select('source_id').in('source_id', allIds)
+        alreadyInvoiced = new Set((existing || []).map(e => e.source_id))
+      }
+
+      const walkItems = (walks || [])
+        .filter(w => !alreadyInvoiced.has(w.id))
+        .map(w => ({
+          key: `walk-${w.id}`, source_type: 'walk', source_id: w.id, service_date: w.preferred_date,
+          description: `${w.service_type}${w.dogs?.name ? ` — ${w.dogs.name}` : ''} (${formatDate(w.preferred_date)})`,
+          price: '',
+        }))
+      const boardingItems = (boardings || [])
+        .filter(b => !alreadyInvoiced.has(b.id))
+        .map(b => ({
+          key: `boarding-${b.id}`, source_type: 'boarding', source_id: b.id, service_date: b.check_in_date,
+          description: `Boarding${b.dogs?.name ? ` — ${b.dogs.name}` : ''} (${formatDate(b.check_in_date)} → ${formatDate(b.check_out_date)})`,
+          price: '',
+        }))
+
+      setLineItems([...walkItems, ...boardingItems])
+    } catch (err) {
+      console.error('Load billable items failed:', err)
+      setLoadError('Could not load walks and boardings for this client. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function updatePrice(key, value) {
+    setLineItems(items => items.map(i => i.key === key ? { ...i, price: value } : i))
+  }
+
+  function removeItem(key) {
+    setLineItems(items => items.filter(i => i.key !== key))
+  }
+
+  function addCustomItem() {
+    setLineItems(items => [...items, {
+      key: `custom-${Date.now()}`, source_type: 'custom', source_id: null,
+      service_date: null, description: '', price: '', isCustom: true,
+    }])
+  }
+
+  function updateCustomDescription(key, value) {
+    setLineItems(items => items.map(i => i.key === key ? { ...i, description: value } : i))
+  }
+
+  const total = lineItems.reduce((sum, i) => sum + (parseFloat(i.price) || 0), 0)
+
+  function buildPdf(invoice, client, items) {
+    const doc = new jsPDF()
+    doc.setFontSize(20); doc.setTextColor(24, 43, 74)
+    doc.text('FetchUs', 14, 20)
+    doc.setFontSize(10); doc.setTextColor(99, 110, 114)
+    doc.text('Pet Walking & Boarding Services', 14, 27)
+
+    doc.setFontSize(14); doc.setTextColor(24, 43, 74)
+    doc.text(`Invoice ${invoice.invoice_number}`, 14, 42)
+    doc.setFontSize(10); doc.setTextColor(45, 52, 54)
+    doc.text(`Date: ${formatDate(invoice.issue_date)}`, 14, 49)
+    doc.text(`Bill to: ${client.name}`, 14, 56)
+    if (businessInfo.address) doc.text(businessInfo.address, 14, 62)
+
+    let y = 76
+    doc.setFontSize(10); doc.setTextColor(255, 255, 255)
+    doc.setFillColor(24, 43, 74)
+    doc.rect(14, y - 6, 182, 8, 'F')
+    doc.text('Description', 16, y)
+    doc.text('Amount', 178, y, { align: 'right' })
+    y += 10
+    doc.setTextColor(45, 52, 54)
+    for (const item of items) {
+      const lines = doc.splitTextToSize(item.description, 150)
+      doc.text(lines, 16, y)
+      doc.text(`$${(parseFloat(item.price) || 0).toFixed(2)}`, 178, y, { align: 'right' })
+      y += 7 * lines.length
+    }
+    y += 4
+    doc.setDrawColor(224, 224, 224)
+    doc.line(14, y, 196, y)
+    y += 8
+    doc.setFontSize(12); doc.setTextColor(24, 43, 74)
+    doc.text('Total:', 150, y)
+    doc.text(`$${total.toFixed(2)}`, 178, y, { align: 'right' })
+
+    if (invoice.notes) {
+      y += 14
+      doc.setFontSize(9); doc.setTextColor(99, 110, 114)
+      doc.text(doc.splitTextToSize(invoice.notes, 182), 14, y)
+    }
+    return doc
+  }
+
+  async function generateInvoice() {
+    setGenError(null)
+    if (lineItems.length === 0) { setGenError('Add at least one line item before generating an invoice.'); return }
+    for (const item of lineItems) {
+      if (!item.price || parseFloat(item.price) <= 0) { setGenError('Every line item needs a price greater than $0.'); return }
+      if (item.isCustom && !item.description.trim()) { setGenError('Custom line items need a description.'); return }
+    }
+    setGenerating(true)
+    try {
+      const { data: clientRow } = await supabase.from('clients').select('id').eq('user_id', selectedClient).single()
+      const client = clients.find(c => c.id === selectedClient)
+
+      const { data: maxRow } = await supabase.from('invoices').select('invoice_number').order('invoice_number', { ascending: false }).limit(1)
+      let nextNum = 1
+      if (maxRow && maxRow[0]) {
+        const match = maxRow[0].invoice_number.match(/(\d+)$/)
+        if (match) nextNum = parseInt(match[1], 10) + 1
+      }
+      const invoiceNumber = `INV-${String(nextNum).padStart(4, '0')}`
+
+      const { data: invoice, error: invErr } = await supabase.from('invoices').insert({
+        invoice_number: invoiceNumber, client_id: clientRow.id, issue_date: new Date().toISOString().split('T')[0],
+        status: 'draft', total: total,
+      }).select().single()
+      if (invErr) throw invErr
+
+      const { error: itemsErr } = await supabase.from('invoice_line_items').insert(
+        lineItems.map(i => ({
+          invoice_id: invoice.id, description: i.description, source_type: i.source_type,
+          source_id: i.source_id, service_date: i.service_date, price: parseFloat(i.price),
+        }))
+      )
+      if (itemsErr) throw itemsErr
+
+      const doc = buildPdf(invoice, client, lineItems)
+      doc.save(`${invoiceNumber}_${client.name.replace(/[^a-z0-9]/gi, '_')}.pdf`)
+
+      setLastInvoice(invoice)
+      setLineItems([])
+      loadHistory()
+    } catch (err) {
+      console.error('Generate invoice failed:', err)
+      setGenError('Something went wrong generating this invoice. Please try again.')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  async function redownload(invoiceRow) {
+    const { data: items } = await supabase.from('invoice_line_items').select('*').eq('invoice_id', invoiceRow.id)
+    const client = clients.find(c => c.id === selectedClient)
+    const doc = buildPdf(invoiceRow, client, (items || []).map(i => ({ description: i.description, price: i.price })))
+    doc.save(`${invoiceRow.invoice_number}_${client.name.replace(/[^a-z0-9]/gi, '_')}.pdf`)
+  }
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <SectionHeader title="Invoices" icon={<Receipt size={18} color="#182B4A" />} />
+      <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
+        <div style={{ marginBottom: 12 }}>
+          <label style={labelStyle}>Client</label>
+          <select value={selectedClient} onChange={e => { setSelectedClient(e.target.value); setLineItems([]); setLastInvoice(null) }} style={inputStyle}>
+            <option value="">Select a client...</option>
+            {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div>
+            <label style={labelStyle}>Start Date</label>
+            <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
+          </div>
+          <div>
+            <label style={labelStyle}>End Date</label>
+            <input type="date" style={inputStyle} value={endDate} min={startDate || undefined} onChange={e => setEndDate(e.target.value)} />
+          </div>
+        </div>
+        {loadError && (
+          <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>{loadError}</div>
+        )}
+        <button onClick={loadBillable} disabled={loading} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+          {loading ? 'Loading...' : 'Load Walks & Boardings'}
+        </button>
+      </div>
+
+      {lineItems.length > 0 && (
+        <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginTop: 16 }}>
+          <div style={{ fontWeight: 800, fontSize: '1rem', color: '#2D3436', marginBottom: 12 }}>Line Items</div>
+          {lineItems.map(item => (
+            <div key={item.key} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '8px 0', borderBottom: '1px solid #F1F1F1' }}>
+              {item.isCustom ? (
+                <input
+                  style={{ ...inputStyle, flex: 1 }} placeholder="Description"
+                  value={item.description} onChange={e => updateCustomDescription(item.key, e.target.value)}
+                />
+              ) : (
+                <div style={{ flex: 1, fontSize: '0.85rem', color: '#2D3436', paddingTop: 8 }}>{item.description}</div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ color: '#636e72', fontWeight: 700 }}>$</span>
+                <input
+                  type="number" step="0.01" min="0" placeholder="0.00"
+                  style={{ ...inputStyle, width: 90 }} value={item.price}
+                  onChange={e => updatePrice(item.key, e.target.value)}
+                />
+              </div>
+              <button onClick={() => removeItem(item.key)} style={{ background: 'none', border: 'none', color: '#DC2626', fontWeight: 700, cursor: 'pointer', padding: '8px 4px' }}>✕</button>
+            </div>
+          ))}
+          <button onClick={addCustomItem} style={{ background: 'none', border: '1.5px dashed #b2bec3', borderRadius: 8, padding: '8px', width: '100%', marginTop: 10, color: '#636e72', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>
+            + Add Custom Line Item
+          </button>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTop: '2px solid #E0E0E0' }}>
+            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#2D3436' }}>Total</span>
+            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#2D9B8A' }}>${total.toFixed(2)}</span>
+          </div>
+
+          {genError && (
+            <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginTop: 14, fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>{genError}</div>
+          )}
+          <button onClick={generateInvoice} disabled={generating} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 14 }}>
+            {generating ? 'Generating...' : 'Generate Invoice (PDF)'}
+          </button>
+        </div>
+      )}
+
+      {lastInvoice && (
+        <div style={{ background: '#E8F8F5', border: '2px solid #2D9B8A', borderRadius: 12, padding: 16, marginTop: 16, fontWeight: 700, color: '#0F5C4E' }}>
+          Invoice {lastInvoice.invoice_number} created and downloaded.
+        </div>
+      )}
+
+      {history.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Invoice History</div>
+          {history.map(inv => (
+            <div key={inv.id} style={{ background: 'white', borderRadius: 10, padding: '10px 14px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(45,52,54,0.06)' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#2D3436' }}>{inv.invoice_number}</div>
+                <div style={{ fontSize: '0.78rem', color: '#636e72' }}>{formatDate(inv.issue_date)} · ${parseFloat(inv.total).toFixed(2)}</div>
+              </div>
+              <button onClick={() => redownload(inv)} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+                ⬇ PDF
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -1408,6 +1719,7 @@ export default function AdminPortal() {
 
       {activeTab === 'tools' && (
         <>
+          <InvoiceSection />
           <ClientReportSection />
           <div style={{ marginBottom: 32 }}>
             <BroadcastPanel />
