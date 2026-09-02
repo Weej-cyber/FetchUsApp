@@ -326,8 +326,6 @@ export function WalkerDashboard() {
       )}
 
       <PortalHeader
-        variant="banner"
-        background={`linear-gradient(135deg, ${C.teal}, #3DB89A)`}
         title="My Walks"
         subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         onSignOut={signOut}

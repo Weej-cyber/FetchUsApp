@@ -421,8 +421,6 @@ export default function ClientPortal() {
       )}
 
       <PortalHeader
-        variant="card"
-        background={`linear-gradient(135deg, ${C.gold}, #E8B84B)`}
         eyebrow="Welcome back"
         title={profile.name || 'Pet Parent'}
         subtitle={upcomingWalks.length > 0

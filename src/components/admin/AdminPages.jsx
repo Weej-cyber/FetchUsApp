@@ -1576,7 +1576,7 @@ export default function AdminPortal() {
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 90px', fontFamily: 'Nunito, sans-serif' }}>
-      <PortalHeader variant="plain" title="Admin Portal" subtitle="FetchUs Pet Care" onSignOut={signOut} />
+      <PortalHeader title="Admin Portal" subtitle="FetchUs Pet Care" onSignOut={signOut} />
 
       <div style={{ background: '#F0F4F8', borderRadius: 10, padding: '10px 14px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#182B4A', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>View as</span>
