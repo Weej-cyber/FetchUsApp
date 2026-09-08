@@ -202,6 +202,15 @@ function BroadcastPanel() {
     if (withPhone.length) {
       await supabase.from('notifications').insert(withPhone.map(c => ({ user_id: c.id, type: 'broadcast', message: message.trim(), phone: c.phone, status: 'pending' })))
     }
+    // Also notify secondary contacts (e.g. a second parent) where set up.
+    // The trigger checks each client's own secondary consent server-side,
+    // so it's safe to insert one row per client and let it decide.
+    const { data: clientRows } = await supabase.from('clients').select('id, user_id')
+    const activeUserIds = new Set((clients ?? []).map(c => c.id))
+    const secondaryTargets = (clientRows ?? []).filter(c => activeUserIds.has(c.user_id))
+    if (secondaryTargets.length) {
+      await supabase.from('notifications').insert(secondaryTargets.map(c => ({ type: 'broadcast', message: message.trim(), status: 'pending', secondary_of_client_id: c.id })))
+    }
     setSending(false)
     setSent(true)
     setMessage('')
@@ -349,10 +358,20 @@ function ClientReadOnlyView({ userId, onBack }) {
   const [bookSubmitted, setBookSubmitted] = useState(false)
   const [bookError, setBookError] = useState(null)
 
+  const [editingSecondary, setEditingSecondary] = useState(false)
+  const [secondaryForm, setSecondaryForm] = useState({ secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+  const [savingSecondary, setSavingSecondary] = useState(false)
+
   async function loadAll() {
     setLoading(true)
-    const { data: clientRow } = await supabase.from('clients').select('id, address, access_instructions, user_id, users(name, email, phone, sms_consent)').eq('user_id', userId).single()
+    const { data: clientRow } = await supabase.from('clients').select('id, address, access_instructions, user_id, secondary_name, secondary_phone, secondary_email, secondary_sms_consent, users(name, email, phone, sms_consent)').eq('user_id', userId).single()
     setProfile(clientRow)
+    setSecondaryForm({
+      secondary_name: clientRow?.secondary_name || '',
+      secondary_phone: clientRow?.secondary_phone || '',
+      secondary_email: clientRow?.secondary_email || '',
+      secondary_sms_consent: clientRow?.secondary_sms_consent || false,
+    })
     const cId = clientRow?.id
     setClientId(cId)
     if (!cId) { setLoading(false); return }
@@ -385,6 +404,23 @@ function ClientReadOnlyView({ userId, onBack }) {
       setBookForm({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' })
       loadAll()
     }, 2000)
+  }
+
+  async function saveSecondaryContact() {
+    if (!clientId) return
+    setSavingSecondary(true)
+    const { error } = await supabase.from('clients').update({
+      secondary_name: secondaryForm.secondary_name.trim() || null,
+      secondary_phone: secondaryForm.secondary_phone.trim() || null,
+      secondary_email: secondaryForm.secondary_email.trim() || null,
+      secondary_sms_consent: secondaryForm.secondary_sms_consent,
+      secondary_sms_consent_at: secondaryForm.secondary_sms_consent ? new Date().toISOString() : null,
+    }).eq('id', clientId)
+    setSavingSecondary(false)
+    if (!error) {
+      setEditingSecondary(false)
+      loadAll()
+    }
   }
 
   if (loading) return <EmptyState message="Loading client view..." />
@@ -463,6 +499,52 @@ function ClientReadOnlyView({ userId, onBack }) {
         {profile?.users?.phone && <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile.users.phone} {profile.users.sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
         {profile?.address && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile.address}</div>}
         {profile?.access_instructions && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Access notes: </span>{profile.access_instructions}</div>}
+
+        <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 14, paddingTop: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: editingSecondary ? 10 : 0 }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Second Contact</div>
+            {!editingSecondary && (
+              <button onClick={() => setEditingSecondary(true)} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}>
+                {profile?.secondary_name ? 'Edit' : '+ Add'}
+              </button>
+            )}
+          </div>
+
+          {!editingSecondary ? (
+            profile?.secondary_name ? (
+              <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>
+                <div style={{ fontWeight: 700, color: '#2D3436' }}>{profile.secondary_name}</div>
+                {profile.secondary_phone && <div>{profile.secondary_phone} {profile.secondary_sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
+                {profile.secondary_email && <div>{profile.secondary_email}</div>}
+              </div>
+            ) : (
+              <div style={{ fontSize: '0.82rem', color: '#b2bec3', marginTop: 6 }}>No second contact on file.</div>
+            )
+          ) : (
+            <div>
+              <div style={{ marginBottom: 8 }}>
+                <label style={labelStyle}>Name</label>
+                <input style={inputStyle} value={secondaryForm.secondary_name} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_name: e.target.value })} placeholder="Second parent's name" />
+              </div>
+              <div style={{ marginBottom: 8 }}>
+                <label style={labelStyle}>Phone</label>
+                <input style={inputStyle} value={secondaryForm.secondary_phone} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_phone: e.target.value })} placeholder="(555) 000-0000" />
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelStyle}>Email (optional)</label>
+                <input type="email" style={inputStyle} value={secondaryForm.secondary_email} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_email: e.target.value })} placeholder="jane@email.com" />
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#2D3436', marginBottom: 12, cursor: 'pointer' }}>
+                <input type="checkbox" checked={secondaryForm.secondary_sms_consent} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_sms_consent: e.target.checked })} />
+                This person has consented to receive SMS updates
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={saveSecondaryContact} disabled={savingSecondary} style={{ ...saveBtnStyle, flex: 1 }}>{savingSecondary ? 'Saving...' : 'Save'}</button>
+                <button onClick={() => { setEditingSecondary(false); setSecondaryForm({ secondary_name: profile?.secondary_name || '', secondary_phone: profile?.secondary_phone || '', secondary_email: profile?.secondary_email || '', secondary_sms_consent: profile?.secondary_sms_consent || false }) }} style={cancelBtnStyle}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <SectionHeader title={`Dogs (${dogs.length})`} />
