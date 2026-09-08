@@ -76,12 +76,22 @@ export function AuthProvider({ children }) {
       }
 
       if (invitedRole === 'client') {
+        const invitedSecondaryName = session.user.user_metadata?.secondary_name || ''
+        const invitedSecondaryPhone = session.user.user_metadata?.secondary_phone || ''
+        const invitedSecondaryEmail = session.user.user_metadata?.secondary_email || ''
+        const invitedSecondaryConsent = session.user.user_metadata?.secondary_sms_consent || false
+
         const { error: clientInsertError } = await supabase
           .from('clients')
           .insert({
             user_id: session.user.id,
             address: '',
             access_instructions: '',
+            secondary_name: invitedSecondaryName || null,
+            secondary_phone: invitedSecondaryPhone || null,
+            secondary_email: invitedSecondaryEmail || null,
+            secondary_sms_consent: invitedSecondaryConsent,
+            secondary_sms_consent_at: invitedSecondaryConsent ? new Date().toISOString() : null,
           })
         if (clientInsertError) {
           console.error('Failed to create client row:', clientInsertError.message)

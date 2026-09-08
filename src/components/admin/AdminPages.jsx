@@ -1255,7 +1255,7 @@ function ClientsAndWalkersSection() {
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
   const [addingRole, setAddingRole] = useState('client')
-  const [form, setForm] = useState({ name: '', email: '', phone: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
   const [saving, setSaving] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [addError, setAddError] = useState('')
@@ -1290,7 +1290,7 @@ function ClientsAndWalkersSection() {
     setShowAddForm(true)
     setMagicLinkSent(false)
     setAddError('')
-    setForm({ name: '', email: '', phone: '' })
+    setForm({ name: '', email: '', phone: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
   }
 
   async function handleDelete(id) {
@@ -1343,7 +1343,9 @@ function ClientsAndWalkersSection() {
       options: {
         shouldCreateUser: true,
         emailRedirectTo: 'https://fetchus.vercel.app',
-        data: { name: form.name, phone: form.phone, role: addingRole }
+        data: addingRole === 'client'
+          ? { name: form.name, phone: form.phone, role: addingRole, secondary_name: form.secondary_name, secondary_phone: form.secondary_phone, secondary_email: form.secondary_email, secondary_sms_consent: form.secondary_sms_consent }
+          : { name: form.name, phone: form.phone, role: addingRole }
       }
     })
     setSaving(false)
@@ -1352,7 +1354,7 @@ function ClientsAndWalkersSection() {
       return
     }
     setMagicLinkSent(true)
-    setForm({ name: '', email: '', phone: '' })
+    setForm({ name: '', email: '', phone: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
     setTimeout(() => { setMagicLinkSent(false); setShowAddForm(false) }, 3000)
     loadAll()
   }
@@ -1392,10 +1394,33 @@ function ClientsAndWalkersSection() {
                 <label style={labelStyle}>Email</label>
                 <input type="email" style={inputStyle} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="jane@email.com" required />
               </div>
-              <div style={{ marginBottom: 14 }}>
+              <div style={{ marginBottom: addingRole === 'client' ? 14 : 14 }}>
                 <label style={labelStyle}>Phone (optional)</label>
                 <input style={inputStyle} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="(555) 000-0000" />
               </div>
+              {addingRole === 'client' && (
+                <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 4, paddingTop: 14, marginBottom: 14 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+                    Second Contact (optional)
+                  </div>
+                  <div style={{ marginBottom: 10 }}>
+                    <label style={labelStyle}>Name</label>
+                    <input style={inputStyle} value={form.secondary_name} onChange={e => setForm({ ...form, secondary_name: e.target.value })} placeholder="Second parent's name" />
+                  </div>
+                  <div style={{ marginBottom: 10 }}>
+                    <label style={labelStyle}>Phone</label>
+                    <input style={inputStyle} value={form.secondary_phone} onChange={e => setForm({ ...form, secondary_phone: e.target.value })} placeholder="(555) 000-0000" />
+                  </div>
+                  <div style={{ marginBottom: 10 }}>
+                    <label style={labelStyle}>Email</label>
+                    <input type="email" style={inputStyle} value={form.secondary_email} onChange={e => setForm({ ...form, secondary_email: e.target.value })} placeholder="jane@email.com" />
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#2D3436', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={form.secondary_sms_consent} onChange={e => setForm({ ...form, secondary_sms_consent: e.target.checked })} />
+                    This person has consented to receive SMS updates
+                  </label>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowAddForm(false)} style={cancelBtnStyle}>Cancel</button>
                 <button type="submit" disabled={saving} style={{ ...saveBtnStyle, background: borderColor }}>{saving ? 'Sending...' : 'Send Magic Link'}</button>
