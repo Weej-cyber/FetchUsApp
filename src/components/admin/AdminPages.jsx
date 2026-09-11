@@ -127,7 +127,7 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
   )
 }
 
-function BoardingRequestCard({ req, walkers, onDecline, onAssign }) {
+function BoardingRequestCard({ req, walkers, onDecline, onAssign, onCancel }) {
   const [selectedWalker, setSelectedWalker] = useState('')
   const [assigning, setAssigning] = useState(false)
   const [showAssign, setShowAssign] = useState(false)
@@ -137,6 +137,7 @@ function BoardingRequestCard({ req, walkers, onDecline, onAssign }) {
     assigned:  { bg: '#D1FAE5', text: '#065F46' },
     declined:  { bg: '#FEE2E2', text: '#991B1B' },
     confirmed: { bg: '#E3EAF2', text: '#1F3A5F' },
+    cancelled: { bg: '#FEE2E2', text: '#991B1B' },
   }
   const sc = statusColors[req.status] || statusColors.pending
 
@@ -164,6 +165,11 @@ function BoardingRequestCard({ req, walkers, onDecline, onAssign }) {
         <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
           <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
           <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
+        </div>
+      )}
+      {(req.status === 'assigned' || req.status === 'confirmed' || req.status === 'in_progress') && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+          <button onClick={() => onCancel(req.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
         </div>
       )}
       {showAssign && req.status === 'pending' && (
@@ -247,26 +253,50 @@ function ScheduleSection({ walkers }) {
   const [walks, setWalks] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
-  const [form, setForm] = useState({ walker_id: '', service_type: '30-min Walk', preferred_date: '', preferred_time: '', notes: '' })
+  const [form, setForm] = useState({ client_id: '', dog_id: '', walker_id: '', service_type: '30-min Walk', preferred_date: '', preferred_time: '', notes: '' })
   const [saving, setSaving] = useState(false)
+  const [clientOptions, setClientOptions] = useState([])
+  const [dogOptions, setDogOptions] = useState([])
 
-  useEffect(() => { loadWalks() }, [])
+  useEffect(() => { loadWalks(); loadClientOptions() }, [])
+
+  async function loadClientOptions() {
+    const { data } = await supabase.from('clients').select('id, users(name), dogs(id, name)').eq('users.is_active', true).order('id')
+    setClientOptions((data || []).filter(c => c.users).map(c => ({ id: c.id, name: c.users.name, dogs: c.dogs || [] })))
+  }
+
+  function handleClientChange(clientId) {
+    setForm(f => ({ ...f, client_id: clientId, dog_id: '' }))
+    const match = clientOptions.find(c => c.id === clientId)
+    setDogOptions(match?.dogs || [])
+  }
 
   async function loadWalks() {
     setLoading(true)
     const today = new Date().toISOString().split('T')[0]
-    const { data } = await supabase.from('walk_requests').select('*, dogs(name), clients(users(name)), assigned_walker:users!assigned_walker_id(name)').in('status', ['assigned', 'confirmed']).gte('preferred_date', today).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }).limit(30)
+    const { data } = await supabase.from('walk_requests').select('*, dogs(name), clients(users(name)), assigned_walker:users!assigned_walker_id(name)').in('status', ['pending', 'assigned', 'confirmed']).gte('preferred_date', today).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }).limit(30)
     if (data) setWalks(data)
     setLoading(false)
   }
 
   async function handleAddWalk(e) {
     e.preventDefault()
+    if (!form.client_id) return
     setSaving(true)
-    await supabase.from('bookings').insert({ walker_id: form.walker_id || null, dog_ids: [], service_type: form.service_type, preferred_date: form.preferred_date, preferred_time: form.preferred_time, status: 'confirmed', notes: form.notes || null })
+    await supabase.from('walk_requests').insert({
+      client_id: form.client_id,
+      dog_id: form.dog_id || null,
+      assigned_walker_id: form.walker_id || null,
+      service_type: form.service_type,
+      preferred_date: form.preferred_date,
+      preferred_time: form.preferred_time,
+      notes: form.notes || null,
+      status: form.walker_id ? 'assigned' : 'pending',
+    })
     setSaving(false)
     setShowAddForm(false)
-    setForm({ walker_id: '', service_type: '30-min Walk', preferred_date: '', preferred_time: '', notes: '' })
+    setForm({ client_id: '', dog_id: '', walker_id: '', service_type: '30-min Walk', preferred_date: '', preferred_time: '', notes: '' })
+    setDogOptions([])
     loadWalks()
   }
 
@@ -282,6 +312,22 @@ function ScheduleSection({ walkers }) {
       {showAddForm && (
         <form onSubmit={handleAddWalk} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 16, borderLeft: '4px solid #2D9B8A' }}>
           <div style={{ fontWeight: 700, marginBottom: 14, color: '#2D3436' }}>Add Walk</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div>
+              <label style={labelStyle}>Client</label>
+              <select style={inputStyle} value={form.client_id} onChange={e => handleClientChange(e.target.value)} required>
+                <option value="">Select a client...</option>
+                {clientOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Dog</label>
+              <select style={inputStyle} value={form.dog_id} onChange={e => setForm({ ...form, dog_id: e.target.value })} disabled={!form.client_id}>
+                <option value="">{form.client_id ? 'Select a dog...' : 'Select a client first'}</option>
+                {dogOptions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div>
               <label style={labelStyle}>Service Type</label>
@@ -1638,6 +1684,13 @@ export default function AdminPortal() {
     loadStats()
   }
 
+  async function handleCancelBoarding(id) {
+    if (!window.confirm('Cancel this boarding? It will be removed from the schedule but kept on record.')) return
+    await supabase.from('boarding_requests').update({ status: 'cancelled' }).eq('id', id)
+    setBoardings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b))
+    loadStats()
+  }
+
   async function handleAssignBoarding(id, walkerId) {
     await supabase.from('boarding_requests').update({ status: 'assigned', assigned_walker_id: walkerId }).eq('id', id)
     // The client and the assigned walker are both notified automatically by
@@ -1823,13 +1876,13 @@ export default function AdminPortal() {
               : boardings.length === 0 ? <EmptyState message="No boarding requests yet." />
               : (
                 <>
-                  {pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} />)}
+                  {pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} onCancel={handleCancelBoarding} />)}
                   {otherBoardings.length > 0 && (
                     <details style={{ marginTop: 8 }}>
                       <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
                         Show {otherBoardings.length} resolved boarding{otherBoardings.length > 1 ? 's' : ''}
                       </summary>
-                      {otherBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} />)}
+                      {otherBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} onCancel={handleCancelBoarding} />)}
                     </details>
                   )}
                 </>
