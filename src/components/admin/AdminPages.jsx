@@ -270,6 +270,12 @@ function ScheduleSection({ walkers }) {
     loadWalks()
   }
 
+  async function handleCancelWalk(id) {
+    if (!window.confirm('Cancel this appointment? It will be removed from the schedule but kept on record.')) return
+    await supabase.from('walk_requests').update({ status: 'cancelled' }).eq('id', id)
+    setWalks(prev => prev.filter(w => w.id !== id))
+  }
+
   return (
     <div>
       <SectionHeader title="Schedule" action={<button onClick={() => setShowAddForm(!showAddForm)} style={saveBtnStyle}>+ Add Walk</button>} />
@@ -320,7 +326,10 @@ function ScheduleSection({ walkers }) {
               <div style={{ fontSize: '0.8rem', color: '#636e72', marginTop: 2 }}>{formatDate(w.preferred_date)} · {w.preferred_time}</div>
               <div style={{ fontSize: '0.78rem', color: '#b2bec3', marginTop: 1 }}>Owner: {w.clients?.users?.name ?? '—'} · Walker: {w.assigned_walker?.name ?? 'Unassigned'}</div>
             </div>
-            <span style={{ background: '#E3EAF2', color: '#1F3A5F', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{w.status}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ background: '#E3EAF2', color: '#1F3A5F', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{w.status}</span>
+              <button onClick={() => handleCancelWalk(w.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+            </div>
           </div>
         ))
       }
