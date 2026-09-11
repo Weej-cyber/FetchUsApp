@@ -68,6 +68,7 @@ function StatusBadge({ status }) {
     confirmed: { bg: C.purpleBg, text: C.purple, label: 'In Progress' },
     completed: { bg: '#F0F0F0', text: C.light, label: 'Completed' },
     declined:  { bg: C.redBg, text: C.red, label: 'Declined' },
+    cancelled: { bg: C.redBg, text: C.red, label: 'Cancelled' },
   }
   const s = map[status] || map.pending
   return (

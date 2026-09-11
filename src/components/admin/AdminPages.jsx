@@ -65,7 +65,7 @@ const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius:
 const saveBtnStyle = { background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
 const cancelBtnStyle = { background: 'white', color: '#636e72', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
 
-function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
+function WalkRequestCard({ req, walkers, onDecline, onAssign, onCancel }) {
   const [selectedWalker, setSelectedWalker] = useState('')
   const [assigning, setAssigning] = useState(false)
   const [showAssign, setShowAssign] = useState(false)
@@ -75,6 +75,7 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
     assigned:  { bg: '#D1FAE5', text: '#065F46' },
     declined:  { bg: '#FEE2E2', text: '#991B1B' },
     confirmed: { bg: '#E3EAF2', text: '#1F3A5F' },
+    cancelled: { bg: '#FEE2E2', text: '#991B1B' },
   }
   const sc = statusColors[req.status] || statusColors.pending
 
@@ -110,6 +111,7 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign }) {
       {(req.status === 'assigned' || req.status === 'confirmed') && (
         <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
           <button onClick={() => setShowAssign(!showAssign)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Reassign Walker</button>
+          <button onClick={() => onCancel(req.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
         </div>
       )}
       {showAssign && (req.status === 'pending' || req.status === 'assigned' || req.status === 'confirmed') && (
@@ -390,6 +392,7 @@ function ReadOnlyStatusBadge({ status }) {
     confirmed: { bg: '#E3EAF2', text: '#1F3A5F', label: 'In Progress' },
     completed: { bg: '#F0F0F0', text: '#636e72', label: 'Completed' },
     declined:  { bg: '#FEE2E2', text: '#991B1B', label: 'Declined' },
+    cancelled: { bg: '#FEE2E2', text: '#991B1B', label: 'Cancelled' },
   }
   const s = map[status] || map.pending
   return (
@@ -1670,6 +1673,13 @@ export default function AdminPortal() {
     loadStats()
   }
 
+  async function handleCancelWalkRequest(id) {
+    if (!window.confirm('Cancel this walk? It will be removed from the schedule but kept on record.')) return
+    await supabase.from('walk_requests').update({ status: 'cancelled' }).eq('id', id)
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r))
+    loadStats()
+  }
+
   async function handleAssign(id, walkerId) {
     await supabase.from('walk_requests').update({ status: 'assigned', assigned_walker_id: walkerId }).eq('id', id)
     // The client and the assigned walker are both notified automatically by
@@ -1851,13 +1861,13 @@ export default function AdminPortal() {
               : requests.length === 0 ? <EmptyState message="No walk requests yet." />
               : (
                 <>
-                  {pendingRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} />)}
+                  {pendingRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} onCancel={handleCancelWalkRequest} />)}
                   {otherRequests.length > 0 && (
                     <details style={{ marginTop: 8 }}>
                       <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
                         Show {otherRequests.length} resolved request{otherRequests.length > 1 ? 's' : ''}
                       </summary>
-                      {otherRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} />)}
+                      {otherRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} onCancel={handleCancelWalkRequest} />)}
                     </details>
                   )}
                 </>
