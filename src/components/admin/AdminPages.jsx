@@ -1317,8 +1317,6 @@ function ClientsAndWalkersSection() {
   const [saving, setSaving] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [clientCreated, setClientCreated] = useState(false)
-  const [lastCreatedClient, setLastCreatedClient] = useState(null)
-  const [linkCopied, setLinkCopied] = useState(false)
   const [confirmingCreate, setConfirmingCreate] = useState(false)
   const [addError, setAddError] = useState('')
   const [search, setSearch] = useState('')
@@ -1421,10 +1419,16 @@ function ClientsAndWalkersSection() {
         setConfirmingCreate(false)
         return
       }
+      // Client account now exists -- send their real sign-in email immediately.
+      // Nothing further for Nancy to do; nothing to copy or send herself.
+      await supabase.auth.signInWithOtp({
+        email: form.email,
+        options: { emailRedirectTo: 'https://fetchus.vercel.app' },
+      })
       setClientCreated(true)
-      setLastCreatedClient({ name: form.name, email: form.email })
       setConfirmingCreate(false)
       setForm({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+      setTimeout(() => { setClientCreated(false); setShowAddForm(false) }, 3000)
       loadAll()
       return
     }
@@ -1471,13 +1475,13 @@ function ClientsAndWalkersSection() {
       {showAddForm && (
         <form onSubmit={handleAdd} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 16, borderLeft: `4px solid ${borderColor}` }}>
           <div style={{ fontWeight: 700, marginBottom: 14, color: '#2D3436' }}>
-            {magicLinkSent ? 'Magic link sent!' : clientCreated ? 'Client created!' : confirmingCreate ? 'Confirm before creating' : `Add ${addingRole === 'walker' ? 'Walker' : 'Client'}`}
+            {magicLinkSent ? 'Magic link sent!' : clientCreated ? 'Client created — sign-in email sent!' : confirmingCreate ? 'Confirm before creating' : `Add ${addingRole === 'walker' ? 'Walker' : 'Client'}`}
           </div>
           {confirmingCreate ? (
             <div>
               <div style={{ background: '#FFF8E7', border: '1.5px solid #D4A843', borderRadius: 10, padding: 14, marginBottom: 14 }}>
                 <div style={{ fontSize: '0.85rem', color: '#2D3436', marginBottom: 10 }}>
-                  This creates a real, working account immediately — no email is sent, nothing for them to click. Double-check the email is exactly right before continuing:
+                  This creates a real, working account immediately and sends them their sign-in link right away — nothing further for you to do. Double-check the email is exactly right before continuing:
                 </div>
                 <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#182B4A', wordBreak: 'break-all' }}>{form.email}</div>
                 <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}>for {form.name}</div>
@@ -1487,29 +1491,6 @@ function ClientsAndWalkersSection() {
                 <button type="submit" disabled={saving} style={{ ...saveBtnStyle, background: borderColor }}>{saving ? 'Creating...' : 'Yes, Create This Client'}</button>
               </div>
               {addError && <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#991B1B', background: '#FEE2E2', borderRadius: 6, padding: '7px 12px' }}>{addError}</div>}
-            </div>
-          ) : clientCreated && lastCreatedClient ? (
-            <div>
-              <div style={{ fontSize: '0.88rem', color: '#2D3436', marginBottom: 14 }}>
-                <strong>{lastCreatedClient.name}</strong> is ready to go. Send them this link — one tap gets them signed in, nothing to type.
-              </div>
-              <div style={{ background: '#F1F1F1', border: '1px solid #E0E0E0', borderRadius: 8, padding: '10px 12px', fontSize: '0.8rem', color: '#182B4A', wordBreak: 'break-all', marginBottom: 10, fontFamily: 'monospace' }}>
-                {`https://fetchus.vercel.app/welcome?email=${encodeURIComponent(lastCreatedClient.email)}&name=${encodeURIComponent(lastCreatedClient.name)}`}
-              </div>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => { setClientCreated(false); setLastCreatedClient(null); setShowAddForm(false) }} style={cancelBtnStyle}>Done</button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`https://fetchus.vercel.app/welcome?email=${encodeURIComponent(lastCreatedClient.email)}&name=${encodeURIComponent(lastCreatedClient.name)}`)
-                    setLinkCopied(true)
-                    setTimeout(() => setLinkCopied(false), 2000)
-                  }}
-                  style={{ ...saveBtnStyle, background: linkCopied ? '#2D9B8A' : '#182B4A' }}
-                >
-                  {linkCopied ? 'Copied!' : 'Copy Link'}
-                </button>
-              </div>
             </div>
           ) : !magicLinkSent && !clientCreated && (
             <>
