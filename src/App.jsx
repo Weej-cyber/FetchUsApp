@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import LoginPage from './components/auth/LoginPage'
+import WelcomePage from './components/auth/WelcomePage'
 import ClientPortal from './components/client/ClientPortal'
 import { WalkerDashboard } from './components/walker/WalkerPages'
 import AdminPortal from './components/admin/AdminPages'
@@ -25,6 +26,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/welcome" element={<WelcomePage />} />
       <Route path="/login" element={user ? <Navigate to={`/${role}`} replace /> : <LoginPage />} />
       <Route path="/client" element={<ProtectedRoute allowedRoles={['client']}><ClientPortal /></ProtectedRoute>} />
       <Route path="/client/*" element={<Navigate to="/client" replace />} />

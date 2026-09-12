@@ -1317,6 +1317,8 @@ function ClientsAndWalkersSection() {
   const [saving, setSaving] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [clientCreated, setClientCreated] = useState(false)
+  const [lastCreatedClient, setLastCreatedClient] = useState(null)
+  const [linkCopied, setLinkCopied] = useState(false)
   const [confirmingCreate, setConfirmingCreate] = useState(false)
   const [addError, setAddError] = useState('')
   const [search, setSearch] = useState('')
@@ -1420,9 +1422,9 @@ function ClientsAndWalkersSection() {
         return
       }
       setClientCreated(true)
+      setLastCreatedClient({ name: form.name, email: form.email })
       setConfirmingCreate(false)
       setForm({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
-      setTimeout(() => { setClientCreated(false); setShowAddForm(false) }, 3000)
       loadAll()
       return
     }
@@ -1485,6 +1487,29 @@ function ClientsAndWalkersSection() {
                 <button type="submit" disabled={saving} style={{ ...saveBtnStyle, background: borderColor }}>{saving ? 'Creating...' : 'Yes, Create This Client'}</button>
               </div>
               {addError && <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#991B1B', background: '#FEE2E2', borderRadius: 6, padding: '7px 12px' }}>{addError}</div>}
+            </div>
+          ) : clientCreated && lastCreatedClient ? (
+            <div>
+              <div style={{ fontSize: '0.88rem', color: '#2D3436', marginBottom: 14 }}>
+                <strong>{lastCreatedClient.name}</strong> is ready to go. Send them this link — one tap gets them signed in, nothing to type.
+              </div>
+              <div style={{ background: '#F1F1F1', border: '1px solid #E0E0E0', borderRadius: 8, padding: '10px 12px', fontSize: '0.8rem', color: '#182B4A', wordBreak: 'break-all', marginBottom: 10, fontFamily: 'monospace' }}>
+                {`https://fetchus.vercel.app/welcome?email=${encodeURIComponent(lastCreatedClient.email)}&name=${encodeURIComponent(lastCreatedClient.name)}`}
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => { setClientCreated(false); setLastCreatedClient(null); setShowAddForm(false) }} style={cancelBtnStyle}>Done</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://fetchus.vercel.app/welcome?email=${encodeURIComponent(lastCreatedClient.email)}&name=${encodeURIComponent(lastCreatedClient.name)}`)
+                    setLinkCopied(true)
+                    setTimeout(() => setLinkCopied(false), 2000)
+                  }}
+                  style={{ ...saveBtnStyle, background: linkCopied ? '#2D9B8A' : '#182B4A' }}
+                >
+                  {linkCopied ? 'Copied!' : 'Copy Link'}
+                </button>
+              </div>
             </div>
           ) : !magicLinkSent && !clientCreated && (
             <>
