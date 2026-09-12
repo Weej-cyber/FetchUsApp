@@ -1313,9 +1313,11 @@ function ClientsAndWalkersSection() {
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
   const [addingRole, setAddingRole] = useState('client')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
   const [saving, setSaving] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [clientCreated, setClientCreated] = useState(false)
+  const [confirmingCreate, setConfirmingCreate] = useState(false)
   const [addError, setAddError] = useState('')
   const [search, setSearch] = useState('')
   const [showDeactivated, setShowDeactivated] = useState(false)
@@ -1347,8 +1349,10 @@ function ClientsAndWalkersSection() {
     setAddingRole(role)
     setShowAddForm(true)
     setMagicLinkSent(false)
+    setClientCreated(false)
+    setConfirmingCreate(false)
     setAddError('')
-    setForm({ name: '', email: '', phone: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+    setForm({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
   }
 
   async function handleDelete(id) {
@@ -1394,16 +1398,41 @@ function ClientsAndWalkersSection() {
 
   async function handleAdd(e) {
     e.preventDefault()
+    if (addingRole === 'client' && !confirmingCreate) {
+      setConfirmingCreate(true)
+      return
+    }
     setSaving(true)
     setAddError('')
+
+    if (addingRole === 'client') {
+      const { data, error } = await supabase.functions.invoke('create-client-direct', {
+        body: {
+          name: form.name, email: form.email, phone: form.phone, address: form.address,
+          secondary_name: form.secondary_name, secondary_phone: form.secondary_phone,
+          secondary_email: form.secondary_email, secondary_sms_consent: form.secondary_sms_consent,
+        },
+      })
+      setSaving(false)
+      if (error || data?.error) {
+        setAddError(data?.error || error.message)
+        setConfirmingCreate(false)
+        return
+      }
+      setClientCreated(true)
+      setConfirmingCreate(false)
+      setForm({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+      setTimeout(() => { setClientCreated(false); setShowAddForm(false) }, 3000)
+      loadAll()
+      return
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email: form.email,
       options: {
         shouldCreateUser: true,
         emailRedirectTo: 'https://fetchus.vercel.app',
-        data: addingRole === 'client'
-          ? { name: form.name, phone: form.phone, role: addingRole, secondary_name: form.secondary_name, secondary_phone: form.secondary_phone, secondary_email: form.secondary_email, secondary_sms_consent: form.secondary_sms_consent }
-          : { name: form.name, phone: form.phone, role: addingRole }
+        data: { name: form.name, phone: form.phone, role: addingRole }
       }
     })
     setSaving(false)
@@ -1412,7 +1441,7 @@ function ClientsAndWalkersSection() {
       return
     }
     setMagicLinkSent(true)
-    setForm({ name: '', email: '', phone: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+    setForm({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
     setTimeout(() => { setMagicLinkSent(false); setShowAddForm(false) }, 3000)
     loadAll()
   }
@@ -1440,9 +1469,24 @@ function ClientsAndWalkersSection() {
       {showAddForm && (
         <form onSubmit={handleAdd} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 16, borderLeft: `4px solid ${borderColor}` }}>
           <div style={{ fontWeight: 700, marginBottom: 14, color: '#2D3436' }}>
-            {magicLinkSent ? 'Magic link sent!' : `Add ${addingRole === 'walker' ? 'Walker' : 'Client'}`}
+            {magicLinkSent ? 'Magic link sent!' : clientCreated ? 'Client created!' : confirmingCreate ? 'Confirm before creating' : `Add ${addingRole === 'walker' ? 'Walker' : 'Client'}`}
           </div>
-          {!magicLinkSent && (
+          {confirmingCreate ? (
+            <div>
+              <div style={{ background: '#FFF8E7', border: '1.5px solid #D4A843', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                <div style={{ fontSize: '0.85rem', color: '#2D3436', marginBottom: 10 }}>
+                  This creates a real, working account immediately — no email is sent, nothing for them to click. Double-check the email is exactly right before continuing:
+                </div>
+                <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#182B4A', wordBreak: 'break-all' }}>{form.email}</div>
+                <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}>for {form.name}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setConfirmingCreate(false)} style={cancelBtnStyle}>Go Back</button>
+                <button type="submit" disabled={saving} style={{ ...saveBtnStyle, background: borderColor }}>{saving ? 'Creating...' : 'Yes, Create This Client'}</button>
+              </div>
+              {addError && <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#991B1B', background: '#FEE2E2', borderRadius: 6, padding: '7px 12px' }}>{addError}</div>}
+            </div>
+          ) : !magicLinkSent && !clientCreated && (
             <>
               <div style={{ marginBottom: 10 }}>
                 <label style={labelStyle}>Full Name</label>
@@ -1452,36 +1496,44 @@ function ClientsAndWalkersSection() {
                 <label style={labelStyle}>Email</label>
                 <input type="email" style={inputStyle} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="jane@email.com" required />
               </div>
-              <div style={{ marginBottom: addingRole === 'client' ? 14 : 14 }}>
+              <div style={{ marginBottom: 14 }}>
                 <label style={labelStyle}>Phone (optional)</label>
                 <input style={inputStyle} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="(555) 000-0000" />
               </div>
               {addingRole === 'client' && (
-                <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 4, paddingTop: 14, marginBottom: 14 }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
-                    Second Contact (optional)
+                <>
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={labelStyle}>Address (optional)</label>
+                    <input style={inputStyle} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="123 Main St, City, State" />
                   </div>
-                  <div style={{ marginBottom: 10 }}>
-                    <label style={labelStyle}>Name</label>
-                    <input style={inputStyle} value={form.secondary_name} onChange={e => setForm({ ...form, secondary_name: e.target.value })} placeholder="Second parent's name" />
+                  <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 4, paddingTop: 14, marginBottom: 14 }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+                      Second Contact (optional)
+                    </div>
+                    <div style={{ marginBottom: 10 }}>
+                      <label style={labelStyle}>Name</label>
+                      <input style={inputStyle} value={form.secondary_name} onChange={e => setForm({ ...form, secondary_name: e.target.value })} placeholder="Second parent's name" />
+                    </div>
+                    <div style={{ marginBottom: 10 }}>
+                      <label style={labelStyle}>Phone</label>
+                      <input style={inputStyle} value={form.secondary_phone} onChange={e => setForm({ ...form, secondary_phone: e.target.value })} placeholder="(555) 000-0000" />
+                    </div>
+                    <div style={{ marginBottom: 10 }}>
+                      <label style={labelStyle}>Email</label>
+                      <input type="email" style={inputStyle} value={form.secondary_email} onChange={e => setForm({ ...form, secondary_email: e.target.value })} placeholder="jane@email.com" />
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#2D3436', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={form.secondary_sms_consent} onChange={e => setForm({ ...form, secondary_sms_consent: e.target.checked })} />
+                      This person has consented to receive SMS updates
+                    </label>
                   </div>
-                  <div style={{ marginBottom: 10 }}>
-                    <label style={labelStyle}>Phone</label>
-                    <input style={inputStyle} value={form.secondary_phone} onChange={e => setForm({ ...form, secondary_phone: e.target.value })} placeholder="(555) 000-0000" />
-                  </div>
-                  <div style={{ marginBottom: 10 }}>
-                    <label style={labelStyle}>Email</label>
-                    <input type="email" style={inputStyle} value={form.secondary_email} onChange={e => setForm({ ...form, secondary_email: e.target.value })} placeholder="jane@email.com" />
-                  </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#2D3436', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={form.secondary_sms_consent} onChange={e => setForm({ ...form, secondary_sms_consent: e.target.checked })} />
-                    This person has consented to receive SMS updates
-                  </label>
-                </div>
+                </>
               )}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowAddForm(false)} style={cancelBtnStyle}>Cancel</button>
-                <button type="submit" disabled={saving} style={{ ...saveBtnStyle, background: borderColor }}>{saving ? 'Sending...' : 'Send Magic Link'}</button>
+                <button type="submit" disabled={saving} style={{ ...saveBtnStyle, background: borderColor }}>
+                  {saving ? 'Sending...' : addingRole === 'client' ? 'Review & Create' : 'Send Magic Link'}
+                </button>
               </div>
               {addError && <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#991B1B', background: '#FEE2E2', borderRadius: 6, padding: '7px 12px' }}>{addError}</div>}
             </>
