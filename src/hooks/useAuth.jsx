@@ -81,18 +81,21 @@ export function AuthProvider({ children }) {
         const invitedSecondaryEmail = session.user.user_metadata?.secondary_email || ''
         const invitedSecondaryConsent = session.user.user_metadata?.secondary_sms_consent || false
 
+        // The handle_new_client trigger already created a bare clients row
+        // (user_id only) the instant the users insert above ran, so this
+        // must be an update, not an insert -- an insert here always hit
+        // the unique constraint on user_id and silently failed, meaning
+        // address/secondary-contact info from the invite was never saved.
         const { error: clientInsertError } = await supabase
           .from('clients')
-          .insert({
-            user_id: session.user.id,
-            address: '',
-            access_instructions: '',
+          .update({
             secondary_name: invitedSecondaryName || null,
             secondary_phone: invitedSecondaryPhone || null,
             secondary_email: invitedSecondaryEmail || null,
             secondary_sms_consent: invitedSecondaryConsent,
             secondary_sms_consent_at: invitedSecondaryConsent ? new Date().toISOString() : null,
           })
+          .eq('user_id', session.user.id)
         if (clientInsertError) {
           console.error('Failed to create client row:', clientInsertError.message)
         }
