@@ -1415,7 +1415,24 @@ function ClientsAndWalkersSection() {
       })
       setSaving(false)
       if (error || data?.error) {
-        setAddError(data?.error || error.message)
+        // supabase.functions.invoke doesn't auto-parse the real error message
+        // out of a non-2xx response -- error.message is just a generic
+        // "non-2xx status code" wrapper. The actual message our edge function
+        // sent back is in error.context, the real Response object.
+        let realMessage = data?.error
+        if (!realMessage && error?.context) {
+          try {
+            const body = await error.context.json()
+            realMessage = body?.error
+          } catch { /* response wasn't JSON, fall through */ }
+        }
+        realMessage = realMessage || error?.message || 'Something went wrong. Please try again.'
+
+        if (/already been registered|already exists|already registered/i.test(realMessage)) {
+          setAddError(`This email is already registered — ${form.name || 'this person'} may already be a client. Check the People list before trying again.`)
+        } else {
+          setAddError(realMessage)
+        }
         setConfirmingCreate(false)
         return
       }
