@@ -5,14 +5,22 @@
 // that's what used to make each portal's header look different. If a
 // portal needs its own color identity, do it elsewhere on the page --
 // not in this header.
+import { useNavigate } from 'react-router-dom'
 export default function PortalHeader({
   eyebrow,   // optional small label above the title
   title,
   subtitle,
   onSignOut,
+  helpPath,  // optional -- if provided, shows a Help button linking to that in-app guide
 }) {
+  const navigate = useNavigate()
   return (
     <div style={{ position: 'relative', marginBottom: 16, paddingTop: 4 }}>
+      {helpPath && (
+        <button onClick={() => navigate(helpPath)} style={{ position: 'absolute', top: 0, left: 0, background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, color: '#636e72', cursor: 'pointer' }}>
+          Help
+        </button>
+      )}
       <button onClick={onSignOut} style={{ position: 'absolute', top: 0, right: 0, background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, color: '#636e72', cursor: 'pointer' }}>
         Sign Out
       </button>

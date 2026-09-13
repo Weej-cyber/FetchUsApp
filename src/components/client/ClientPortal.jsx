@@ -428,6 +428,7 @@ export default function ClientPortal() {
           ? `Next walk: ${formatDate(upcomingWalks[0].preferred_date)} at ${upcomingWalks[0].preferred_time}`
           : 'No upcoming walks scheduled'}
         onSignOut={signOut}
+        helpPath="/help/client"
       />
 
       {activeTab === 'dogs' && (<>
