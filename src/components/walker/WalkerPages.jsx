@@ -36,12 +36,24 @@ function ActiveWalkScreen({ walk, onComplete }) {
   const intervalRef = useRef(null)
 
   useEffect(() => {
-    if (walk.started_at) {
-      const elapsed = Math.floor((Date.now() - new Date(walk.started_at)) / 1000)
-      setSeconds(elapsed)
+    const startTime = walk.started_at ? new Date(walk.started_at).getTime() : Date.now()
+
+    function updateSeconds() {
+      setSeconds(Math.floor((Date.now() - startTime) / 1000))
     }
-    intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
-    return () => clearInterval(intervalRef.current)
+
+    updateSeconds()
+    intervalRef.current = setInterval(updateSeconds, 1000)
+
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') updateSeconds()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    return () => {
+      clearInterval(intervalRef.current)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }, [walk.started_at])
 
   function handlePhoto(e) {
