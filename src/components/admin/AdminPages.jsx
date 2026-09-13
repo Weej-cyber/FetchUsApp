@@ -420,6 +420,18 @@ function ClientReadOnlyView({ userId, onBack }) {
   const [secondaryForm, setSecondaryForm] = useState({ secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
   const [savingSecondary, setSavingSecondary] = useState(false)
 
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [profileForm, setProfileForm] = useState({ name: '', phone: '', address: '', access_instructions: '' })
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileError, setProfileError] = useState(null)
+
+  const [editingEmail, setEditingEmail] = useState(false)
+  const [confirmingEmail, setConfirmingEmail] = useState(false)
+  const [newEmail, setNewEmail] = useState('')
+  const [savingEmail, setSavingEmail] = useState(false)
+  const [emailError, setEmailError] = useState(null)
+  const [emailChanged, setEmailChanged] = useState(false)
+
   async function loadAll() {
     setLoading(true)
     const { data: clientRow } = await supabase.from('clients').select('id, address, access_instructions, user_id, secondary_name, secondary_phone, secondary_email, secondary_sms_consent, users(name, email, phone, sms_consent)').eq('user_id', userId).single()
@@ -430,6 +442,13 @@ function ClientReadOnlyView({ userId, onBack }) {
       secondary_email: clientRow?.secondary_email || '',
       secondary_sms_consent: clientRow?.secondary_sms_consent || false,
     })
+    setProfileForm({
+      name: clientRow?.users?.name || '',
+      phone: clientRow?.users?.phone || '',
+      address: clientRow?.address || '',
+      access_instructions: clientRow?.access_instructions || '',
+    })
+    setNewEmail(clientRow?.users?.email || '')
     const cId = clientRow?.id
     setClientId(cId)
     if (!cId) { setLoading(false); return }
@@ -479,6 +498,49 @@ function ClientReadOnlyView({ userId, onBack }) {
       setEditingSecondary(false)
       loadAll()
     }
+  }
+
+  async function saveProfile() {
+    if (!clientId) return
+    setSavingProfile(true)
+    setProfileError(null)
+    const { error: userErr } = await supabase.from('users')
+      .update({ name: profileForm.name.trim(), phone: profileForm.phone.trim() || null })
+      .eq('id', userId)
+    const { error: clientErr } = await supabase.from('clients')
+      .update({ address: profileForm.address.trim() || null, access_instructions: profileForm.access_instructions.trim() || null })
+      .eq('id', clientId)
+    setSavingProfile(false)
+    if (userErr || clientErr) {
+      setProfileError('Something went wrong saving those changes. Please try again.')
+      return
+    }
+    setEditingProfile(false)
+    loadAll()
+  }
+
+  async function saveEmail() {
+    if (!confirmingEmail) { setConfirmingEmail(true); return }
+    setSavingEmail(true)
+    setEmailError(null)
+    const { data, error } = await supabase.functions.invoke('update-client-email', {
+      body: { user_id: userId, new_email: newEmail.trim() },
+    })
+    setSavingEmail(false)
+    if (error || data?.error) {
+      let realMessage = data?.error
+      if (!realMessage && error?.context) {
+        try { realMessage = (await error.context.json())?.error } catch { /* not JSON */ }
+      }
+      setEmailError(realMessage || error?.message || 'Something went wrong. Please try again.')
+      setConfirmingEmail(false)
+      return
+    }
+    setEditingEmail(false)
+    setConfirmingEmail(false)
+    setEmailChanged(true)
+    setTimeout(() => setEmailChanged(false), 3000)
+    loadAll()
   }
 
   if (loading) return <EmptyState message="Loading client view..." />
@@ -552,11 +614,81 @@ function ClientReadOnlyView({ userId, onBack }) {
 
       <SectionHeader title="Profile" />
       <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 20 }}>
-        <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436', marginBottom: 6 }}>{profile?.users?.name}</div>
-        <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile?.users?.email}</div>
-        {profile?.users?.phone && <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile.users.phone} {profile.users.sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
-        {profile?.address && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile.address}</div>}
-        {profile?.access_instructions && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Access notes: </span>{profile.access_instructions}</div>}
+
+        {!editingProfile ? (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436', marginBottom: 6 }}>{profile?.users?.name}</div>
+                {profile?.users?.phone && <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile.users.phone} {profile.users.sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
+                {profile?.address && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile.address}</div>}
+                {profile?.access_instructions && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Access notes: </span>{profile.access_instructions}</div>}
+              </div>
+              <button onClick={() => setEditingProfile(true)} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>Edit</button>
+            </div>
+          </>
+        ) : (
+          <div>
+            <div style={{ marginBottom: 8 }}>
+              <label style={labelStyle}>Name</label>
+              <input style={inputStyle} value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label style={labelStyle}>Phone</label>
+              <input style={inputStyle} value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="(555) 000-0000" />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label style={labelStyle}>Address</label>
+              <input style={inputStyle} value={profileForm.address} onChange={e => setProfileForm({ ...profileForm, address: e.target.value })} placeholder="123 Main St, City, State" />
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={labelStyle}>Access Notes</label>
+              <input style={inputStyle} value={profileForm.access_instructions} onChange={e => setProfileForm({ ...profileForm, access_instructions: e.target.value })} placeholder="Gate code, where to find the leash, etc." />
+            </div>
+            {profileError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 10, fontWeight: 600 }}>{profileError}</div>}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={saveProfile} disabled={savingProfile} style={{ ...saveBtnStyle, flex: 1 }}>{savingProfile ? 'Saving...' : 'Save'}</button>
+              <button onClick={() => { setEditingProfile(false); setProfileError(null); setProfileForm({ name: profile?.users?.name || '', phone: profile?.users?.phone || '', address: profile?.address || '', access_instructions: profile?.access_instructions || '' }) }} style={cancelBtnStyle}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 14, paddingTop: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: editingEmail ? 10 : 0 }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Login Email</div>
+            {!editingEmail && !emailChanged && (
+              <button onClick={() => { setEditingEmail(true); setNewEmail(profile?.users?.email || '') }} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}>Change</button>
+            )}
+          </div>
+          {emailChanged ? (
+            <div style={{ fontSize: '0.85rem', color: '#0F5C4E', fontWeight: 700, marginTop: 6 }}>Email updated — they'll now log in with the new address.</div>
+          ) : !editingEmail ? (
+            <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile?.users?.email}</div>
+          ) : !confirmingEmail ? (
+            <div>
+              <input type="email" style={inputStyle} value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="jane@email.com" />
+              {emailError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginTop: 10, fontWeight: 600 }}>{emailError}</div>}
+              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <button onClick={saveEmail} disabled={!newEmail.trim()} style={{ ...saveBtnStyle, flex: 1 }}>Review Change</button>
+                <button onClick={() => { setEditingEmail(false); setEmailError(null) }} style={cancelBtnStyle}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ background: '#FFF8E7', border: '1.5px solid #D4A843', borderRadius: 10, padding: 12, marginTop: 8, marginBottom: 10 }}>
+                <div style={{ fontSize: '0.83rem', color: '#2D3436', marginBottom: 8 }}>
+                  This changes their login — they'll only be able to sign in using this new address from now on. Double-check it's correct:
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#182B4A', wordBreak: 'break-all' }}>{newEmail}</div>
+              </div>
+              {emailError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 10, fontWeight: 600 }}>{emailError}</div>}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={saveEmail} disabled={savingEmail} style={{ ...saveBtnStyle, flex: 1, background: '#D4A843' }}>{savingEmail ? 'Saving...' : 'Yes, Change It'}</button>
+                <button onClick={() => setConfirmingEmail(false)} style={cancelBtnStyle}>Go Back</button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 14, paddingTop: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: editingSecondary ? 10 : 0 }}>
