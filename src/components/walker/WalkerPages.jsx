@@ -25,7 +25,34 @@ function SectionHeader({ title }) {
   )
 }
 
-function ActiveWalkScreen({ walk, onComplete }) {
+function ActiveWalkCard({ walk, onComplete }) {
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    const startTime = walk.started_at ? new Date(walk.started_at).getTime() : Date.now()
+    function update() { setSeconds(Math.floor((Date.now() - startTime) / 1000)) }
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [walk.started_at])
+
+  return (
+    <div style={{ background: 'white', borderRadius: 14, padding: 16, boxShadow: '0 2px 10px rgba(45,52,54,0.08)', marginBottom: 10, borderLeft: `4px solid ${C.teal}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.charcoal }}>{walk.dog_name ?? '—'}</div>
+          <div style={{ fontSize: '0.83rem', color: C.light }}>{walk.client_name ?? '—'}</div>
+        </div>
+        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: C.teal, fontVariantNumeric: 'tabular-nums' }}>{formatTimer(seconds)}</div>
+      </div>
+      <button onClick={() => onComplete(walk)} style={{ width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: C.indigo, color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+        Complete Walk
+      </button>
+    </div>
+  )
+}
+
+function ActiveWalkScreen({ walk, onComplete, onBack }) {
   const [seconds, setSeconds] = useState(0)
   const [notes, setNotes] = useState('')
   const [photoFile, setPhotoFile] = useState(null)
@@ -129,7 +156,12 @@ function ActiveWalkScreen({ walk, onComplete }) {
 
   return (
     <div style={{ background: C.cream, minHeight: '100vh', maxWidth: '430px', margin: '0 auto', fontFamily: 'Nunito, sans-serif' }}>
-      <div style={{ background: `linear-gradient(135deg, ${C.teal}, #3DB89A)`, padding: '50px 24px 32px', color: 'white', textAlign: 'center' }}>
+      <div style={{ background: `linear-gradient(135deg, ${C.teal}, #3DB89A)`, padding: '50px 24px 32px', color: 'white', textAlign: 'center', position: 'relative' }}>
+        {onBack && (
+          <button onClick={onBack} style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(0,0,0,0.35)', border: 'none', color: 'white', borderRadius: 20, padding: '7px 14px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+            ← Back
+          </button>
+        )}
         <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Walk In Progress</div>
         <div style={{ fontSize: '3.5rem', fontWeight: 800, fontFamily: 'monospace', letterSpacing: '0.04em' }}>{formatTimer(seconds)}</div>
         <div style={{ fontSize: '1rem', fontWeight: 700, marginTop: 8 }}>{walk.dog_name || 'Walk'}</div>
@@ -189,7 +221,8 @@ export function WalkerDashboard() {
   const { signOut, user, dbRole, setRole } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
-  const [activeWalk, setActiveWalk] = useState(null)
+  const [activeWalks, setActiveWalks] = useState([])
+  const [completingWalk, setCompletingWalk] = useState(null)
   const [todayWalks, setTodayWalks] = useState([])
   const [weekWalks, setWeekWalks] = useState([])
   const [boardings, setBoardings] = useState([])
@@ -226,7 +259,7 @@ export function WalkerDashboard() {
       supabase.from('walk_requests').select('*, dogs(name), clients(id, user_id, users(name, phone, sms_consent))').eq('assigned_walker_id', user.id).eq('preferred_date', today).in('status', ['assigned', 'confirmed', 'in_progress']).order('preferred_time', { ascending: true }),
       supabase.from('walk_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).gte('preferred_date', tomorrowStr).in('status', ['assigned', 'confirmed']).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }),
       supabase.from('walks').select('*').eq('walker_id', user.id).not('completed_at', 'is', null).order('completed_at', { ascending: false }).limit(5),
-      supabase.from('walks').select('*').eq('walker_id', user.id).is('completed_at', null).not('started_at', 'is', null).limit(1),
+      supabase.from('walks').select('*, walk_requests(dogs(name), clients(id, user_id, users(name, phone, sms_consent)))').eq('walker_id', user.id).is('completed_at', null).not('started_at', 'is', null).order('started_at', { ascending: true }),
       supabase.from('boarding_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).in('status', ['assigned', 'confirmed']).order('check_in_date', { ascending: true }),
       supabase.from('users').select('phone, sms_consent').eq('id', user.id).single(),
     ])
@@ -236,8 +269,15 @@ export function WalkerDashboard() {
     setWeekWalks(weekData || [])
     setHistory(historyData || [])
     setBoardings(boardingData || [])
-    if (activeData?.length > 0) setActiveWalk(activeData[0])
-    else setActiveWalk(null)
+    setActiveWalks((activeData || []).map(w => ({
+      ...w,
+      dog_name: w.walk_requests?.dogs?.name,
+      client_name: w.walk_requests?.clients?.users?.name,
+      client_id: w.walk_requests?.clients?.id || null,
+      client_user_id: w.walk_requests?.clients?.user_id || null,
+      client_phone: w.walk_requests?.clients?.users?.phone || null,
+      sms_consent: w.walk_requests?.clients?.users?.sms_consent || false,
+    })))
     setLoading(false)
   }
 
@@ -261,31 +301,27 @@ export function WalkerDashboard() {
   }
 
   async function startWalk(req) {
-    const { data: walk } = await supabase.from('walks').insert({
+    await supabase.from('walks').insert({
       walker_id: user.id,
       booking_id: null,
       walk_request_id: req.id,
       started_at: new Date().toISOString(),
       notes: null,
-    }).select().single()
+    })
     await supabase.from('walk_requests').update({ status: 'in_progress' }).eq('id', req.id)
-    if (walk) {
-      setActiveWalk({
-        ...walk,
-        dog_name: req.dogs?.name,
-        client_name: req.clients?.users?.name,
-        client_id: req.client_id || null,
-        client_user_id: req.clients?.user_id || null,
-        client_phone: req.clients?.users?.phone || null,
-        sms_consent: req.clients?.users?.sms_consent || false,
-      })
-      // The client is notified automatically by a database trigger on the
-      // walks table (fires when started_at is set).
-    }
+    // The client is notified automatically by a database trigger on the
+    // walks table (fires when started_at is set).
+    fetchAll()
   }
 
-  if (activeWalk) {
-    return <ActiveWalkScreen walk={activeWalk} onComplete={() => { setActiveWalk(null); fetchAll() }} />
+  if (completingWalk) {
+    return (
+      <ActiveWalkScreen
+        walk={completingWalk}
+        onBack={() => setCompletingWalk(null)}
+        onComplete={() => { setCompletingWalk(null); fetchAll() }}
+      />
+    )
   }
 
   if (loading) {
@@ -345,13 +381,22 @@ export function WalkerDashboard() {
 
       <div style={{ padding: '8px 20px 0' }}>
 
+        {activeWalks.length > 0 && (
+          <>
+            <SectionHeader title={`Active Walk${activeWalks.length > 1 ? 's' : ''}`} />
+            {activeWalks.map(walk => (
+              <ActiveWalkCard key={walk.id} walk={walk} onComplete={setCompletingWalk} />
+            ))}
+          </>
+        )}
+
         <SectionHeader title="Today" />
-        {todayWalks.length === 0 ? (
+        {todayWalks.filter(req => req.status !== 'in_progress').length === 0 ? (
           <div style={{ background: 'white', borderRadius: 14, padding: '28px 20px', textAlign: 'center', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px', display: 'block' }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 15l2 2 4-4"/></svg>
             <p style={{ fontWeight: 700, color: C.charcoal, margin: 0 }}>No walks today</p>
           </div>
-        ) : todayWalks.map(req => (
+        ) : todayWalks.filter(req => req.status !== 'in_progress').map(req => (
           <div key={req.id} style={{ background: 'white', borderRadius: 14, padding: 16, boxShadow: '0 2px 10px rgba(45,52,54,0.08)', marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
