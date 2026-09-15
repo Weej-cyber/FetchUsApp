@@ -65,10 +65,165 @@ const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius:
 const saveBtnStyle = { background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
 const cancelBtnStyle = { background: 'white', color: '#636e72', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
 
-function WalkRequestCard({ req, walkers, onDecline, onAssign, onCancel }) {
-  const [selectedWalker, setSelectedWalker] = useState('')
-  const [assigning, setAssigning] = useState(false)
-  const [showAssign, setShowAssign] = useState(false)
+// Shared edit panel used everywhere a walk can be changed (Requests tab, Schedule tab).
+// Every field is always editable regardless of the walk's current status — nothing
+// created in the app should be locked once it's confirmed. Cancel stays a separate,
+// deliberate action outside this panel.
+function EditWalkPanel({ walk, walkers, onSave, onClose }) {
+  const [walkerId, setWalkerId] = useState(walk.assigned_walker_id || '')
+  const [dogId, setDogId] = useState(walk.dog_id || '')
+  const [dogOptions, setDogOptions] = useState([])
+  const [date, setDate] = useState(walk.preferred_date || '')
+  const [time, setTime] = useState(walk.preferred_time || '')
+  const [serviceType, setServiceType] = useState(walk.service_type || '30-min Walk')
+  const [notes, setNotes] = useState(walk.notes || '')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    async function loadDogs() {
+      const { data } = await supabase.from('dogs').select('id, name').eq('client_id', walk.client_id)
+      if (active) setDogOptions(data || [])
+    }
+    if (walk.client_id) loadDogs()
+    return () => { active = false }
+  }, [walk.client_id])
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave(walk.id, {
+      assigned_walker_id: walkerId || null,
+      dog_id: dogId || null,
+      preferred_date: date,
+      preferred_time: time,
+      service_type: serviceType,
+      notes: notes || null,
+    })
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+    <div style={{ marginTop: 10, background: '#F7FAFC', border: '1.5px solid #E0E8F0', borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div>
+          <label style={labelStyle}>Walker</label>
+          <select style={inputStyle} value={walkerId} onChange={e => setWalkerId(e.target.value)}>
+            <option value="">Unassigned</option>
+            {walkers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Dog</label>
+          <select style={inputStyle} value={dogId} onChange={e => setDogId(e.target.value)}>
+            <option value="">—</option>
+            {dogOptions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Date</label>
+          <input type="date" style={inputStyle} value={date} onChange={e => setDate(e.target.value)} />
+        </div>
+        <div>
+          <label style={labelStyle}>Time Slot</label>
+          <select style={inputStyle} value={time} onChange={e => setTime(e.target.value)}>
+            <option value="">Select...</option>
+            {['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM'].map(t => <option key={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Service Type</label>
+          <select style={inputStyle} value={serviceType} onChange={e => setServiceType(e.target.value)}>
+            <option>30-min Walk</option><option>60-min Walk</option><option>Drop-In Visit</option><option>Boarding</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style={labelStyle}>Notes</label>
+        <input style={inputStyle} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any notes..." />
+      </div>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onClose} style={cancelBtnStyle}>Close</button>
+        <button type="button" onClick={handleSave} disabled={saving} style={saveBtnStyle}>{saving ? 'Saving...' : 'Save Changes'}</button>
+      </div>
+    </div>
+  )
+}
+
+// Same idea as EditWalkPanel, sized for boarding: check-in/check-out dates instead of
+// a single date + time slot, no service-type selector since boarding is its own type.
+function EditBoardingPanel({ req, walkers, onSave, onClose }) {
+  const [walkerId, setWalkerId] = useState(req.assigned_walker_id || '')
+  const [dogId, setDogId] = useState(req.dog_id || '')
+  const [dogOptions, setDogOptions] = useState([])
+  const [checkIn, setCheckIn] = useState(req.check_in_date || '')
+  const [checkOut, setCheckOut] = useState(req.check_out_date || '')
+  const [notes, setNotes] = useState(req.notes || '')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    async function loadDogs() {
+      const { data } = await supabase.from('dogs').select('id, name').eq('client_id', req.client_id)
+      if (active) setDogOptions(data || [])
+    }
+    if (req.client_id) loadDogs()
+    return () => { active = false }
+  }, [req.client_id])
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave(req.id, {
+      assigned_walker_id: walkerId || null,
+      dog_id: dogId || null,
+      check_in_date: checkIn,
+      check_out_date: checkOut,
+      notes: notes || null,
+    })
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+    <div style={{ marginTop: 10, background: '#F7FAFC', border: '1.5px solid #E0E8F0', borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div>
+          <label style={labelStyle}>Walker</label>
+          <select style={inputStyle} value={walkerId} onChange={e => setWalkerId(e.target.value)}>
+            <option value="">Unassigned</option>
+            {walkers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Dog</label>
+          <select style={inputStyle} value={dogId} onChange={e => setDogId(e.target.value)}>
+            <option value="">—</option>
+            {dogOptions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Check-In</label>
+          <input type="date" style={inputStyle} value={checkIn} onChange={e => setCheckIn(e.target.value)} />
+        </div>
+        <div>
+          <label style={labelStyle}>Check-Out</label>
+          <input type="date" style={inputStyle} value={checkOut} onChange={e => setCheckOut(e.target.value)} />
+        </div>
+      </div>
+      <div>
+        <label style={labelStyle}>Notes</label>
+        <input style={inputStyle} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any notes..." />
+      </div>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onClose} style={cancelBtnStyle}>Close</button>
+        <button type="button" onClick={handleSave} disabled={saving} style={saveBtnStyle}>{saving ? 'Saving...' : 'Save Changes'}</button>
+      </div>
+    </div>
+  )
+}
+
+function WalkRequestCard({ req, walkers, onDecline, onEdit, onCancel }) {
+  const [showEdit, setShowEdit] = useState(false)
 
   const statusColors = {
     pending:   { bg: '#FEF9C3', text: '#92400E' },
@@ -78,14 +233,7 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign, onCancel }) {
     cancelled: { bg: '#FEE2E2', text: '#991B1B' },
   }
   const sc = statusColors[req.status] || statusColors.pending
-
-  async function handleAssign() {
-    if (!selectedWalker) return
-    setAssigning(true)
-    await onAssign(req.id, selectedWalker)
-    setAssigning(false)
-    setShowAssign(false)
-  }
+  const editable = req.status !== 'declined' && req.status !== 'cancelled'
 
   return (
     <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, borderLeft: '4px solid #182B4A' }}>
@@ -102,37 +250,24 @@ function WalkRequestCard({ req, walkers, onDecline, onAssign, onCancel }) {
         <img src={req.walks[0].photo_url} alt="Walk photo" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8, marginBottom: 10 }} />
       )}
       {req.assigned_walker_id && <div style={{ fontSize: '0.8rem', color: '#2D9B8A', fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
-      {req.status === 'pending' && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+        {req.status === 'pending' && (
           <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
-          <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
-        </div>
-      )}
-      {(req.status === 'assigned' || req.status === 'confirmed') && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-          <button onClick={() => setShowAssign(!showAssign)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Reassign Walker</button>
+        )}
+        {editable && (
+          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
+        )}
+        {editable && (
           <button onClick={() => onCancel(req.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-        </div>
-      )}
-      {showAssign && (req.status === 'pending' || req.status === 'assigned' || req.status === 'confirmed') && (
-        <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <select value={selectedWalker} onChange={e => setSelectedWalker(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid #E0E8F0', padding: '6px 10px', fontSize: '0.85rem', flex: 1, minWidth: 140, background: 'white' }}>
-            <option value="">Select walker...</option>
-            {walkers.filter(w => w.id !== req.assigned_walker_id).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-          </select>
-          <button onClick={handleAssign} disabled={!selectedWalker || assigning} style={{ background: !selectedWalker ? '#636e72' : '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
-            {assigning ? 'Saving...' : 'Confirm'}
-          </button>
-        </div>
-      )}
+        )}
+      </div>
+      {showEdit && <EditWalkPanel walk={req} walkers={walkers} onSave={onEdit} onClose={() => setShowEdit(false)} />}
     </div>
   )
 }
 
-function BoardingRequestCard({ req, walkers, onDecline, onAssign, onCancel }) {
-  const [selectedWalker, setSelectedWalker] = useState('')
-  const [assigning, setAssigning] = useState(false)
-  const [showAssign, setShowAssign] = useState(false)
+function BoardingRequestCard({ req, walkers, onDecline, onEdit, onCancel }) {
+  const [showEdit, setShowEdit] = useState(false)
 
   const statusColors = {
     pending:   { bg: '#FEF9C3', text: '#92400E' },
@@ -142,14 +277,7 @@ function BoardingRequestCard({ req, walkers, onDecline, onAssign, onCancel }) {
     cancelled: { bg: '#FEE2E2', text: '#991B1B' },
   }
   const sc = statusColors[req.status] || statusColors.pending
-
-  async function handleAssign() {
-    if (!selectedWalker) return
-    setAssigning(true)
-    await onAssign(req.id, selectedWalker)
-    setAssigning(false)
-    setShowAssign(false)
-  }
+  const editable = req.status !== 'declined' && req.status !== 'cancelled'
 
   return (
     <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, borderLeft: '4px solid #D4A843' }}>
@@ -163,28 +291,18 @@ function BoardingRequestCard({ req, walkers, onDecline, onAssign, onCancel }) {
       </div>
       {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: C.cream, borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
       {req.assigned_walker_id && <div style={{ fontSize: '0.8rem', color: '#2D9B8A', fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
-      {req.status === 'pending' && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+        {req.status === 'pending' && (
           <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
-          <button onClick={() => setShowAssign(!showAssign)} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Assign Walker</button>
-        </div>
-      )}
-      {(req.status === 'assigned' || req.status === 'confirmed' || req.status === 'in_progress') && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+        )}
+        {editable && (
+          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
+        )}
+        {editable && (
           <button onClick={() => onCancel(req.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-        </div>
-      )}
-      {showAssign && req.status === 'pending' && (
-        <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <select value={selectedWalker} onChange={e => setSelectedWalker(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid #E0E8F0', padding: '6px 10px', fontSize: '0.85rem', flex: 1, minWidth: 140, background: 'white' }}>
-            <option value="">Select walker...</option>
-            {walkers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-          </select>
-          <button onClick={handleAssign} disabled={!selectedWalker || assigning} style={{ background: !selectedWalker ? '#636e72' : '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
-            {assigning ? 'Saving...' : 'Confirm'}
-          </button>
-        </div>
-      )}
+        )}
+      </div>
+      {showEdit && <EditBoardingPanel req={req} walkers={walkers} onSave={onEdit} onClose={() => setShowEdit(false)} />}
     </div>
   )
 }
@@ -308,6 +426,11 @@ function ScheduleSection({ walkers }) {
     setWalks(prev => prev.filter(w => w.id !== id))
   }
 
+  async function handleEditWalk(id, updates) {
+    await supabase.from('walk_requests').update(updates).eq('id', id)
+    loadWalks()
+  }
+
   return (
     <div>
       <SectionHeader title="Schedule" action={<button onClick={() => setShowAddForm(!showAddForm)} style={saveBtnStyle}>+ Add Walk</button>} />
@@ -368,19 +491,30 @@ function ScheduleSection({ walkers }) {
       {loading ? <EmptyState message="Loading schedule..." />
         : walks.length === 0 ? <EmptyState message="No upcoming walks scheduled." />
         : walks.map(w => (
-          <div key={w.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.06)', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#2D3436' }}>{w.dogs?.name ?? '—'} — {w.service_type}</div>
-              <div style={{ fontSize: '0.8rem', color: '#636e72', marginTop: 2 }}>{formatDate(w.preferred_date)} · {w.preferred_time}</div>
-              <div style={{ fontSize: '0.78rem', color: '#b2bec3', marginTop: 1 }}>Owner: {w.clients?.users?.name ?? '—'} · Walker: {w.assigned_walker?.name ?? 'Unassigned'}</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ background: '#E3EAF2', color: '#1F3A5F', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{w.status}</span>
-              <button onClick={() => handleCancelWalk(w.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-            </div>
-          </div>
+          <ScheduleWalkRow key={w.id} walk={w} walkers={walkers} onEdit={handleEditWalk} onCancel={handleCancelWalk} />
         ))
       }
+    </div>
+  )
+}
+
+function ScheduleWalkRow({ walk, walkers, onEdit, onCancel }) {
+  const [showEdit, setShowEdit] = useState(false)
+  return (
+    <div style={{ background: 'white', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.06)', marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#2D3436' }}>{walk.dogs?.name ?? '—'} — {walk.service_type}</div>
+          <div style={{ fontSize: '0.8rem', color: '#636e72', marginTop: 2 }}>{formatDate(walk.preferred_date)} · {walk.preferred_time}</div>
+          <div style={{ fontSize: '0.78rem', color: '#b2bec3', marginTop: 1 }}>Owner: {walk.clients?.users?.name ?? '—'} · Walker: {walk.assigned_walker?.name ?? 'Unassigned'}</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ background: '#E3EAF2', color: '#1F3A5F', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{walk.status}</span>
+          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>Edit</button>
+          <button onClick={() => onCancel(walk.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+        </div>
+      </div>
+      {showEdit && <EditWalkPanel walk={walk} walkers={walkers} onSave={onEdit} onClose={() => setShowEdit(false)} />}
     </div>
   )
 }
@@ -1887,11 +2021,16 @@ export default function AdminPortal() {
     loadStats()
   }
 
-  async function handleAssign(id, walkerId) {
-    await supabase.from('walk_requests').update({ status: 'assigned', assigned_walker_id: walkerId }).eq('id', id)
+  async function handleEditWalk(id, updates) {
+    const current = requests.find(r => r.id === id)
+    const patch = { ...updates }
+    // Assigning a walker to a still-pending request moves it into the active schedule,
+    // same as the old dedicated "assign" action did.
+    if (patch.assigned_walker_id && current?.status === 'pending') patch.status = 'assigned'
+    await supabase.from('walk_requests').update(patch).eq('id', id)
     // The client and the assigned walker are both notified automatically by
     // a database trigger on walk_requests.
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'assigned', assigned_walker_id: walkerId } : r))
+    loadRequests()
     loadStats()
   }
 
@@ -1908,11 +2047,14 @@ export default function AdminPortal() {
     loadStats()
   }
 
-  async function handleAssignBoarding(id, walkerId) {
-    await supabase.from('boarding_requests').update({ status: 'assigned', assigned_walker_id: walkerId }).eq('id', id)
+  async function handleEditBoarding(id, updates) {
+    const current = boardings.find(b => b.id === id)
+    const patch = { ...updates }
+    if (patch.assigned_walker_id && current?.status === 'pending') patch.status = 'assigned'
+    await supabase.from('boarding_requests').update(patch).eq('id', id)
     // The client and the assigned walker are both notified automatically by
     // a database trigger on boarding_requests.
-    setBoardings(prev => prev.map(b => b.id === id ? { ...b, status: 'assigned', assigned_walker_id: walkerId } : b))
+    loadBoardings()
     loadStats()
   }
 
@@ -2068,13 +2210,13 @@ export default function AdminPortal() {
               : requests.length === 0 ? <EmptyState message="No walk requests yet." />
               : (
                 <>
-                  {pendingRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} onCancel={handleCancelWalkRequest} />)}
+                  {pendingRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onEdit={handleEditWalk} onCancel={handleCancelWalkRequest} />)}
                   {otherRequests.length > 0 && (
                     <details style={{ marginTop: 8 }}>
                       <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
                         Show {otherRequests.length} resolved request{otherRequests.length > 1 ? 's' : ''}
                       </summary>
-                      {otherRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onAssign={handleAssign} onCancel={handleCancelWalkRequest} />)}
+                      {otherRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onEdit={handleEditWalk} onCancel={handleCancelWalkRequest} />)}
                     </details>
                   )}
                 </>
@@ -2093,13 +2235,13 @@ export default function AdminPortal() {
               : boardings.length === 0 ? <EmptyState message="No boarding requests yet." />
               : (
                 <>
-                  {pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} onCancel={handleCancelBoarding} />)}
+                  {pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onEdit={handleEditBoarding} onCancel={handleCancelBoarding} />)}
                   {otherBoardings.length > 0 && (
                     <details style={{ marginTop: 8 }}>
                       <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
                         Show {otherBoardings.length} resolved boarding{otherBoardings.length > 1 ? 's' : ''}
                       </summary>
-                      {otherBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onAssign={handleAssignBoarding} onCancel={handleCancelBoarding} />)}
+                      {otherBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onEdit={handleEditBoarding} onCancel={handleCancelBoarding} />)}
                     </details>
                   )}
                 </>
