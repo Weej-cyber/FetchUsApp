@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 import { COLORS as C } from '../../theme'
 import PortalHeader from '../shared/PortalHeader'
+import InstallBanner from '../shared/InstallBanner'
 
 function formatTimer(seconds) {
   const h = Math.floor(seconds / 3600).toString().padStart(2, '0')
@@ -378,6 +379,7 @@ export function WalkerDashboard() {
         subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         onSignOut={signOut}
       />
+      <InstallBanner />
 
       <div style={{ padding: '8px 20px 0' }}>
 

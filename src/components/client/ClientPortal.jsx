@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { COLORS as C } from '../../theme'
 import PortalHeader from '../shared/PortalHeader'
+import InstallBanner from '../shared/InstallBanner'
 import { PawPrint, CalendarPlus, Route, User } from 'lucide-react'
 
 const SERVICE_TYPES = ['30-min Walk', '60-min Walk', 'Drop-In Visit']
@@ -430,6 +431,7 @@ export default function ClientPortal() {
         onSignOut={signOut}
         helpPath="/help/client"
       />
+      <InstallBanner />
 
       {activeTab === 'dogs' && (<>
       <SectionHeader title="My Dogs" icon={Icon.paw(C.indigo)} color={C.indigo} />
