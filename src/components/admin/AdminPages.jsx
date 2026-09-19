@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
-import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt } from 'lucide-react'
+import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
 import jsPDF from 'jspdf'
@@ -77,6 +77,7 @@ function EditWalkPanel({ walk, walkers, onSave, onClose }) {
   const [date, setDate] = useState(walk.preferred_date || '')
   const [time, setTime] = useState(walk.preferred_time || '')
   const [serviceType, setServiceType] = useState(walk.service_type || '30-min Walk')
+  const [status, setStatus] = useState(walk.status || 'pending')
   const [notes, setNotes] = useState(walk.notes || '')
   const [saving, setSaving] = useState(false)
 
@@ -98,6 +99,7 @@ function EditWalkPanel({ walk, walkers, onSave, onClose }) {
       preferred_date: date,
       preferred_time: time,
       service_type: serviceType,
+      status,
       notes: notes || null,
     })
     setSaving(false)
@@ -138,6 +140,18 @@ function EditWalkPanel({ walk, walkers, onSave, onClose }) {
             <option>30-min Walk</option><option>60-min Walk</option><option>Drop-In Visit</option><option>Boarding</option>
           </select>
         </div>
+        <div>
+          <label style={labelStyle}>Status</label>
+          <select style={inputStyle} value={status} onChange={e => setStatus(e.target.value)}>
+            <option value="pending">Pending</option>
+            <option value="assigned">Assigned</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="declined">Declined</option>
+          </select>
+        </div>
       </div>
       <div>
         <label style={labelStyle}>Notes</label>
@@ -159,6 +173,7 @@ function EditBoardingPanel({ req, walkers, onSave, onClose }) {
   const [dogOptions, setDogOptions] = useState([])
   const [checkIn, setCheckIn] = useState(req.check_in_date || '')
   const [checkOut, setCheckOut] = useState(req.check_out_date || '')
+  const [status, setStatus] = useState(req.status || 'pending')
   const [notes, setNotes] = useState(req.notes || '')
   const [saving, setSaving] = useState(false)
 
@@ -179,6 +194,7 @@ function EditBoardingPanel({ req, walkers, onSave, onClose }) {
       dog_id: dogId || null,
       check_in_date: checkIn,
       check_out_date: checkOut,
+      status,
       notes: notes || null,
     })
     setSaving(false)
@@ -209,6 +225,18 @@ function EditBoardingPanel({ req, walkers, onSave, onClose }) {
         <div>
           <label style={labelStyle}>Check-Out</label>
           <input type="date" style={inputStyle} value={checkOut} onChange={e => setCheckOut(e.target.value)} />
+        </div>
+        <div>
+          <label style={labelStyle}>Status</label>
+          <select style={inputStyle} value={status} onChange={e => setStatus(e.target.value)}>
+            <option value="pending">Pending</option>
+            <option value="assigned">Assigned</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="declined">Declined</option>
+          </select>
         </div>
       </div>
       <div>
@@ -1573,6 +1601,132 @@ function ClientReportSection() {
   )
 }
 
+// Reconciliation report: for a given period, finds every walk/boarding whose
+// date has already passed but never got marked completed (and wasn't
+// cancelled/declined either) — i.e. Nancy forgot to close it out, so it
+// would otherwise silently never make it onto a bill. Tapping an item opens
+// the same Edit panel used everywhere else, status field included, so she
+// can fix it or mark it complete right from the report.
+function ReconciliationSection({ walkers }) {
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [running, setRunning] = useState(false)
+  const [reportError, setReportError] = useState(null)
+  const [items, setItems] = useState(null)
+
+  async function runReport() {
+    setReportError(null)
+    if (!startDate || !endDate) { setReportError('Please select a start and end date.'); return }
+    if (endDate < startDate) { setReportError('End date must be after start date.'); return }
+    setRunning(true)
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const openStatuses = ['pending', 'assigned', 'confirmed', 'in_progress']
+
+      const { data: walks, error: walkErr } = await supabase.from('walk_requests')
+        .select('id, service_type, status, preferred_date, preferred_time, client_id, dog_id, assigned_walker_id, notes, dogs(name), clients(users(name))')
+        .gte('preferred_date', startDate).lte('preferred_date', endDate)
+        .lt('preferred_date', today)
+        .in('status', openStatuses)
+        .order('preferred_date', { ascending: true })
+      if (walkErr) throw walkErr
+
+      const { data: boardings, error: boardErr } = await supabase.from('boarding_requests')
+        .select('id, status, check_in_date, check_out_date, client_id, dog_id, assigned_walker_id, notes, dogs(name), clients(users(name))')
+        .gte('check_in_date', startDate).lte('check_out_date', endDate)
+        .lt('check_out_date', today)
+        .in('status', openStatuses)
+        .order('check_out_date', { ascending: true })
+      if (boardErr) throw boardErr
+
+      const walkItems = (walks || []).map(w => ({ ...w, itemType: 'walk', reportDate: w.preferred_date }))
+      const boardingItems = (boardings || []).map(b => ({ ...b, itemType: 'boarding', reportDate: b.check_out_date }))
+      setItems([...walkItems, ...boardingItems].sort((a, b) => a.reportDate.localeCompare(b.reportDate)))
+    } catch (err) {
+      setReportError(err.message || 'Something went wrong running the report.')
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  async function handleUpdate(itemType, id, updates) {
+    const table = itemType === 'walk' ? 'walk_requests' : 'boarding_requests'
+    await supabase.from(table).update(updates).eq('id', id)
+    // No longer open once it's completed/cancelled/declined — drop it from the list.
+    if (['completed', 'cancelled', 'declined'].includes(updates.status)) {
+      setItems(prev => prev.filter(i => i.id !== id))
+    } else {
+      setItems(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i))
+    }
+  }
+
+  const daysOpen = (dateStr) => Math.floor((new Date() - new Date(dateStr + 'T00:00:00')) / 86400000)
+
+  return (
+    <div style={{ background: 'white', borderRadius: 14, padding: 20, boxShadow: '0 2px 10px rgba(45,52,54,0.06)', marginBottom: 24 }}>
+      <SectionHeader title="Reconciliation" icon={<Scale size={18} color="#182B4A" />} />
+      <p style={{ fontSize: '0.82rem', color: '#636e72', margin: '0 0 14px' }}>
+        Finds walks and boardings that were booked in a period but never got closed out — the ones that would otherwise fall through the cracks at billing time.
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+        <div>
+          <label style={labelStyle}>Start Date</label>
+          <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
+        </div>
+        <div>
+          <label style={labelStyle}>End Date</label>
+          <input type="date" style={inputStyle} value={endDate} onChange={e => setEndDate(e.target.value)} />
+        </div>
+      </div>
+      {reportError && <div style={{ color: '#991B1B', fontSize: '0.85rem', marginBottom: 10 }}>{reportError}</div>}
+      <button onClick={runReport} disabled={running} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+        {running ? 'Running...' : 'Run Reconciliation'}
+      </button>
+
+      {items && (
+        <div style={{ marginTop: 16 }}>
+          {items.length === 0 ? (
+            <div style={{ fontSize: '0.85rem', color: '#2D9B8A', fontWeight: 600 }}>Nothing open for this period — everything's been closed out.</div>
+          ) : (
+            <>
+              <div style={{ fontSize: '0.8rem', color: '#636e72', marginBottom: 8 }}>{items.length} item{items.length === 1 ? '' : 's'} never closed out:</div>
+              {items.map(item => (
+                <ReconciliationRow key={`${item.itemType}-${item.id}`} item={item} walkers={walkers} onUpdate={handleUpdate} daysOpen={daysOpen} />
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ReconciliationRow({ item, walkers, onUpdate, daysOpen }) {
+  const [showEdit, setShowEdit] = useState(false)
+  const open = daysOpen(item.reportDate)
+
+  return (
+    <div style={{ background: '#F7FAFC', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#2D3436' }}>
+            {item.dogs?.name ?? 'Unknown dog'} — {item.itemType === 'walk' ? item.service_type : 'Boarding'}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: '#636e72' }}>
+            {item.clients?.users?.name ?? 'Unknown client'} · {formatDate(item.reportDate)} · open {open} day{open === 1 ? '' : 's'} · status: {item.status}
+          </div>
+        </div>
+        <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Edit</button>
+      </div>
+      {showEdit && (
+        item.itemType === 'walk'
+          ? <EditWalkPanel walk={item} walkers={walkers} onSave={(id, updates) => onUpdate('walk', id, updates)} onClose={() => setShowEdit(false)} />
+          : <EditBoardingPanel req={item} walkers={walkers} onSave={(id, updates) => onUpdate('boarding', id, updates)} onClose={() => setShowEdit(false)} />
+      )}
+    </div>
+  )
+}
+
 function ClientsAndWalkersSection() {
   const [viewingClientId, setViewingClientId] = useState(null)
   const [clients, setClients] = useState([])
@@ -2268,6 +2422,7 @@ export default function AdminPortal() {
       {activeTab === 'tools' && (
         <>
           <InvoiceSection />
+          <ReconciliationSection walkers={walkers} />
           <ClientReportSection />
           <div style={{ marginBottom: 32 }}>
             <BroadcastPanel />
