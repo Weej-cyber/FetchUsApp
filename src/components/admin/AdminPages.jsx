@@ -2136,15 +2136,24 @@ export default function AdminPortal() {
 
   async function loadRequests() {
     setLoadingRequests(true)
-    const { data } = await supabase.from('walk_requests').select('*, dogs(name), walks(photo_url), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).order('created_at', { ascending: false }).limit(20)
-    if (data) setRequests(data)
+    // Pending requests are pulled with no cap — a pending one should never be able to
+    // scroll out of view behind newer non-pending activity. Only the "other" (already
+    // resolved) requests are capped, since that list is just recent history.
+    const [{ data: pendingData }, { data: otherData }] = await Promise.all([
+      supabase.from('walk_requests').select('*, dogs(name), walks(photo_url), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).eq('status', 'pending').order('created_at', { ascending: false }),
+      supabase.from('walk_requests').select('*, dogs(name), walks(photo_url), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).neq('status', 'pending').order('created_at', { ascending: false }).limit(20),
+    ])
+    setRequests([...(pendingData || []), ...(otherData || [])])
     setLoadingRequests(false)
   }
 
   async function loadBoardings() {
     setLoadingBoardings(true)
-    const { data } = await supabase.from('boarding_requests').select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).order('created_at', { ascending: false }).limit(20)
-    if (data) setBoardings(data)
+    const [{ data: pendingData }, { data: otherData }] = await Promise.all([
+      supabase.from('boarding_requests').select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).eq('status', 'pending').order('created_at', { ascending: false }),
+      supabase.from('boarding_requests').select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).neq('status', 'pending').order('created_at', { ascending: false }).limit(20),
+    ])
+    setBoardings([...(pendingData || []), ...(otherData || [])])
     setLoadingBoardings(false)
   }
 
