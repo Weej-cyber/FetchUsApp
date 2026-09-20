@@ -550,12 +550,13 @@ function ScheduleWalkRow({ walk, walkers, onEdit, onCancel }) {
 
 function ReadOnlyStatusBadge({ status }) {
   const map = {
-    pending:   { bg: '#FEF9C3', text: '#92400E', label: 'Pending' },
-    assigned:  { bg: '#D1FAE5', text: '#065F46', label: 'Confirmed' },
-    confirmed: { bg: '#E3EAF2', text: '#1F3A5F', label: 'In Progress' },
-    completed: { bg: '#F0F0F0', text: '#636e72', label: 'Completed' },
-    declined:  { bg: '#FEE2E2', text: '#991B1B', label: 'Declined' },
-    cancelled: { bg: '#FEE2E2', text: '#991B1B', label: 'Cancelled' },
+    pending:     { bg: '#FEF9C3', text: '#92400E', label: 'Pending' },
+    assigned:    { bg: '#D1FAE5', text: '#065F46', label: 'Confirmed' },
+    confirmed:   { bg: '#D1FAE5', text: '#065F46', label: 'Confirmed' },
+    in_progress: { bg: '#E3EAF2', text: '#1F3A5F', label: 'In Progress' },
+    completed:   { bg: '#F0F0F0', text: '#636e72', label: 'Completed' },
+    declined:    { bg: '#FEE2E2', text: '#991B1B', label: 'Declined' },
+    cancelled:   { bg: '#FEE2E2', text: '#991B1B', label: 'Cancelled' },
   }
   const s = map[status] || map.pending
   return (

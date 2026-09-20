@@ -170,6 +170,22 @@ function ActiveWalkScreen({ walk, onComplete, onBack }) {
       </div>
 
       <div style={{ padding: '24px 20px 48px' }}>
+        {(walk.dog_medical_needs || walk.dog_behavioral_notes || walk.access_instructions) && (
+          <div style={{ background: '#FFF8E1', border: '1.5px solid #F0C040', borderRadius: 14, padding: 16, marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#92400E', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              Good to know
+            </label>
+            {walk.dog_medical_needs && (
+              <div style={{ fontSize: '0.88rem', color: '#4B3B0A', marginBottom: 6 }}><strong>Medical:</strong> {walk.dog_medical_needs}</div>
+            )}
+            {walk.dog_behavioral_notes && (
+              <div style={{ fontSize: '0.88rem', color: '#4B3B0A', marginBottom: 6 }}><strong>Behavior:</strong> {walk.dog_behavioral_notes}</div>
+            )}
+            {walk.access_instructions && (
+              <div style={{ fontSize: '0.88rem', color: '#4B3B0A' }}><strong>Access:</strong> {walk.access_instructions}</div>
+            )}
+          </div>
+        )}
         <div style={{ background: 'white', borderRadius: 14, padding: 18, boxShadow: '0 2px 12px rgba(45,52,54,0.08)', marginBottom: 14 }}>
           <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: C.light, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
             Walk Notes <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(sent to pet parent on complete)</span>
@@ -260,7 +276,7 @@ export function WalkerDashboard() {
       supabase.from('walk_requests').select('*, dogs(name), clients(id, user_id, users(name, phone, sms_consent))').eq('assigned_walker_id', user.id).eq('preferred_date', today).in('status', ['assigned', 'confirmed', 'in_progress']).order('preferred_time', { ascending: true }),
       supabase.from('walk_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).gte('preferred_date', tomorrowStr).in('status', ['assigned', 'confirmed']).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }),
       supabase.from('walks').select('*').eq('walker_id', user.id).not('completed_at', 'is', null).order('completed_at', { ascending: false }).limit(5),
-      supabase.from('walks').select('*, walk_requests(dogs(name), clients(id, user_id, users(name, phone, sms_consent)))').eq('walker_id', user.id).is('completed_at', null).not('started_at', 'is', null).order('started_at', { ascending: true }),
+      supabase.from('walks').select('*, walk_requests(dogs(name, medical_needs, behavioral_notes), clients(id, user_id, access_instructions, users(name, phone, sms_consent)))').eq('walker_id', user.id).is('completed_at', null).not('started_at', 'is', null).order('started_at', { ascending: true }),
       supabase.from('boarding_requests').select('*, dogs(name), clients(users(name))').eq('assigned_walker_id', user.id).in('status', ['assigned', 'confirmed']).order('check_in_date', { ascending: true }),
       supabase.from('users').select('phone, sms_consent').eq('id', user.id).single(),
     ])
@@ -273,10 +289,13 @@ export function WalkerDashboard() {
     setActiveWalks((activeData || []).map(w => ({
       ...w,
       dog_name: w.walk_requests?.dogs?.name,
+      dog_medical_needs: w.walk_requests?.dogs?.medical_needs || null,
+      dog_behavioral_notes: w.walk_requests?.dogs?.behavioral_notes || null,
       client_name: w.walk_requests?.clients?.users?.name,
       client_id: w.walk_requests?.clients?.id || null,
       client_user_id: w.walk_requests?.clients?.user_id || null,
       client_phone: w.walk_requests?.clients?.users?.phone || null,
+      access_instructions: w.walk_requests?.clients?.access_instructions || null,
       sms_consent: w.walk_requests?.clients?.users?.sms_consent || false,
     })))
     setLoading(false)

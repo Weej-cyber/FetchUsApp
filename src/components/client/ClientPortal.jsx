@@ -64,12 +64,13 @@ const Icon = {
 
 function StatusBadge({ status }) {
   const map = {
-    pending:   { bg: C.yellowBg, text: C.yellow, label: 'Pending' },
-    assigned:  { bg: C.greenBg, text: C.green, label: 'Confirmed' },
-    confirmed: { bg: C.purpleBg, text: C.purple, label: 'In Progress' },
-    completed: { bg: '#F0F0F0', text: C.light, label: 'Completed' },
-    declined:  { bg: C.redBg, text: C.red, label: 'Declined' },
-    cancelled: { bg: C.redBg, text: C.red, label: 'Cancelled' },
+    pending:     { bg: C.yellowBg, text: C.yellow, label: 'Pending' },
+    assigned:    { bg: C.greenBg, text: C.green, label: 'Confirmed' },
+    confirmed:   { bg: C.greenBg, text: C.green, label: 'Confirmed' },
+    in_progress: { bg: C.purpleBg, text: C.purple, label: 'In Progress' },
+    completed:   { bg: '#F0F0F0', text: C.light, label: 'Completed' },
+    declined:    { bg: C.redBg, text: C.red, label: 'Declined' },
+    cancelled:   { bg: C.redBg, text: C.red, label: 'Cancelled' },
   }
   const s = map[status] || map.pending
   return (
