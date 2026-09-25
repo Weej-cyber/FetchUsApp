@@ -583,39 +583,36 @@ function ClientReadOnlyView({ userId, onBack }) {
   const [bookSubmitted, setBookSubmitted] = useState(false)
   const [bookError, setBookError] = useState(null)
 
-  const [editingSecondary, setEditingSecondary] = useState(false)
-  const [secondaryForm, setSecondaryForm] = useState({ secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
-  const [savingSecondary, setSavingSecondary] = useState(false)
-
-  const [editingProfile, setEditingProfile] = useState(false)
+  const [editing, setEditing] = useState(false)
   const [profileForm, setProfileForm] = useState({ name: '', phone: '', address: '', access_instructions: '' })
-  const [savingProfile, setSavingProfile] = useState(false)
-  const [profileError, setProfileError] = useState(null)
-
-  const [editingEmail, setEditingEmail] = useState(false)
-  const [confirmingEmail, setConfirmingEmail] = useState(false)
   const [newEmail, setNewEmail] = useState('')
-  const [savingEmail, setSavingEmail] = useState(false)
-  const [emailError, setEmailError] = useState(null)
+  const [secondaryForm, setSecondaryForm] = useState({ secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+  const [confirmingEmail, setConfirmingEmail] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
   const [emailChanged, setEmailChanged] = useState(false)
+
+  function fillForms(row) {
+    setProfileForm({
+      name: row?.users?.name || '',
+      phone: row?.users?.phone || '',
+      address: row?.address || '',
+      access_instructions: row?.access_instructions || '',
+    })
+    setNewEmail(row?.users?.email || '')
+    setSecondaryForm({
+      secondary_name: row?.secondary_name || '',
+      secondary_phone: row?.secondary_phone || '',
+      secondary_email: row?.secondary_email || '',
+      secondary_sms_consent: row?.secondary_sms_consent || false,
+    })
+  }
 
   async function loadAll() {
     setLoading(true)
     const { data: clientRow } = await supabase.from('clients').select('id, address, access_instructions, user_id, secondary_name, secondary_phone, secondary_email, secondary_sms_consent, users(name, email, phone, sms_consent)').eq('user_id', userId).single()
     setProfile(clientRow)
-    setSecondaryForm({
-      secondary_name: clientRow?.secondary_name || '',
-      secondary_phone: clientRow?.secondary_phone || '',
-      secondary_email: clientRow?.secondary_email || '',
-      secondary_sms_consent: clientRow?.secondary_sms_consent || false,
-    })
-    setProfileForm({
-      name: clientRow?.users?.name || '',
-      phone: clientRow?.users?.phone || '',
-      address: clientRow?.address || '',
-      access_instructions: clientRow?.access_instructions || '',
-    })
-    setNewEmail(clientRow?.users?.email || '')
+    fillForms(clientRow)
     const cId = clientRow?.id
     setClientId(cId)
     if (!cId) { setLoading(false); return }
@@ -654,63 +651,66 @@ function ClientReadOnlyView({ userId, onBack }) {
     }, 2000)
   }
 
-  async function saveSecondaryContact() {
-    if (!clientId) return
-    setSavingSecondary(true)
-    const { error } = await supabase.from('clients').update({
-      secondary_name: secondaryForm.secondary_name.trim() || null,
-      secondary_phone: secondaryForm.secondary_phone.trim() || null,
-      secondary_email: secondaryForm.secondary_email.trim() || null,
-      secondary_sms_consent: secondaryForm.secondary_sms_consent,
-      secondary_sms_consent_at: secondaryForm.secondary_sms_consent ? new Date().toISOString() : null,
-    }).eq('id', clientId)
-    setSavingSecondary(false)
-    if (!error) {
-      setEditingSecondary(false)
-      loadAll()
-    }
+  function cancelEdit() {
+    fillForms(profile)
+    setConfirmingEmail(false)
+    setSaveError(null)
+    setEditing(false)
   }
 
-  async function saveProfile() {
-    if (!clientId) return
-    setSavingProfile(true)
-    setProfileError(null)
+  // One Save for everything about the client. A login email change is
+  // consequential, so it gets a confirm step before anything is written.
+  async function saveClient() {
+    if (!clientId || !profileForm.name.trim()) return
+    const emailIsChanging = newEmail.trim() && newEmail.trim().toLowerCase() !== (profile?.users?.email || '').toLowerCase()
+    if (emailIsChanging && !confirmingEmail) { setConfirmingEmail(true); return }
+    setSaving(true)
+    setSaveError(null)
+
+    const consentChanged = secondaryForm.secondary_sms_consent !== (profile?.secondary_sms_consent || false)
     const { error: userErr } = await supabase.from('users')
       .update({ name: profileForm.name.trim(), phone: profileForm.phone.trim() || null })
       .eq('id', userId)
     const { error: clientErr } = await supabase.from('clients')
-      .update({ address: profileForm.address.trim() || null, access_instructions: profileForm.access_instructions.trim() || null })
+      .update({
+        address: profileForm.address.trim() || null,
+        access_instructions: profileForm.access_instructions.trim() || null,
+        secondary_name: secondaryForm.secondary_name.trim() || null,
+        secondary_phone: secondaryForm.secondary_phone.trim() || null,
+        secondary_email: secondaryForm.secondary_email.trim() || null,
+        secondary_sms_consent: secondaryForm.secondary_sms_consent,
+        ...(consentChanged && { secondary_sms_consent_at: secondaryForm.secondary_sms_consent ? new Date().toISOString() : null }),
+      })
       .eq('id', clientId)
-    setSavingProfile(false)
     if (userErr || clientErr) {
-      setProfileError('Something went wrong saving those changes. Please try again.')
-      return
-    }
-    setEditingProfile(false)
-    loadAll()
-  }
-
-  async function saveEmail() {
-    if (!confirmingEmail) { setConfirmingEmail(true); return }
-    setSavingEmail(true)
-    setEmailError(null)
-    const { data, error } = await supabase.functions.invoke('update-client-email', {
-      body: { user_id: userId, new_email: newEmail.trim() },
-    })
-    setSavingEmail(false)
-    if (error || data?.error) {
-      let realMessage = data?.error
-      if (!realMessage && error?.context) {
-        try { realMessage = (await error.context.json())?.error } catch { /* not JSON */ }
-      }
-      setEmailError(realMessage || error?.message || 'Something went wrong. Please try again.')
+      setSaving(false)
       setConfirmingEmail(false)
+      setSaveError('Something went wrong saving those changes. Please try again.')
       return
     }
-    setEditingEmail(false)
+
+    if (emailIsChanging) {
+      const { data, error } = await supabase.functions.invoke('update-client-email', {
+        body: { user_id: userId, new_email: newEmail.trim() },
+      })
+      if (error || data?.error) {
+        let realMessage = data?.error
+        if (!realMessage && error?.context) {
+          try { realMessage = (await error.context.json())?.error } catch { /* not JSON */ }
+        }
+        setSaving(false)
+        setConfirmingEmail(false)
+        setSaveError(`Other changes saved, but the email was not changed: ${realMessage || error?.message || 'please try again.'}`)
+        loadAll()
+        return
+      }
+      setEmailChanged(true)
+      setTimeout(() => setEmailChanged(false), 3000)
+    }
+
+    setSaving(false)
     setConfirmingEmail(false)
-    setEmailChanged(true)
-    setTimeout(() => setEmailChanged(false), 3000)
+    setEditing(false)
     loadAll()
   }
 
@@ -723,7 +723,7 @@ function ClientReadOnlyView({ userId, onBack }) {
       </div>
       <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '0.85rem', fontWeight: 700, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8 }}>
         <Eye size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
-        Viewing as {profile?.users?.name ?? 'this client'} — Read-only, except booking a walk on their behalf.
+        Viewing as {profile?.users?.name ?? 'this client'}. You can edit their info and dogs, and book a walk for them.
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -783,21 +783,39 @@ function ClientReadOnlyView({ userId, onBack }) {
         )}
       </div>
 
-      <SectionHeader title="Profile" />
+      <SectionHeader title="Client Info" />
       <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 20 }}>
-
-        {!editingProfile ? (
+        {emailChanged && <div style={{ fontSize: '0.85rem', color: '#0F5C4E', fontWeight: 700, marginBottom: 12 }}>Email updated. They'll now log in with the new address.</div>}
+        {!editing ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436', marginBottom: 6 }}>{profile?.users?.name}</div>
-                {profile?.users?.phone && <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile.users.phone} {profile.users.sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
-                {profile?.address && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile.address}</div>}
-                {profile?.access_instructions && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Access notes: </span>{profile.access_instructions}</div>}
-              </div>
-              <button onClick={() => setEditingProfile(true)} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>Edit</button>
+            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436', marginBottom: 6 }}>{profile?.users?.name}</div>
+            {profile?.users?.phone && <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile.users.phone} {profile.users.sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
+            {profile?.address && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile.address}</div>}
+            {profile?.access_instructions && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Access notes: </span>{profile.access_instructions}</div>}
+            <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}><span style={{ fontWeight: 700 }}>Login email: </span>{profile?.users?.email}</div>
+            <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>
+              <span style={{ fontWeight: 700 }}>Second contact: </span>
+              {profile?.secondary_name
+                ? <>{profile.secondary_name}{profile.secondary_phone && ` · ${profile.secondary_phone} ${profile.secondary_sms_consent ? '(SMS consent on)' : '(SMS consent off)'}`}{profile.secondary_email && ` · ${profile.secondary_email}`}</>
+                : 'None on file'}
             </div>
+            <button onClick={() => setEditing(true)} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 16 }}>
+              Edit Client Info
+            </button>
           </>
+        ) : confirmingEmail ? (
+          <div>
+            <div style={{ background: '#FFF8E7', border: '1.5px solid #D4A843', borderRadius: 10, padding: 12, marginBottom: 10 }}>
+              <div style={{ fontSize: '0.83rem', color: '#2D3436', marginBottom: 8 }}>
+                This changes their login. They'll only be able to sign in using this new address from now on. Double-check it's correct:
+              </div>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: '#182B4A', wordBreak: 'break-all' }}>{newEmail}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={saveClient} disabled={saving} style={{ ...saveBtnStyle, flex: 1, background: '#D4A843' }}>{saving ? 'Saving...' : 'Yes, Save Changes'}</button>
+              <button onClick={() => setConfirmingEmail(false)} style={cancelBtnStyle}>Go Back</button>
+            </div>
+          </div>
         ) : (
           <div>
             <div style={{ marginBottom: 8 }}>
@@ -812,100 +830,40 @@ function ClientReadOnlyView({ userId, onBack }) {
               <label style={labelStyle}>Address</label>
               <input style={inputStyle} value={profileForm.address} onChange={e => setProfileForm({ ...profileForm, address: e.target.value })} placeholder="123 Main St, City, State" />
             </div>
-            <div style={{ marginBottom: 10 }}>
+            <div style={{ marginBottom: 8 }}>
               <label style={labelStyle}>Access Notes</label>
               <input style={inputStyle} value={profileForm.access_instructions} onChange={e => setProfileForm({ ...profileForm, access_instructions: e.target.value })} placeholder="Gate code, where to find the leash, etc." />
             </div>
-            {profileError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 10, fontWeight: 600 }}>{profileError}</div>}
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Login Email</label>
+              <input type="email" style={inputStyle} value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="jane@email.com" />
+            </div>
+
+            <div style={{ fontWeight: 700, color: '#2D3436', marginBottom: 8 }}>Second Contact</div>
+            <div style={{ marginBottom: 8 }}>
+              <label style={labelStyle}>Name</label>
+              <input style={inputStyle} value={secondaryForm.secondary_name} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_name: e.target.value })} placeholder="Second parent's name" />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label style={labelStyle}>Phone</label>
+              <input style={inputStyle} value={secondaryForm.secondary_phone} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_phone: e.target.value })} placeholder="(555) 000-0000" />
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={labelStyle}>Email (optional)</label>
+              <input type="email" style={inputStyle} value={secondaryForm.secondary_email} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_email: e.target.value })} placeholder="jane@email.com" />
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#2D3436', marginBottom: 12, cursor: 'pointer' }}>
+              <input type="checkbox" checked={secondaryForm.secondary_sms_consent} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_sms_consent: e.target.checked })} />
+              This person has consented to receive SMS updates
+            </label>
+
+            {saveError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 10, fontWeight: 600 }}>{saveError}</div>}
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={saveProfile} disabled={savingProfile} style={{ ...saveBtnStyle, flex: 1 }}>{savingProfile ? 'Saving...' : 'Save'}</button>
-              <button onClick={() => { setEditingProfile(false); setProfileError(null); setProfileForm({ name: profile?.users?.name || '', phone: profile?.users?.phone || '', address: profile?.address || '', access_instructions: profile?.access_instructions || '' }) }} style={cancelBtnStyle}>Cancel</button>
+              <button onClick={saveClient} disabled={saving || !profileForm.name.trim()} style={{ ...saveBtnStyle, flex: 1 }}>{saving ? 'Saving...' : 'Save'}</button>
+              <button onClick={cancelEdit} style={cancelBtnStyle}>Cancel</button>
             </div>
           </div>
         )}
-
-        <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 14, paddingTop: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: editingEmail ? 10 : 0 }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Login Email</div>
-            {!editingEmail && !emailChanged && (
-              <button onClick={() => { setEditingEmail(true); setNewEmail(profile?.users?.email || '') }} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}>Change</button>
-            )}
-          </div>
-          {emailChanged ? (
-            <div style={{ fontSize: '0.85rem', color: '#0F5C4E', fontWeight: 700, marginTop: 6 }}>Email updated — they'll now log in with the new address.</div>
-          ) : !editingEmail ? (
-            <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile?.users?.email}</div>
-          ) : !confirmingEmail ? (
-            <div>
-              <input type="email" style={inputStyle} value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="jane@email.com" />
-              {emailError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginTop: 10, fontWeight: 600 }}>{emailError}</div>}
-              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                <button onClick={saveEmail} disabled={!newEmail.trim()} style={{ ...saveBtnStyle, flex: 1 }}>Review Change</button>
-                <button onClick={() => { setEditingEmail(false); setEmailError(null) }} style={cancelBtnStyle}>Cancel</button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div style={{ background: '#FFF8E7', border: '1.5px solid #D4A843', borderRadius: 10, padding: 12, marginTop: 8, marginBottom: 10 }}>
-                <div style={{ fontSize: '0.83rem', color: '#2D3436', marginBottom: 8 }}>
-                  This changes their login — they'll only be able to sign in using this new address from now on. Double-check it's correct:
-                </div>
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#182B4A', wordBreak: 'break-all' }}>{newEmail}</div>
-              </div>
-              {emailError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 10, fontWeight: 600 }}>{emailError}</div>}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={saveEmail} disabled={savingEmail} style={{ ...saveBtnStyle, flex: 1, background: '#D4A843' }}>{savingEmail ? 'Saving...' : 'Yes, Change It'}</button>
-                <button onClick={() => setConfirmingEmail(false)} style={cancelBtnStyle}>Go Back</button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 14, paddingTop: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: editingSecondary ? 10 : 0 }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Second Contact</div>
-            {!editingSecondary && (
-              <button onClick={() => setEditingSecondary(true)} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}>
-                {profile?.secondary_name ? 'Edit' : '+ Add'}
-              </button>
-            )}
-          </div>
-
-          {!editingSecondary ? (
-            profile?.secondary_name ? (
-              <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>
-                <div style={{ fontWeight: 700, color: '#2D3436' }}>{profile.secondary_name}</div>
-                {profile.secondary_phone && <div>{profile.secondary_phone} {profile.secondary_sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
-                {profile.secondary_email && <div>{profile.secondary_email}</div>}
-              </div>
-            ) : (
-              <div style={{ fontSize: '0.82rem', color: '#b2bec3', marginTop: 6 }}>No second contact on file.</div>
-            )
-          ) : (
-            <div>
-              <div style={{ marginBottom: 8 }}>
-                <label style={labelStyle}>Name</label>
-                <input style={inputStyle} value={secondaryForm.secondary_name} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_name: e.target.value })} placeholder="Second parent's name" />
-              </div>
-              <div style={{ marginBottom: 8 }}>
-                <label style={labelStyle}>Phone</label>
-                <input style={inputStyle} value={secondaryForm.secondary_phone} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_phone: e.target.value })} placeholder="(555) 000-0000" />
-              </div>
-              <div style={{ marginBottom: 10 }}>
-                <label style={labelStyle}>Email (optional)</label>
-                <input type="email" style={inputStyle} value={secondaryForm.secondary_email} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_email: e.target.value })} placeholder="jane@email.com" />
-              </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#2D3436', marginBottom: 12, cursor: 'pointer' }}>
-                <input type="checkbox" checked={secondaryForm.secondary_sms_consent} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_sms_consent: e.target.checked })} />
-                This person has consented to receive SMS updates
-              </label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={saveSecondaryContact} disabled={savingSecondary} style={{ ...saveBtnStyle, flex: 1 }}>{savingSecondary ? 'Saving...' : 'Save'}</button>
-                <button onClick={() => { setEditingSecondary(false); setSecondaryForm({ secondary_name: profile?.secondary_name || '', secondary_phone: profile?.secondary_phone || '', secondary_email: profile?.secondary_email || '', secondary_sms_consent: profile?.secondary_sms_consent || false }) }} style={cancelBtnStyle}>Cancel</button>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       <SectionHeader title={`Dogs (${dogs.length})`} />
