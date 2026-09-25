@@ -908,12 +908,7 @@ function ClientReadOnlyView({ userId, onBack }) {
         </div>
       </div>
 
-      <SectionHeader
-        title={`Dogs (${dogs.length})`}
-        action={!showDogForm && clientId && (
-          <button onClick={() => { setEditingDog(null); setShowDogForm(true) }} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}>+ Add</button>
-        )}
-      />
+      <SectionHeader title={`Dogs (${dogs.length})`} />
       {showDogForm && (
         <DogForm
           key={editingDog?.id || 'new'}
@@ -936,6 +931,11 @@ function ClientReadOnlyView({ userId, onBack }) {
           <div style={{ fontSize: '0.75rem', color: '#636e72', paddingTop: 2 }}>tap to edit</div>
         </div>
       ))}
+      {!showDogForm && clientId && (
+        <button onClick={() => { setEditingDog(null); setShowDogForm(true) }} style={{ width: '100%', background: 'white', border: `2px dashed ${C.indigo}`, borderRadius: 12, padding: '12px', color: C.indigo, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginBottom: 12 }}>
+          + Add Dog
+        </button>
+      )}
 
       <SectionHeader title={`Walk Requests (${walks.length})`} />
       {walks.length === 0 ? <EmptyState message="No walk requests." /> : walks.map(w => (
