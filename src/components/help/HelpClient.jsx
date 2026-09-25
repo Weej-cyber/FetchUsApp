@@ -36,6 +36,7 @@ export default function HelpClient() {
       <Section color="#A14B5C" title="Dogs" items={[
         { name: 'My Dogs', desc: 'See all your pets on file, with their photo and details.' },
         { name: '+ Add Dog', desc: "Add a new dog's name, breed, age, and any behavioral or medical notes your walker should know." },
+        { name: 'Remove Dog', desc: 'Tap a dog, then Remove Dog. Its upcoming walks, boardings, and recurring walks are canceled. Past walks keep its name.' },
       ]} />
 
       <Section color="#2D9B8A" title="Book" items={[

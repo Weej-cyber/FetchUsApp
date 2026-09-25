@@ -160,7 +160,7 @@ export default function ClientPortal() {
     if (clientData) {
       setClientId(clientData.id)
       setProfile({ name: userData?.name || '', email: userData?.email || user.email || '', phone: userData?.phone || '', address: clientData.address || '', access_instructions: clientData.access_instructions || '', sms_consent: userData?.sms_consent || false })
-      const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', clientData.id).order('name')
+      const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', clientData.id).eq('is_active', true).order('name')
       setDogs(dogList || [])
       const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name), walks(photo_url, duration)').eq('client_id', clientData.id).order('preferred_date', { ascending: false }).limit(10)
       setWalks(walkList || [])

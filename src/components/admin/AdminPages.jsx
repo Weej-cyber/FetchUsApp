@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
-import DogForm from '../shared/DogForm'
+import { DogFields, dogDraft, saveDog, removeDog, removeBtnStyle, REMOVE_WARNING } from '../shared/DogForm'
 import jsPDF from 'jspdf'
 import { COLORS as C } from '../../theme'
 
@@ -85,7 +85,7 @@ function EditWalkPanel({ walk, walkers, onSave, onClose }) {
   useEffect(() => {
     let active = true
     async function loadDogs() {
-      const { data } = await supabase.from('dogs').select('id, name').eq('client_id', walk.client_id)
+      const { data } = await supabase.from('dogs').select('id, name').eq('client_id', walk.client_id).or(walk.dog_id ? `is_active.eq.true,id.eq.${walk.dog_id}` : 'is_active.eq.true')
       if (active) setDogOptions(data || [])
     }
     if (walk.client_id) loadDogs()
@@ -181,7 +181,7 @@ function EditBoardingPanel({ req, walkers, onSave, onClose }) {
   useEffect(() => {
     let active = true
     async function loadDogs() {
-      const { data } = await supabase.from('dogs').select('id, name').eq('client_id', req.client_id)
+      const { data } = await supabase.from('dogs').select('id, name').eq('client_id', req.client_id).or(req.dog_id ? `is_active.eq.true,id.eq.${req.dog_id}` : 'is_active.eq.true')
       if (active) setDogOptions(data || [])
     }
     if (req.client_id) loadDogs()
@@ -411,7 +411,7 @@ function ScheduleSection({ walkers }) {
   useEffect(() => { loadWalks(); loadClientOptions() }, [])
 
   async function loadClientOptions() {
-    const { data } = await supabase.from('clients').select('id, users(name), dogs(id, name)').eq('users.is_active', true).order('id')
+    const { data } = await supabase.from('clients').select('id, users(name), dogs(id, name)').eq('users.is_active', true).eq('dogs.is_active', true).order('id')
     setClientOptions((data || []).filter(c => c.users).map(c => ({ id: c.id, name: c.users.name, dogs: c.dogs || [] })))
   }
 
@@ -574,8 +574,7 @@ function ClientReadOnlyView({ userId, onBack }) {
   const [dogs, setDogs] = useState([])
   const [walks, setWalks] = useState([])
   const [boardings, setBoardings] = useState([])
-  const [showDogForm, setShowDogForm] = useState(false)
-  const [editingDog, setEditingDog] = useState(null)
+  const [dogDrafts, setDogDrafts] = useState([])
 
   const [showBook, setShowBook] = useState(false)
   const [bookForm, setBookForm] = useState({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' })
@@ -616,17 +615,13 @@ function ClientReadOnlyView({ userId, onBack }) {
     const cId = clientRow?.id
     setClientId(cId)
     if (!cId) { setLoading(false); return }
-    await loadDogs(cId)
+    const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', cId).eq('is_active', true).order('name')
+    setDogs(dogList || [])
     const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name)').eq('client_id', cId).order('preferred_date', { ascending: false })
     setWalks(walkList || [])
     const { data: boardingList } = await supabase.from('boarding_requests').select('*, dogs(name)').eq('client_id', cId).order('check_in_date', { ascending: false })
     setBoardings(boardingList || [])
     setLoading(false)
-  }
-
-  async function loadDogs(cId) {
-    const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', cId).order('name')
-    setDogs(dogList || [])
   }
 
   useEffect(() => { loadAll() }, [userId])
@@ -651,8 +646,15 @@ function ClientReadOnlyView({ userId, onBack }) {
     }, 2000)
   }
 
+  function startEdit() {
+    fillForms(profile)
+    setDogDrafts(dogs.map(dogDraft))
+    setEditing(true)
+  }
+
   function cancelEdit() {
     fillForms(profile)
+    setDogDrafts([])
     setConfirmingEmail(false)
     setSaveError(null)
     setEditing(false)
@@ -662,6 +664,10 @@ function ClientReadOnlyView({ userId, onBack }) {
   // consequential, so it gets a confirm step before anything is written.
   async function saveClient() {
     if (!clientId || !profileForm.name.trim()) return
+    // A brand-new dog left completely blank is ignored; any other dog needs a name.
+    const dogsToRemove = dogDrafts.filter(d => d.remove)
+    const dogsToSave = dogDrafts.filter(d => !d.remove).filter(d => d.id || d.photoFile || Object.entries(d.form).some(([k, v]) => k !== 'photo_url' && String(v).trim()))
+    if (dogsToSave.some(d => !d.form.name.trim())) { setSaveError('Every dog needs a name.'); return }
     const emailIsChanging = newEmail.trim() && newEmail.trim().toLowerCase() !== (profile?.users?.email || '').toLowerCase()
     if (emailIsChanging && !confirmingEmail) { setConfirmingEmail(true); return }
     setSaving(true)
@@ -687,6 +693,27 @@ function ClientReadOnlyView({ userId, onBack }) {
       setConfirmingEmail(false)
       setSaveError('Something went wrong saving those changes. Please try again.')
       return
+    }
+
+    for (const draft of dogsToSave) {
+      const dogErr = await saveDog(clientId, draft)
+      if (dogErr) {
+        console.error('Save dog failed:', dogErr)
+        setSaving(false)
+        setConfirmingEmail(false)
+        setSaveError(`Client details saved, but ${draft.form.name.trim()} could not be saved. Please try again.`)
+        return
+      }
+    }
+    for (const draft of dogsToRemove) {
+      const dogErr = await removeDog(draft.id)
+      if (dogErr) {
+        console.error('Remove dog failed:', dogErr)
+        setSaving(false)
+        setConfirmingEmail(false)
+        setSaveError(`Client details saved, but ${draft.form.name} could not be removed. Please try again.`)
+        return
+      }
     }
 
     if (emailIsChanging) {
@@ -783,7 +810,7 @@ function ClientReadOnlyView({ userId, onBack }) {
         )}
       </div>
 
-      <SectionHeader title="Client Info" />
+      <SectionHeader title="Client Profile" />
       <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 20 }}>
         {emailChanged && <div style={{ fontSize: '0.85rem', color: '#0F5C4E', fontWeight: 700, marginBottom: 12 }}>Email updated. They'll now log in with the new address.</div>}
         {!editing ? (
@@ -799,8 +826,21 @@ function ClientReadOnlyView({ userId, onBack }) {
                 ? <>{profile.secondary_name}{profile.secondary_phone && ` · ${profile.secondary_phone} ${profile.secondary_sms_consent ? '(SMS consent on)' : '(SMS consent off)'}`}{profile.secondary_email && ` · ${profile.secondary_email}`}</>
                 : 'None on file'}
             </div>
-            <button onClick={() => setEditing(true)} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 16 }}>
-              Edit Client Info
+
+            <div style={{ fontWeight: 700, color: '#2D3436', marginTop: 16, marginBottom: 8 }}>Dogs ({dogs.length})</div>
+            {dogs.length === 0 ? <div style={{ fontSize: '0.85rem', color: '#636e72' }}>No dogs on file.</div> : dogs.map(d => (
+              <div key={d.id} style={{ display: 'flex', gap: 12, padding: '10px 0', borderTop: '1px solid #F0F0F0' }}>
+                {d.photo_url && <img src={d.photo_url} alt={d.name} style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, color: '#2D3436' }}>{d.name}{d.breed ? ` — ${d.breed}` : ''}{d.age != null ? ` · ${d.age} yrs` : ''}</div>
+                  {d.behavioral_notes && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Behavioral: </span>{d.behavioral_notes}</div>}
+                  {d.medical_needs && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Medical: </span>{d.medical_needs}</div>}
+                </div>
+              </div>
+            ))}
+
+            <button onClick={startEdit} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 16 }}>
+              Edit Client Profile
             </button>
           </>
         ) : confirmingEmail ? (
@@ -857,6 +897,32 @@ function ClientReadOnlyView({ userId, onBack }) {
               This person has consented to receive SMS updates
             </label>
 
+            <div style={{ fontWeight: 700, color: '#2D3436', marginTop: 8, marginBottom: 8 }}>Dogs</div>
+            {dogDrafts.map((draft, i) => (
+              <div key={draft.id || `new-${i}`} style={{ border: `1.5px solid ${draft.remove ? '#991B1B' : '#E0E0E0'}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+                {draft.remove ? (
+                  <>
+                    <div style={{ fontWeight: 800, color: '#991B1B', marginBottom: 6 }}>{draft.form.name} will be removed when you save.</div>
+                    <div style={{ fontSize: '0.85rem', color: '#2D3436', marginBottom: 12 }}>{REMOVE_WARNING}</div>
+                    <button onClick={() => setDogDrafts(dogDrafts.map((d, j) => j === i ? { ...d, remove: false } : d))} style={{ ...cancelBtnStyle, width: '100%' }}>Undo</button>
+                  </>
+                ) : (
+                  <>
+                    <DogFields draft={draft} onChange={next => setDogDrafts(dogDrafts.map((d, j) => j === i ? next : d))} />
+                    <button
+                      onClick={() => setDogDrafts(draft.id ? dogDrafts.map((d, j) => j === i ? { ...d, remove: true } : d) : dogDrafts.filter((_, j) => j !== i))}
+                      style={removeBtnStyle}
+                    >
+                      Remove Dog
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
+            <button onClick={() => setDogDrafts([...dogDrafts, dogDraft(null)])} style={{ width: '100%', background: 'white', border: `2px dashed ${C.indigo}`, borderRadius: 12, padding: '12px', color: C.indigo, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginBottom: 16 }}>
+              + Add Dog
+            </button>
+
             {saveError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 10, fontWeight: 600 }}>{saveError}</div>}
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={saveClient} disabled={saving || !profileForm.name.trim()} style={{ ...saveBtnStyle, flex: 1 }}>{saving ? 'Saving...' : 'Save'}</button>
@@ -865,35 +931,6 @@ function ClientReadOnlyView({ userId, onBack }) {
           </div>
         )}
       </div>
-
-      <SectionHeader title={`Dogs (${dogs.length})`} />
-      {showDogForm && (
-        <DogForm
-          key={editingDog?.id || 'new'}
-          clientId={clientId}
-          dog={editingDog}
-          onSaved={() => { setShowDogForm(false); loadDogs(clientId) }}
-          onCancel={() => setShowDogForm(false)}
-        />
-      )}
-      {dogs.length === 0 && !showDogForm ? <EmptyState message="No dogs on file." /> : dogs.map(d => (
-        <div key={d.id} onClick={() => { setEditingDog(d); setShowDogForm(true) }} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, display: 'flex', gap: 14, cursor: 'pointer' }}>
-          {d.photo_url && (
-            <img src={d.photo_url} alt={d.name} style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-          )}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, color: '#2D3436' }}>{d.name}{d.breed ? ` — ${d.breed}` : ''}</div>
-            {d.behavioral_notes && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Behavioral: </span>{d.behavioral_notes}</div>}
-            {d.medical_needs && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Medical: </span>{d.medical_needs}</div>}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#636e72', paddingTop: 2 }}>tap to edit</div>
-        </div>
-      ))}
-      {!showDogForm && clientId && (
-        <button onClick={() => { setEditingDog(null); setShowDogForm(true) }} style={{ width: '100%', background: 'white', border: `2px dashed ${C.indigo}`, borderRadius: 12, padding: '12px', color: C.indigo, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginBottom: 12 }}>
-          + Add Dog
-        </button>
-      )}
 
       <SectionHeader title={`Walk Requests (${walks.length})`} />
       {walks.length === 0 ? <EmptyState message="No walk requests." /> : walks.map(w => (
@@ -951,7 +988,7 @@ function RecurringWalkSection() {
       if (!form.client_user_id) { setDogs([]); return }
       const { data: clientRow } = await supabase.from('clients').select('id').eq('user_id', form.client_user_id).single()
       if (!clientRow) { setDogs([]); return }
-      const { data: dogList } = await supabase.from('dogs').select('id, name').eq('client_id', clientRow.id)
+      const { data: dogList } = await supabase.from('dogs').select('id, name').eq('client_id', clientRow.id).eq('is_active', true)
       setDogs(dogList || [])
     }
     loadDogs()

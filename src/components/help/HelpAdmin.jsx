@@ -51,7 +51,7 @@ export default function HelpAdmin() {
         { name: 'Client & Walker list', desc: 'See everyone using FetchUs at a glance.' },
         { name: '+ Add Walker', desc: 'Sends a walker an invite link so they can set up their own account.' },
         { name: '+ Add Pet Parent', desc: "Creates a client's account immediately — no waiting on them to register. Double-check the email, confirm, and their sign-in email is sent automatically." },
-        { name: 'View a client', desc: 'Opens their profile, dogs, and walk/boarding history. Tap "Edit Client Info" to change their details and second contact in one place, tap a dog or "+ Add Dog" to manage dogs, and book a walk for them right from this screen.' },
+        { name: 'View a client', desc: 'Opens their profile, dogs, and walk/boarding history. Tap "Edit Client Profile" to change their details, second contact, and dogs in one form, including adding or removing a dog. Removing a dog cancels its upcoming walks, boardings, and recurring walks. You can also book a walk for them right from this screen.' },
         { name: 'Deactivate / Reactivate', desc: "Move someone who's no longer active out of the main list. Fully reversible any time." },
       ]} />
 
