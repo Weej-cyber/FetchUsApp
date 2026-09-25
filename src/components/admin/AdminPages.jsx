@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
+import DogForm from '../shared/DogForm'
 import jsPDF from 'jspdf'
 import { COLORS as C } from '../../theme'
 
@@ -573,6 +574,8 @@ function ClientReadOnlyView({ userId, onBack }) {
   const [dogs, setDogs] = useState([])
   const [walks, setWalks] = useState([])
   const [boardings, setBoardings] = useState([])
+  const [showDogForm, setShowDogForm] = useState(false)
+  const [editingDog, setEditingDog] = useState(null)
 
   const [showBook, setShowBook] = useState(false)
   const [bookForm, setBookForm] = useState({ service_type: '30-min Walk', dog_id: '', preferred_date: '', preferred_time: '', notes: '' })
@@ -616,13 +619,17 @@ function ClientReadOnlyView({ userId, onBack }) {
     const cId = clientRow?.id
     setClientId(cId)
     if (!cId) { setLoading(false); return }
-    const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', cId)
-    setDogs(dogList || [])
+    await loadDogs(cId)
     const { data: walkList } = await supabase.from('walk_requests').select('*, dogs(name)').eq('client_id', cId).order('preferred_date', { ascending: false })
     setWalks(walkList || [])
     const { data: boardingList } = await supabase.from('boarding_requests').select('*, dogs(name)').eq('client_id', cId).order('check_in_date', { ascending: false })
     setBoardings(boardingList || [])
     setLoading(false)
+  }
+
+  async function loadDogs(cId) {
+    const { data: dogList } = await supabase.from('dogs').select('*').eq('client_id', cId).order('name')
+    setDogs(dogList || [])
   }
 
   useEffect(() => { loadAll() }, [userId])
@@ -901,9 +908,23 @@ function ClientReadOnlyView({ userId, onBack }) {
         </div>
       </div>
 
-      <SectionHeader title={`Dogs (${dogs.length})`} />
-      {dogs.length === 0 ? <EmptyState message="No dogs on file." /> : dogs.map(d => (
-        <div key={d.id} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, display: 'flex', gap: 14 }}>
+      <SectionHeader
+        title={`Dogs (${dogs.length})`}
+        action={!showDogForm && clientId && (
+          <button onClick={() => { setEditingDog(null); setShowDogForm(true) }} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}>+ Add</button>
+        )}
+      />
+      {showDogForm && (
+        <DogForm
+          key={editingDog?.id || 'new'}
+          clientId={clientId}
+          dog={editingDog}
+          onSaved={() => { setShowDogForm(false); loadDogs(clientId) }}
+          onCancel={() => setShowDogForm(false)}
+        />
+      )}
+      {dogs.length === 0 && !showDogForm ? <EmptyState message="No dogs on file." /> : dogs.map(d => (
+        <div key={d.id} onClick={() => { setEditingDog(d); setShowDogForm(true) }} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, display: 'flex', gap: 14, cursor: 'pointer' }}>
           {d.photo_url && (
             <img src={d.photo_url} alt={d.name} style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
           )}
@@ -912,6 +933,7 @@ function ClientReadOnlyView({ userId, onBack }) {
             {d.behavioral_notes && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Behavioral: </span>{d.behavioral_notes}</div>}
             {d.medical_needs && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Medical: </span>{d.medical_needs}</div>}
           </div>
+          <div style={{ fontSize: '0.75rem', color: '#636e72', paddingTop: 2 }}>tap to edit</div>
         </div>
       ))}
 
