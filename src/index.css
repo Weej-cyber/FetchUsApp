@@ -51,6 +51,16 @@
   .btn-secondary {
     @apply bg-cream-dark text-charcoal;
   }
+
+  /* Solid, obviously-tappable action tiles (Home screen category buttons) */
+  .action-tile {
+    transition: transform 0.1s ease, filter 0.1s ease;
+  }
+
+  .action-tile:active {
+    transform: scale(0.97);
+    filter: brightness(0.92);
+  }
   
   /* Stat boxes */
   .stat-box {

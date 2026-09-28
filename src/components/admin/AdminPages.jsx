@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
-import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale } from 'lucide-react'
+import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale, ChevronRight, Footprints } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
 import { DogFields, dogDraft, saveDog, removeDog, removeBtnStyle, REMOVE_WARNING } from '../shared/DogForm'
@@ -40,11 +40,13 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-function StatCard({ label, value, color = '#182B4A', onClick }) {
+function StatCard({ label, value, color = '#182B4A', Icon, onClick }) {
   return (
-    <button onClick={onClick} style={{ background: 'white', borderRadius: 14, padding: '18px 20px', boxShadow: '0 2px 12px rgba(45,52,54,0.08)', border: 'none', borderTop: `4px solid ${color}`, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%' }}>
-      <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1 }}>{value ?? '—'}</div>
-      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#636e72', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+    <button onClick={onClick} className="action-tile" style={{ position: 'relative', background: color, borderRadius: 16, padding: '16px 18px', border: 'none', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%', boxShadow: '0 3px 10px rgba(45,52,54,0.15)' }}>
+      <Icon size={22} color="white" strokeWidth={2.2} style={{ marginBottom: 8, opacity: 0.9 }} />
+      <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>{value ?? '—'}</div>
+      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</div>
+      <ChevronRight size={18} color="rgba(255,255,255,0.7)" style={{ position: 'absolute', top: 16, right: 14 }} />
     </button>
   )
 }
@@ -2383,6 +2385,7 @@ export default function AdminPortal() {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
+                    className="action-tile"
                     style={{
                       position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between',
                       background: item.color, border: 'none', borderRadius: 16, padding: '18px 16px', height: 92,
@@ -2399,11 +2402,11 @@ export default function AdminPortal() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
-                <StatCard label="Walks Today" value={stats.walksToday} color="#182B4A" onClick={() => setHomeView('walks-today')} />
-                <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" onClick={() => setHomeView('pending-requests')} />
-                <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#D4A843" onClick={() => setHomeView('pending-boardings')} />
-                <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" onClick={() => setActiveTab('people')} />
-                <StatCard label="Walkers" value={stats.walkers} color="#636e72" onClick={() => setActiveTab('people')} />
+                <StatCard label="Walks Today" value={stats.walksToday} color="#182B4A" Icon={Calendar} onClick={() => setHomeView('walks-today')} />
+                <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" Icon={ClipboardList} onClick={() => setHomeView('pending-requests')} />
+                <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#B8860B" Icon={Home} onClick={() => setHomeView('pending-boardings')} />
+                <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" Icon={Users} onClick={() => setActiveTab('people')} />
+                <StatCard label="Walkers" value={stats.walkers} color="#636e72" Icon={Footprints} onClick={() => setActiveTab('people')} />
               </div>
 
               {activity.length > 0 && (
