@@ -40,12 +40,12 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-function StatCard({ label, value, color = '#182B4A' }) {
+function StatCard({ label, value, color = '#182B4A', onClick }) {
   return (
-    <div style={{ background: 'white', borderRadius: 14, padding: '18px 20px', boxShadow: '0 2px 12px rgba(45,52,54,0.08)', borderTop: `4px solid ${color}` }}>
+    <button onClick={onClick} style={{ background: 'white', borderRadius: 14, padding: '18px 20px', boxShadow: '0 2px 12px rgba(45,52,54,0.08)', border: 'none', borderTop: `4px solid ${color}`, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%' }}>
       <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1 }}>{value ?? '—'}</div>
       <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#636e72', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-    </div>
+    </button>
   )
 }
 
@@ -546,6 +546,50 @@ function ScheduleWalkRow({ walk, walkers, onEdit, onCancel }) {
       </div>
       {showEdit && <EditWalkPanel walk={walk} walkers={walkers} onSave={onEdit} onClose={() => setShowEdit(false)} />}
     </div>
+  )
+}
+
+// Dedicated "Walks Today" screen reached from the Home stat card — shows only
+// today's walks, each row fully actionable (Edit/Cancel) via the same
+// ScheduleWalkRow used in the Schedule tab.
+function TodayWalksView({ walkers }) {
+  const [walks, setWalks] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => { loadWalks() }, [])
+
+  async function loadWalks() {
+    setLoading(true)
+    const today = new Date().toISOString().split('T')[0]
+    const { data } = await supabase.from('walk_requests')
+      .select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active)), assigned_walker:users!assigned_walker_id(name)')
+      .eq('clients.users.is_active', true)
+      .eq('preferred_date', today)
+      .not('status', 'in', '(cancelled,declined)')
+      .order('preferred_time', { ascending: true })
+    setWalks(data || [])
+    setLoading(false)
+  }
+
+  async function handleEdit(id, updates) {
+    await supabase.from('walk_requests').update(updates).eq('id', id)
+    loadWalks()
+  }
+
+  async function handleCancel(id) {
+    if (!window.confirm('Cancel this walk?')) return
+    await supabase.from('walk_requests').update({ status: 'cancelled' }).eq('id', id)
+    setWalks(prev => prev.filter(w => w.id !== id))
+  }
+
+  return (
+    <>
+      <SectionHeader title="Walks Today" />
+      {loading ? <EmptyState message="Loading..." />
+        : walks.length === 0 ? <EmptyState message="No walks scheduled for today." />
+        : walks.map(w => <ScheduleWalkRow key={w.id} walk={w} walkers={walkers} onEdit={handleEdit} onCancel={handleCancel} />)
+      }
+    </>
   )
 }
 
@@ -2081,6 +2125,7 @@ export default function AdminPortal() {
   const { signOut, setRole, user } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('home')
+  const [homeView, setHomeView] = useState(null)
   const [stats, setStats] = useState({ walksToday: null, pending: null, clients: null, walkers: null, pendingBoardings: null })
   const [requests, setRequests] = useState([])
   const [boardings, setBoardings] = useState([])
@@ -2271,11 +2316,6 @@ export default function AdminPortal() {
   const pendingBoardings = boardings.filter(b => b.status === 'pending')
   const otherBoardings = boardings.filter(b => b.status !== 'pending')
 
-  const urgentItems = [
-    ...pendingRequests.map(r => ({ kind: 'walk', id: r.id, label: `${r.dogs?.name ?? 'Unknown dog'} — ${r.service_type}`, sub: `${formatDate(r.preferred_date)} at ${r.preferred_time}`, ts: r.created_at })),
-    ...pendingBoardings.map(b => ({ kind: 'boarding', id: b.id, label: `${b.dogs?.name ?? 'Unknown dog'} — Boarding`, sub: `${formatDate(b.check_in_date)} → ${formatDate(b.check_out_date)}`, ts: b.created_at })),
-  ].sort((a, b) => new Date(b.ts) - new Date(a.ts))
-
   const TABS = [
     { id: 'home', label: 'Home', Icon: Home },
     { id: 'requests', label: 'Requests', Icon: ClipboardList, badge: pendingRequests.length + pendingBoardings.length },
@@ -2308,73 +2348,78 @@ export default function AdminPortal() {
 
       {activeTab === 'home' && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-            {[
-              { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#A14B5C', badge: pendingRequests.length + pendingBoardings.length },
-              { id: 'people', label: 'People', Icon: Users, color: '#3F7A52' },
-              { id: 'schedule', label: 'Schedule', Icon: Calendar, color: '#A8552F' },
-              { id: 'tools', label: 'Tools', Icon: Wrench, color: '#636e72' },
-            ].map(item => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                style={{
-                  position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between',
-                  background: item.color, border: 'none', borderRadius: 16, padding: '18px 16px', height: 92,
-                  cursor: 'pointer', boxShadow: '0 3px 10px rgba(45,52,54,0.15)',
-                }}
-              >
-                <item.Icon size={28} color="white" strokeWidth={2.2} />
-                <span style={{ color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem' }}>{item.label}</span>
-                {item.badge > 0 && (
-                  <span style={{ position: 'absolute', top: 12, right: 12, background: '#DC2626', color: 'white', borderRadius: 12, fontSize: '0.8rem', fontWeight: 800, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>{item.badge}</span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
-            <StatCard label="Walks Today" value={stats.walksToday} color="#182B4A" />
-            <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" />
-            <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#D4A843" />
-            <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" />
-            <StatCard label="Walkers" value={stats.walkers} color="#636e72" />
-          </div>
-
-          {urgentItems.length > 0 && (
+          {homeView ? (
             <div style={{ marginBottom: 32 }}>
-              <SectionHeader title="Needs Your Attention" />
-              <div style={{ background: 'white', borderRadius: 12, padding: '4px 0', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
-                {urgentItems.slice(0, 4).map((item, i) => (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: i < Math.min(urgentItems.length, 4) - 1 ? '1px solid #F0EDE5' : 'none' }}>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#2D3436' }}>{item.label}</div>
-                      <div style={{ fontSize: '0.78rem', color: '#636e72', marginTop: 2 }}>{item.sub}</div>
-                    </div>
-                    <span style={{ background: '#FEF9C3', color: '#92400E', padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, whiteSpace: 'nowrap' }}>Pending</span>
-                  </div>
-                ))}
-              </div>
-              {urgentItems.length > 4 && (
-                <button onClick={() => setActiveTab('requests')} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', padding: '6px' }}>
-                  View all {urgentItems.length} in Requests →
-                </button>
+              <button onClick={() => setHomeView(null)} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: '4px 0 16px' }}>← Back</button>
+              {homeView === 'walks-today' && <TodayWalksView walkers={walkers} />}
+              {homeView === 'pending-requests' && (
+                <>
+                  <SectionHeader title="Pending Requests" />
+                  {pendingRequests.length === 0
+                    ? <EmptyState message="No pending requests." />
+                    : pendingRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onEdit={handleEditWalk} onCancel={handleCancelWalkRequest} />)
+                  }
+                </>
+              )}
+              {homeView === 'pending-boardings' && (
+                <>
+                  <SectionHeader title="Pending Boardings" />
+                  {pendingBoardings.length === 0
+                    ? <EmptyState message="No pending boardings." />
+                    : pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onEdit={handleEditBoarding} onCancel={handleCancelBoarding} />)
+                  }
+                </>
               )}
             </div>
-          )}
-
-          {activity.length > 0 && (
-            <div style={{ marginBottom: 32 }}>
-              <SectionHeader title="Recent Activity" />
-              <div style={{ background: 'white', borderRadius: 12, padding: '4px 0', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
-                {activity.map((a, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: i < activity.length - 1 ? '1px solid #F0EDE5' : 'none' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#2D3436' }}>{a.label}</span>
-                    <span style={{ fontSize: '0.75rem', color: '#b2bec3', whiteSpace: 'nowrap', marginLeft: 8 }}>{timeAgo(a.ts)}</span>
-                  </div>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+                {[
+                  { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#A14B5C', badge: pendingRequests.length + pendingBoardings.length },
+                  { id: 'people', label: 'People', Icon: Users, color: '#3F7A52' },
+                  { id: 'schedule', label: 'Schedule', Icon: Calendar, color: '#A8552F' },
+                  { id: 'tools', label: 'Tools', Icon: Wrench, color: '#636e72' },
+                ].map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    style={{
+                      position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between',
+                      background: item.color, border: 'none', borderRadius: 16, padding: '18px 16px', height: 92,
+                      cursor: 'pointer', boxShadow: '0 3px 10px rgba(45,52,54,0.15)',
+                    }}
+                  >
+                    <item.Icon size={28} color="white" strokeWidth={2.2} />
+                    <span style={{ color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem' }}>{item.label}</span>
+                    {item.badge > 0 && (
+                      <span style={{ position: 'absolute', top: 12, right: 12, background: '#DC2626', color: 'white', borderRadius: 12, fontSize: '0.8rem', fontWeight: 800, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>{item.badge}</span>
+                    )}
+                  </button>
                 ))}
               </div>
-            </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
+                <StatCard label="Walks Today" value={stats.walksToday} color="#182B4A" onClick={() => setHomeView('walks-today')} />
+                <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" onClick={() => setHomeView('pending-requests')} />
+                <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#D4A843" onClick={() => setHomeView('pending-boardings')} />
+                <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" onClick={() => setActiveTab('people')} />
+                <StatCard label="Walkers" value={stats.walkers} color="#636e72" onClick={() => setActiveTab('people')} />
+              </div>
+
+              {activity.length > 0 && (
+                <div style={{ marginBottom: 32 }}>
+                  <SectionHeader title="Recent Activity" />
+                  <div style={{ background: 'white', borderRadius: 12, padding: '4px 0', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
+                    {activity.map((a, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: i < activity.length - 1 ? '1px solid #F0EDE5' : 'none' }}>
+                        <span style={{ fontSize: '0.85rem', color: '#2D3436' }}>{a.label}</span>
+                        <span style={{ fontSize: '0.75rem', color: '#b2bec3', whiteSpace: 'nowrap', marginLeft: 8 }}>{timeAgo(a.ts)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
@@ -2461,7 +2506,7 @@ export default function AdminPortal() {
         {TABS.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => { setActiveTab(tab.id); setHomeView(null) }}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               background: activeTab === tab.id ? '#E8EEF5' : 'none',
