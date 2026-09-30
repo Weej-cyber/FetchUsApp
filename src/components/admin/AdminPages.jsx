@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { DAY_SLOTS, EVENING_SLOTS } from '../../lib/timeSlots'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale, ChevronRight, Footprints } from 'lucide-react'
@@ -134,7 +135,7 @@ function EditWalkPanel({ walk, walkers, onSave, onClose }) {
           <label style={labelStyle}>Time Slot</label>
           <select style={inputStyle} value={time} onChange={e => setTime(e.target.value)}>
             <option value="">Select...</option>
-            {['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM'].map(t => <option key={t}>{t}</option>)}
+            <optgroup label="Day">{DAY_SLOTS.map(t => <option key={t}>{t}</option>)}</optgroup><optgroup label="Evening">{EVENING_SLOTS.map(t => <option key={t}>{t}</option>)}</optgroup>
           </select>
         </div>
         <div>
@@ -506,7 +507,7 @@ function ScheduleSection({ walkers }) {
             <div>
               <label style={labelStyle}>Time Slot</label>
               <select style={inputStyle} value={form.preferred_time} onChange={e => setForm({ ...form, preferred_time: e.target.value })} required>
-                <option value="">Select...</option><option>9:30 AM</option><option>11:30 AM</option><option>1:30 PM</option><option>3:30 PM</option>
+                <option value="">Select...</option><optgroup label="Day">{DAY_SLOTS.map(t => <option key={t}>{t}</option>)}</optgroup><optgroup label="Evening">{EVENING_SLOTS.map(t => <option key={t}>{t}</option>)}</optgroup>
               </select>
             </div>
           </div>
@@ -835,7 +836,7 @@ function ClientReadOnlyView({ userId, onBack }) {
                 <label style={labelStyle}>Time</label>
                 <select style={inputStyle} value={bookForm.preferred_time} onChange={e => setBookForm({ ...bookForm, preferred_time: e.target.value })}>
                   <option value="">Select a time...</option>
-                  {['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM'].map(t => <option key={t} value={t}>{t}</option>)}
+                  <optgroup label="Day">{DAY_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}</optgroup><optgroup label="Evening">{EVENING_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}</optgroup>
                 </select>
               </div>
             </div>
@@ -1132,7 +1133,7 @@ function RecurringWalkSection() {
             <div>
               <label style={labelStyle}>Time</label>
               <select style={inputStyle} value={form.preferred_time} onChange={e => setForm({ ...form, preferred_time: e.target.value })}>
-                {['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM'].map(t => <option key={t} value={t}>{t}</option>)}
+                <optgroup label="Day">{DAY_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}</optgroup><optgroup label="Evening">{EVENING_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}</optgroup>
               </select>
             </div>
             <div>

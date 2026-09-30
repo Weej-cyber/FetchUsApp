@@ -6,10 +6,10 @@ import { COLORS as C } from '../../theme'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
 import DogForm from '../shared/DogForm'
+import { DAY_SLOTS, EVENING_SLOTS } from '../../lib/timeSlots'
 import { PawPrint, CalendarPlus, Route, User } from 'lucide-react'
 
 const SERVICE_TYPES = ['30-min Walk', '60-min Walk', 'Drop-In Visit']
-const TIME_SLOTS = ['9:30 AM', '11:30 AM', '1:30 PM', '3:30 PM']
 
 const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
 const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '0.9rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box', background: 'white' }
@@ -471,8 +471,18 @@ export default function ClientPortal() {
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Preferred Time</label>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b2bec3', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '2px 0 6px' }}>Day</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+              {DAY_SLOTS.map(slot => (
+                <button key={slot} type="button" onClick={() => setBookForm({ ...bookForm, preferred_time: slot })}
+                  style={{ border: bookForm.preferred_time === slot ? `2px solid ${C.teal}` : '2px solid #E0E0E0', background: bookForm.preferred_time === slot ? '#ECFDF5' : 'white', color: bookForm.preferred_time === slot ? C.green : C.light, borderRadius: 8, padding: '9px', fontSize: '0.85rem', fontWeight: bookForm.preferred_time === slot ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {slot}
+                </button>
+              ))}
+            </div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b2bec3', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '2px 0 6px' }}>Evening</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {TIME_SLOTS.map(slot => (
+              {EVENING_SLOTS.map(slot => (
                 <button key={slot} type="button" onClick={() => setBookForm({ ...bookForm, preferred_time: slot })}
                   style={{ border: bookForm.preferred_time === slot ? `2px solid ${C.teal}` : '2px solid #E0E0E0', background: bookForm.preferred_time === slot ? '#ECFDF5' : 'white', color: bookForm.preferred_time === slot ? C.green : C.light, borderRadius: 8, padding: '9px', fontSize: '0.85rem', fontWeight: bookForm.preferred_time === slot ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   {slot}
@@ -549,7 +559,12 @@ export default function ClientPortal() {
             <label style={labelStyle}>Time</label>
             <select style={inputStyle} value={recurringForm.preferred_time} onChange={e => setRecurringForm({ ...recurringForm, preferred_time: e.target.value })}>
               <option value="">Select a time...</option>
-              {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+              <optgroup label="Day">
+                {DAY_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+              </optgroup>
+              <optgroup label="Evening">
+                {EVENING_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+              </optgroup>
             </select>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
