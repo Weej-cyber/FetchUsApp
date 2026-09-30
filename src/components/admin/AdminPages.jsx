@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { DAY_SLOTS, EVENING_SLOTS } from '../../lib/timeSlots'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
-import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale, ChevronRight, Footprints } from 'lucide-react'
+import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale, ChevronRight, Footprints, Search, CircleCheckBig } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
 import { DogFields, dogDraft, saveDog, removeDog, removeBtnStyle, REMOVE_WARNING } from '../shared/DogForm'
@@ -591,6 +591,68 @@ function TodayWalksView({ walkers }) {
       {loading ? <EmptyState message="Loading..." />
         : walks.length === 0 ? <EmptyState message="No walks scheduled for today." />
         : walks.map(w => <ScheduleWalkRow key={w.id} walk={w} walkers={walkers} onEdit={handleEdit} onCancel={handleCancel} />)
+      }
+    </>
+  )
+}
+
+// "Completed Walks" album — most recent first, loaded a page at a time since this
+// list only grows. Each row opens the same Edit panel as everywhere else, so a
+// wrongly-completed walk can have its status changed right from here.
+function CompletedWalksView({ walkers }) {
+  const PAGE_SIZE = 25
+  const [walks, setWalks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+
+  useEffect(() => { loadPage(0, true) }, [])
+
+  async function loadPage(offset, replace) {
+    if (replace) setLoading(true); else setLoadingMore(true)
+    const { data } = await supabase.from('walk_requests')
+      .select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active)), assigned_walker:users!assigned_walker_id(name)')
+      .eq('clients.users.is_active', true)
+      .eq('status', 'completed')
+      .order('preferred_date', { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1)
+    setWalks(prev => replace ? (data || []) : [...prev, ...(data || [])])
+    setHasMore((data || []).length === PAGE_SIZE)
+    setLoading(false)
+    setLoadingMore(false)
+  }
+
+  async function handleEdit(id, updates) {
+    await supabase.from('walk_requests').update(updates).eq('id', id)
+    // Changed away from completed? It no longer belongs in this album.
+    if (updates.status && updates.status !== 'completed') {
+      setWalks(prev => prev.filter(w => w.id !== id))
+    } else {
+      setWalks(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w))
+    }
+  }
+
+  async function handleCancel(id) {
+    if (!window.confirm('Cancel this completed walk? It will be removed from billing.')) return
+    await supabase.from('walk_requests').update({ status: 'cancelled' }).eq('id', id)
+    setWalks(prev => prev.filter(w => w.id !== id))
+  }
+
+  return (
+    <>
+      <SectionHeader title="Completed Walks" />
+      {loading ? <EmptyState message="Loading..." />
+        : walks.length === 0 ? <EmptyState message="No completed walks yet." />
+        : (
+          <>
+            {walks.map(w => <ScheduleWalkRow key={w.id} walk={w} walkers={walkers} onEdit={handleEdit} onCancel={handleCancel} />)}
+            {hasMore && (
+              <button onClick={() => loadPage(walks.length, false)} disabled={loadingMore} style={{ width: '100%', background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 10, padding: '10px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', marginTop: 8 }}>
+                {loadingMore ? 'Loading...' : 'Load More'}
+              </button>
+            )}
+          </>
+        )
       }
     </>
   )
@@ -1672,6 +1734,112 @@ function ClientReportSection() {
 // would otherwise silently never make it onto a bill. Tapping an item opens
 // the same Edit panel used everywhere else, status field included, so she
 // can fix it or mark it complete right from the report.
+// Global search — cuts across every status and both walks and boardings, for when
+// Nancy knows what she's looking for (a dog, a client, a date) but not which
+// category album it's sitting in. Each result opens straight to its Edit panel.
+function GlobalSearchView({ walkers }) {
+  const [term, setTerm] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searched, setSearched] = useState(false)
+  const [results, setResults] = useState([])
+
+  async function runSearch() {
+    const q = term.trim()
+    if (!q) return
+    setSearching(true)
+    setSearched(true)
+
+    const isDate = /^\d{4}-\d{2}-\d{2}$/.test(q)
+
+    const [{ data: matchDogs }, { data: matchClients }] = await Promise.all([
+      supabase.from('dogs').select('id').ilike('name', `%${q}%`),
+      supabase.from('clients').select('id, users!inner(name)').ilike('users.name', `%${q}%`),
+    ])
+    const dogIds = (matchDogs || []).map(d => d.id)
+    const clientIds = (matchClients || []).map(c => c.id)
+
+    if (dogIds.length === 0 && clientIds.length === 0 && !isDate) {
+      setResults([])
+      setSearching(false)
+      return
+    }
+
+    const walkFilters = []
+    if (dogIds.length) walkFilters.push(`dog_id.in.(${dogIds.join(',')})`)
+    if (clientIds.length) walkFilters.push(`client_id.in.(${clientIds.join(',')})`)
+    if (isDate) walkFilters.push(`preferred_date.eq.${q}`)
+
+    const boardingFilters = []
+    if (dogIds.length) boardingFilters.push(`dog_id.in.(${dogIds.join(',')})`)
+    if (clientIds.length) boardingFilters.push(`client_id.in.(${clientIds.join(',')})`)
+    if (isDate) boardingFilters.push(`check_in_date.eq.${q},check_out_date.eq.${q}`)
+
+    const [{ data: walks }, { data: boardings }] = await Promise.all([
+      walkFilters.length
+        ? supabase.from('walk_requests').select('*, dogs(name), walks(photo_url), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).or(walkFilters.join(',')).order('preferred_date', { ascending: false })
+        : Promise.resolve({ data: [] }),
+      boardingFilters.length
+        ? supabase.from('boarding_requests').select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active))').eq('clients.users.is_active', true).or(boardingFilters.join(',')).order('check_out_date', { ascending: false })
+        : Promise.resolve({ data: [] }),
+    ])
+
+    const walkResults = (walks || []).map(w => ({ ...w, itemType: 'walk' }))
+    const boardingResults = (boardings || []).map(b => ({ ...b, itemType: 'boarding' }))
+    setResults([...walkResults, ...boardingResults].sort((a, b) => (b.preferred_date || b.check_out_date).localeCompare(a.preferred_date || a.check_out_date)))
+    setSearching(false)
+  }
+
+  async function handleEditWalk(id, updates) {
+    await supabase.from('walk_requests').update(updates).eq('id', id)
+    setResults(prev => prev.map(r => r.id === id && r.itemType === 'walk' ? { ...r, ...updates } : r))
+  }
+  async function handleEditBoarding(id, updates) {
+    await supabase.from('boarding_requests').update(updates).eq('id', id)
+    setResults(prev => prev.map(r => r.id === id && r.itemType === 'boarding' ? { ...r, ...updates } : r))
+  }
+  async function handleCancelWalk(id) {
+    await supabase.from('walk_requests').update({ status: 'cancelled' }).eq('id', id)
+    setResults(prev => prev.map(r => r.id === id && r.itemType === 'walk' ? { ...r, status: 'cancelled' } : r))
+  }
+  async function handleCancelBoarding(id) {
+    await supabase.from('boarding_requests').update({ status: 'cancelled' }).eq('id', id)
+    setResults(prev => prev.map(r => r.id === id && r.itemType === 'boarding' ? { ...r, status: 'cancelled' } : r))
+  }
+  async function noopDecline() {}
+
+  return (
+    <>
+      <SectionHeader title="Search" />
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input
+          type="text"
+          value={term}
+          onChange={e => setTerm(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && runSearch()}
+          placeholder="Dog name, client name, or date (YYYY-MM-DD)"
+          style={{ ...inputStyle, flex: 1 }}
+        />
+        <button onClick={runSearch} disabled={searching || !term.trim()} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '0 18px', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' }}>
+          {searching ? '...' : 'Search'}
+        </button>
+      </div>
+      {searched && !searching && (
+        results.length === 0
+          ? <EmptyState message="No walks or boardings match that search." />
+          : (
+            <>
+              <div style={{ fontSize: '0.8rem', color: '#636e72', marginBottom: 8 }}>{results.length} result{results.length === 1 ? '' : 's'}:</div>
+              {results.map(item => item.itemType === 'walk'
+                ? <WalkRequestCard key={`walk-${item.id}`} req={item} walkers={walkers} onDecline={noopDecline} onEdit={handleEditWalk} onCancel={handleCancelWalk} />
+                : <BoardingRequestCard key={`boarding-${item.id}`} req={item} walkers={walkers} onDecline={noopDecline} onEdit={handleEditBoarding} onCancel={handleCancelBoarding} />
+              )}
+            </>
+          )
+      )}
+    </>
+  )
+}
+
 function ReconciliationSection({ walkers }) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -2189,14 +2357,15 @@ export default function AdminPortal() {
 
   async function loadStats() {
     const today = new Date().toISOString().split('T')[0]
-    const [{ count: walksToday }, { count: pending }, { count: pendingBoardings }, { data: clientList }, { data: walkerList }] = await Promise.all([
+    const [{ count: walksToday }, { count: pending }, { count: pendingBoardings }, { count: completedWalks }, { data: clientList }, { data: walkerList }] = await Promise.all([
       supabase.from('walk_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('preferred_date', today).in('status', ['assigned', 'confirmed']).eq('clients.users.is_active', true),
       supabase.from('walk_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('status', 'pending').eq('clients.users.is_active', true),
       supabase.from('boarding_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('status', 'pending').eq('clients.users.is_active', true),
+      supabase.from('walk_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('status', 'completed').eq('clients.users.is_active', true),
       getUsersByRole('client', 'id'),
       getUsersByRole('walker', 'id'),
     ])
-    setStats({ walksToday, pending, pendingBoardings, clients: clientList?.length ?? 0, walkers: walkerList?.length ?? 0 })
+    setStats({ walksToday, pending, pendingBoardings, completedWalks, clients: clientList?.length ?? 0, walkers: walkerList?.length ?? 0 })
   }
 
   async function loadRequests() {
@@ -2373,9 +2542,16 @@ export default function AdminPortal() {
                   }
                 </>
               )}
+              {homeView === 'completed-walks' && <CompletedWalksView walkers={walkers} />}
+              {homeView === 'search' && <GlobalSearchView walkers={walkers} />}
             </div>
           ) : (
             <>
+              <button onClick={() => setHomeView('search')} className="action-tile" style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'white', border: '1.5px solid #E0E8F0', borderRadius: 14, padding: '14px 16px', marginBottom: 20, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <Search size={20} color="#636e72" />
+                <span style={{ color: '#636e72', fontSize: '0.92rem', fontWeight: 600 }}>Search by dog, client, or date...</span>
+              </button>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
                 {[
                   { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#A14B5C', badge: pendingRequests.length + pendingBoardings.length },
@@ -2406,6 +2582,7 @@ export default function AdminPortal() {
                 <StatCard label="Walks Today" value={stats.walksToday} color="#182B4A" Icon={Calendar} onClick={() => setHomeView('walks-today')} />
                 <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" Icon={ClipboardList} onClick={() => setHomeView('pending-requests')} />
                 <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#B8860B" Icon={Home} onClick={() => setHomeView('pending-boardings')} />
+                <StatCard label="Completed Walks" value={stats.completedWalks} color="#3F7A52" Icon={CircleCheckBig} onClick={() => setHomeView('completed-walks')} />
                 <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" Icon={Users} onClick={() => setActiveTab('people')} />
                 <StatCard label="Walkers" value={stats.walkers} color="#636e72" Icon={Footprints} onClick={() => setActiveTab('people')} />
               </div>
