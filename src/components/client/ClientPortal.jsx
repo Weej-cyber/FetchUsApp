@@ -7,9 +7,10 @@ import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
 import DogForm from '../shared/DogForm'
 import { DAY_SLOTS, EVENING_SLOTS } from '../../lib/timeSlots'
+import { WALK_SERVICE_TYPES } from '../../lib/serviceTypes'
 import { PawPrint, CalendarPlus, Route, User } from 'lucide-react'
 
-const SERVICE_TYPES = ['30-min Walk', '60-min Walk', 'Drop-In Visit']
+const SERVICE_TYPES = WALK_SERVICE_TYPES
 
 const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
 const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '0.9rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box', background: 'white' }

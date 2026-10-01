@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { DAY_SLOTS, EVENING_SLOTS } from '../../lib/timeSlots'
+import { WALK_SERVICE_TYPES, ALL_SERVICE_TYPES } from '../../lib/serviceTypes'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale, ChevronRight, Footprints, Search, CircleCheckBig } from 'lucide-react'
@@ -141,7 +142,7 @@ function EditWalkPanel({ walk, walkers, onSave, onClose }) {
         <div>
           <label style={labelStyle}>Service Type</label>
           <select style={inputStyle} value={serviceType} onChange={e => setServiceType(e.target.value)}>
-            <option>30-min Walk</option><option>60-min Walk</option><option>Drop-In Visit</option><option>Boarding</option>
+            {ALL_SERVICE_TYPES.map(t => <option key={t}>{t}</option>)}
           </select>
         </div>
         <div>
@@ -490,7 +491,7 @@ function ScheduleSection({ walkers }) {
             <div>
               <label style={labelStyle}>Service Type</label>
               <select style={inputStyle} value={form.service_type} onChange={e => setForm({ ...form, service_type: e.target.value })} required>
-                <option>30-min Walk</option><option>60-min Walk</option><option>Drop-In Visit</option><option>Boarding</option>
+                {ALL_SERVICE_TYPES.map(t => <option key={t}>{t}</option>)}
               </select>
             </div>
             <div>
@@ -878,7 +879,7 @@ function ClientReadOnlyView({ userId, onBack }) {
               <div>
                 <label style={labelStyle}>Service Type</label>
                 <select style={inputStyle} value={bookForm.service_type} onChange={e => setBookForm({ ...bookForm, service_type: e.target.value })}>
-                  <option>30-min Walk</option><option>60-min Walk</option><option>Drop-In Visit</option>
+                  {WALK_SERVICE_TYPES.map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div>
@@ -1165,7 +1166,7 @@ function RecurringWalkSection() {
             <div>
               <label style={labelStyle}>Service Type</label>
               <select style={inputStyle} value={form.service_type} onChange={e => setForm({ ...form, service_type: e.target.value })}>
-                <option>30-min Walk</option><option>60-min Walk</option><option>Drop-In Visit</option>
+                {WALK_SERVICE_TYPES.map(t => <option key={t}>{t}</option>)}
               </select>
             </div>
             <div>
