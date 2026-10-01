@@ -442,8 +442,13 @@ export default function ClientPortal() {
       ) : (
         <div style={{ ...cardStyle, borderLeft: `4px solid ${C.teal}` }}>
           <div style={{ fontWeight: 800, fontSize: '1rem', color: C.teal, marginBottom: 10 }}>New Walk Request</div>
-          <div style={{ background: '#FFF8E8', border: '1px solid #F0DFAF', borderRadius: 8, padding: '9px 12px', fontSize: '0.78rem', color: '#6B5A2A', marginBottom: 14, lineHeight: 1.5 }}>
-            Nancy's standard hours are <strong>Mon–Thu 9am–5pm</strong> and <strong>Fri 9:30am–5pm</strong>. Walks requested outside those hours carry a surcharge: <strong>+$5</strong> Mon–Thu before 9am or after 5pm, <strong>+$10</strong> Friday after 5pm, and <strong>+$10</strong> for weekends (Sat–Sun availability is limited). Nancy will confirm final pricing when your walk is scheduled.
+          <div style={{ background: '#FFF8E8', border: '1px solid #F0DFAF', borderRadius: 8, padding: '12px 14px', fontSize: '0.8rem', color: '#6B5A2A', marginBottom: 14, lineHeight: 1.5 }}>
+            <div style={{ fontWeight: 800, marginBottom: 6 }}>Hours</div>
+            <div><strong>Mon–Thu:</strong> 9:30am–3pm &amp; 5pm–6:30pm</div>
+            <div><strong>Fri:</strong> 10am–2:30pm</div>
+            <div><strong>Fri evening:</strong> case-by-case — contact Nancy</div>
+            <div style={{ marginBottom: 10 }}><strong>Weekends:</strong> case-by-case — contact Nancy</div>
+            <div><strong>Outside these hours:</strong> +$10 surcharge. Nancy will confirm final pricing when your walk is scheduled.</div>
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Service Type</label>
@@ -522,8 +527,13 @@ export default function ClientPortal() {
       ) : (
         <div style={{ ...cardStyle, borderLeft: `4px solid ${C.teal}` }}>
           <div style={{ fontWeight: 800, fontSize: '1rem', color: C.teal, marginBottom: 10 }}>New Recurring Walk</div>
-          <div style={{ background: '#FFF8E8', border: '1px solid #F0DFAF', borderRadius: 8, padding: '9px 12px', fontSize: '0.78rem', color: '#6B5A2A', marginBottom: 14, lineHeight: 1.5 }}>
-            Nancy's standard hours are <strong>Mon–Thu 9am–5pm</strong> and <strong>Fri 9:30am–5pm</strong>. Walks requested outside those hours carry a surcharge: <strong>+$5</strong> Mon–Thu before 9am or after 5pm, <strong>+$10</strong> Friday after 5pm, and <strong>+$10</strong> for weekends (Sat–Sun availability is limited). Nancy will confirm final pricing when your walks are scheduled.
+          <div style={{ background: '#FFF8E8', border: '1px solid #F0DFAF', borderRadius: 8, padding: '12px 14px', fontSize: '0.8rem', color: '#6B5A2A', marginBottom: 14, lineHeight: 1.5 }}>
+            <div style={{ fontWeight: 800, marginBottom: 6 }}>Hours</div>
+            <div><strong>Mon–Thu:</strong> 9:30am–3pm &amp; 5pm–6:30pm</div>
+            <div><strong>Fri:</strong> 10am–2:30pm</div>
+            <div><strong>Fri evening:</strong> case-by-case — contact Nancy</div>
+            <div style={{ marginBottom: 10 }}><strong>Weekends:</strong> case-by-case — contact Nancy</div>
+            <div><strong>Outside these hours:</strong> +$10 surcharge. Nancy will confirm final pricing when your walks are scheduled.</div>
           </div>
           {dogs.length > 0 && (
             <div style={{ marginBottom: 14 }}>
