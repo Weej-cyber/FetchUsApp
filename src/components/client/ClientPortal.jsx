@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { useScreenParams } from '../../hooks/useScreenParams'
 import { COLORS as C } from '../../theme'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
@@ -92,7 +93,9 @@ const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export default function ClientPortal() {
   const { dbRole, setRole, signOut } = useAuth()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('dogs')
+  const { params: screen, go } = useScreenParams()
+  const activeTab = screen.get('tab') || 'dogs'
+  const setActiveTab = id => go({ tab: id === 'dogs' ? null : id })
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [clientId, setClientId] = useState(null)

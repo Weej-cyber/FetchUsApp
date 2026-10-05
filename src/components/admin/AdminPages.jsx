@@ -4,6 +4,7 @@ import { DAY_SLOTS, EVENING_SLOTS } from '../../lib/timeSlots'
 import { WALK_SERVICE_TYPES, ALL_SERVICE_TYPES } from '../../lib/serviceTypes'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { useScreenParams } from '../../hooks/useScreenParams'
 import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale, ChevronRight, ChevronLeft, Footprints, Search, CircleCheckBig } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
@@ -2086,7 +2087,9 @@ function ReconciliationRow({ item, walkers, onUpdate, daysOpen }) {
 }
 
 function ClientsAndWalkersSection() {
-  const [viewingClientId, setViewingClientId] = useState(null)
+  const { params, go, back } = useScreenParams()
+  const viewingClientId = params.get('client')
+  const setViewingClientId = id => go({ client: id })
   const [clients, setClients] = useState([])
   const [walkers, setWalkers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -2253,7 +2256,7 @@ function ClientsAndWalkersSection() {
   const filteredWalkers = walkers.filter(w => w.name?.toLowerCase().includes(search.toLowerCase()) || w.email?.toLowerCase().includes(search.toLowerCase()))
 
   if (viewingClientId) {
-    return <ClientReadOnlyView userId={viewingClientId} onBack={() => setViewingClientId(null)} />
+    return <ClientReadOnlyView userId={viewingClientId} onBack={() => back({ client: null })} />
   }
 
   return (
@@ -2420,8 +2423,11 @@ function ClientsAndWalkersSection() {
 export default function AdminPortal() {
   const { signOut, setRole, user } = useAuth()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('home')
-  const [homeView, setHomeView] = useState(null)
+  const { params: screen, go, back } = useScreenParams()
+  const activeTab = screen.get('tab') || 'home'
+  const homeView = screen.get('view')
+  const setActiveTab = id => go({ tab: id === 'home' ? null : id, view: null, client: null })
+  const setHomeView = view => go({ view })
   const [stats, setStats] = useState({ walksToday: null, pending: null, clients: null, walkers: null, pendingBoardings: null })
   const [requests, setRequests] = useState([])
   const [boardings, setBoardings] = useState([])
@@ -2647,7 +2653,7 @@ export default function AdminPortal() {
         <>
           {homeView ? (
             <div style={{ marginBottom: 32 }}>
-              <button onClick={() => setHomeView(null)} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: '4px 0 16px' }}>← Back</button>
+              <button onClick={() => back({ view: null })} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: '4px 0 16px' }}>← Back</button>
               {homeView === 'walks-today' && <TodayWalksView walkers={walkers} />}
               {homeView === 'pending-requests' && (
                 <>
@@ -2812,7 +2818,7 @@ export default function AdminPortal() {
         {TABS.map(tab => (
           <button
             key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setHomeView(null) }}
+            onClick={() => setActiveTab(tab.id)}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               background: activeTab === tab.id ? '#E8EEF5' : 'none',

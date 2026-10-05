@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useNavigate } from 'react-router-dom'
+import { useScreenParams } from '../../hooks/useScreenParams'
 import { COLORS as C } from '../../theme'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
@@ -239,7 +240,7 @@ export function WalkerDashboard() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [activeWalks, setActiveWalks] = useState([])
-  const [completingWalk, setCompletingWalk] = useState(null)
+  const { params: screen, go, back } = useScreenParams()
   const [todayWalks, setTodayWalks] = useState([])
   const [weekWalks, setWeekWalks] = useState([])
   const [boardings, setBoardings] = useState([])
@@ -334,12 +335,13 @@ export function WalkerDashboard() {
     fetchAll()
   }
 
+  const completingWalk = activeWalks.find(w => w.id === screen.get('walk')) || null
   if (completingWalk) {
     return (
       <ActiveWalkScreen
         walk={completingWalk}
-        onBack={() => setCompletingWalk(null)}
-        onComplete={() => { setCompletingWalk(null); fetchAll() }}
+        onBack={() => back({ walk: null })}
+        onComplete={() => { back({ walk: null }); fetchAll() }}
       />
     )
   }
@@ -406,7 +408,7 @@ export function WalkerDashboard() {
           <>
             <SectionHeader title={`Active Walk${activeWalks.length > 1 ? 's' : ''}`} />
             {activeWalks.map(walk => (
-              <ActiveWalkCard key={walk.id} walk={walk} onComplete={setCompletingWalk} />
+              <ActiveWalkCard key={walk.id} walk={walk} onComplete={w => go({ walk: w.id })} />
             ))}
           </>
         )}
