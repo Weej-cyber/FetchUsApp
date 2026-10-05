@@ -4,7 +4,7 @@ import { DAY_SLOTS, EVENING_SLOTS } from '../../lib/timeSlots'
 import { WALK_SERVICE_TYPES, ALL_SERVICE_TYPES } from '../../lib/serviceTypes'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
-import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale, ChevronRight, Footprints, Search, CircleCheckBig } from 'lucide-react'
+import { Home, ClipboardList, Users, Calendar, Wrench, Eye, Repeat, FileText, Smartphone, Receipt, Scale, ChevronRight, ChevronLeft, Footprints, Search, CircleCheckBig } from 'lucide-react'
 import PortalHeader from '../shared/PortalHeader'
 import InstallBanner from '../shared/InstallBanner'
 import { DogFields, dogDraft, saveDog, removeDog, removeBtnStyle, REMOVE_WARNING } from '../shared/DogForm'
@@ -408,6 +408,108 @@ function BroadcastPanel() {
   )
 }
 
+// "Today" for FetchUs is Eastern time, not UTC, so evenings don't roll over early.
+function easternToday() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
+}
+
+// Date-only math on 'YYYY-MM-DD' strings, done in UTC so time zones can't shift the day.
+function addDays(dateStr, n) {
+  const d = new Date(`${dateStr}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().split('T')[0]
+}
+
+function mondayOf(dateStr) {
+  const dow = new Date(`${dateStr}T00:00:00Z`).getUTCDay() // 0 = Sunday
+  return addDays(dateStr, dow === 0 ? -6 : 1 - dow)
+}
+
+function formatDay(dateStr, opts) {
+  return new Date(`${dateStr}T00:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', ...opts })
+}
+
+const WEEK_ACTIVE_STATUSES = ['pending', 'assigned', 'confirmed', 'in_progress', 'completed']
+
+// At-a-glance week: walks and boardings per day, Monday through Sunday.
+function WeekPanel({ selectedDay, onSelectDay, refreshKey }) {
+  const today = easternToday()
+  const [weekStart, setWeekStart] = useState(() => mondayOf(today))
+  const [counts, setCounts] = useState({})
+  const [loading, setLoading] = useState(true)
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+  const weekEnd = days[6]
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoading(true)
+      const [{ data: walkRows }, { data: boardingRows }] = await Promise.all([
+        supabase.from('walk_requests').select('preferred_date, clients!inner(users!inner(is_active))')
+          .gte('preferred_date', weekStart).lte('preferred_date', weekEnd)
+          .in('status', WEEK_ACTIVE_STATUSES).eq('clients.users.is_active', true),
+        supabase.from('boarding_requests').select('check_in_date, check_out_date, clients!inner(users!inner(is_active))')
+          .lte('check_in_date', weekEnd).gt('check_out_date', weekStart)
+          .in('status', WEEK_ACTIVE_STATUSES).eq('clients.users.is_active', true),
+      ])
+      if (cancelled) return
+      const next = {}
+      for (const day of days) next[day] = { walks: 0, boardings: 0 }
+      for (const w of walkRows || []) if (next[w.preferred_date]) next[w.preferred_date].walks++
+      // A boarding counts on each night the dog is staying: check-in day up to (not including) check-out day.
+      for (const b of boardingRows || []) {
+        for (const day of days) if (day >= b.check_in_date && day < b.check_out_date) next[day].boardings++
+      }
+      setCounts(next)
+      setLoading(false)
+    }
+    load()
+    return () => { cancelled = true }
+  }, [weekStart, refreshKey])
+
+  const arrowStyle = { width: 48, height: 48, borderRadius: 12, border: '2px solid #182B4A', background: 'white', color: '#182B4A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+  const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
+        <button onClick={() => setWeekStart(addDays(weekStart, -7))} style={arrowStyle} aria-label="Previous week"><ChevronLeft size={26} strokeWidth={2.5} /></button>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#182B4A' }}>
+            {weekStart === mondayOf(today) ? 'This Week' : `Week of ${formatDay(weekStart, { month: 'short', day: 'numeric' })}`}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#2D3436' }}>{formatDay(weekStart, { month: 'short', day: 'numeric' })} – {formatDay(weekEnd, { month: 'short', day: 'numeric' })}</div>
+        </div>
+        <button onClick={() => setWeekStart(addDays(weekStart, 7))} style={arrowStyle} aria-label="Next week"><ChevronRight size={26} strokeWidth={2.5} /></button>
+      </div>
+      {days.map(day => {
+        const c = counts[day] || { walks: 0, boardings: 0 }
+        const isToday = day === today
+        const isSelected = day === selectedDay
+        return (
+          <button
+            key={day}
+            onClick={() => onSelectDay(isSelected ? null : day)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+              background: isSelected ? '#182B4A' : 'white', color: isSelected ? 'white' : '#182B4A',
+              border: isToday ? '3px solid #182B4A' : '1.5px solid #C9D3DF', borderRadius: 12,
+              padding: '12px 14px', marginBottom: 8, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+            }}
+          >
+            <span style={{ fontWeight: 800, fontSize: '1rem' }}>
+              {formatDay(day, { weekday: 'short', month: 'short', day: 'numeric' })}{isToday ? ' · Today' : ''}
+            </span>
+            <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+              {loading ? '…' : `${plural(c.walks, 'walk')}${c.boardings ? ` · ${plural(c.boardings, 'boarding')}` : ''}`}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function ScheduleSection({ walkers }) {
   const [walks, setWalks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -416,8 +518,11 @@ function ScheduleSection({ walkers }) {
   const [saving, setSaving] = useState(false)
   const [clientOptions, setClientOptions] = useState([])
   const [dogOptions, setDogOptions] = useState([])
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [weekRefresh, setWeekRefresh] = useState(0)
 
-  useEffect(() => { loadWalks(); loadClientOptions() }, [])
+  useEffect(() => { loadWalks() }, [selectedDay])
+  useEffect(() => { loadClientOptions() }, [])
 
   async function loadClientOptions() {
     const { data } = await supabase.from('clients').select('id, users(name), dogs(id, name)').eq('users.is_active', true).eq('dogs.is_active', true).order('id')
@@ -432,8 +537,12 @@ function ScheduleSection({ walkers }) {
 
   async function loadWalks() {
     setLoading(true)
-    const today = new Date().toISOString().split('T')[0]
-    const { data } = await supabase.from('walk_requests').select('*, dogs(name), clients(users(name)), assigned_walker:users!assigned_walker_id(name)').in('status', ['pending', 'assigned', 'confirmed']).gte('preferred_date', today).order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }).limit(30)
+    const today = easternToday()
+    let query = supabase.from('walk_requests').select('*, dogs(name), clients(users(name)), assigned_walker:users!assigned_walker_id(name)')
+    query = selectedDay
+      ? query.in('status', WEEK_ACTIVE_STATUSES).eq('preferred_date', selectedDay)
+      : query.in('status', ['pending', 'assigned', 'confirmed']).gte('preferred_date', today)
+    const { data } = await query.order('preferred_date', { ascending: true }).order('preferred_time', { ascending: true }).limit(30)
     if (data) setWalks(data)
     setLoading(false)
   }
@@ -457,17 +566,20 @@ function ScheduleSection({ walkers }) {
     setForm({ client_id: '', dog_id: '', walker_id: '', service_type: '30-min Walk', preferred_date: '', preferred_time: '', notes: '' })
     setDogOptions([])
     loadWalks()
+    setWeekRefresh(k => k + 1)
   }
 
   async function handleCancelWalk(id) {
     if (!window.confirm('Cancel this appointment? It will be removed from the schedule but kept on record.')) return
     await supabase.from('walk_requests').update({ status: 'cancelled' }).eq('id', id)
     setWalks(prev => prev.filter(w => w.id !== id))
+    setWeekRefresh(k => k + 1)
   }
 
   async function handleEditWalk(id, updates) {
     await supabase.from('walk_requests').update(updates).eq('id', id)
     loadWalks()
+    setWeekRefresh(k => k + 1)
   }
 
   return (
@@ -527,8 +639,15 @@ function ScheduleSection({ walkers }) {
           </div>
         </form>
       )}
+      <WeekPanel selectedDay={selectedDay} onSelectDay={setSelectedDay} refreshKey={weekRefresh} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
+        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#182B4A' }}>
+          {selectedDay ? `Walks on ${formatDay(selectedDay, { weekday: 'long', month: 'short', day: 'numeric' })}` : 'All Upcoming Walks'}
+        </div>
+        {selectedDay && <button onClick={() => setSelectedDay(null)} style={cancelBtnStyle}>Show All Upcoming</button>}
+      </div>
       {loading ? <EmptyState message="Loading schedule..." />
-        : walks.length === 0 ? <EmptyState message="No upcoming walks scheduled." />
+        : walks.length === 0 ? <EmptyState message={selectedDay ? 'No walks on this day.' : 'No upcoming walks scheduled.'} />
         : walks.map(w => (
           <ScheduleWalkRow key={w.id} walk={w} walkers={walkers} onEdit={handleEditWalk} onCancel={handleCancelWalk} />
         ))
@@ -569,7 +688,7 @@ function TodayWalksView({ walkers }) {
 
   async function loadWalks() {
     setLoading(true)
-    const today = new Date().toISOString().split('T')[0]
+    const today = easternToday()
     const { data } = await supabase.from('walk_requests')
       .select('*, dogs(name), clients!inner(user_id, users!inner(name, is_active)), assigned_walker:users!assigned_walker_id(name)')
       .eq('clients.users.is_active', true)
@@ -2362,7 +2481,7 @@ export default function AdminPortal() {
   }
 
   async function loadStats() {
-    const today = new Date().toISOString().split('T')[0]
+    const today = easternToday()
     const [{ count: walksToday }, { count: pending }, { count: pendingBoardings }, { count: completedWalks }, { data: clientList }, { data: walkerList }] = await Promise.all([
       supabase.from('walk_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('preferred_date', today).in('status', ['assigned', 'confirmed']).eq('clients.users.is_active', true),
       supabase.from('walk_requests').select('*, clients!inner(users!inner(is_active))', { count: 'exact', head: true }).eq('status', 'pending').eq('clients.users.is_active', true),
