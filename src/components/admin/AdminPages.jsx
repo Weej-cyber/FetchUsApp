@@ -42,13 +42,18 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-function StatCard({ label, value, color = '#182B4A', Icon, onClick }) {
+// Home colors carry meaning: navy = navigation tiles, white = number cards,
+// ATTENTION_COLOR = something needs Nancy's action. Nothing else gets a color.
+const ATTENTION_COLOR = '#B91C1C'
+
+function StatCard({ label, value, Icon, onClick, attention = false }) {
+  const fg = attention ? 'white' : '#182B4A'
   return (
-    <button onClick={onClick} className="action-tile" style={{ position: 'relative', background: color, borderRadius: 16, padding: '16px 18px', border: 'none', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%', boxShadow: '0 3px 10px rgba(45,52,54,0.15)' }}>
-      <Icon size={22} color="white" strokeWidth={2.2} style={{ marginBottom: 8, opacity: 0.9 }} />
-      <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>{value ?? '—'}</div>
-      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</div>
-      <ChevronRight size={18} color="rgba(255,255,255,0.7)" style={{ position: 'absolute', top: 16, right: 14 }} />
+    <button onClick={onClick} className="action-tile" style={{ position: 'relative', background: attention ? ATTENTION_COLOR : 'white', borderRadius: 16, padding: '16px 18px', border: `2px solid ${attention ? ATTENTION_COLOR : '#182B4A'}`, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%', boxShadow: '0 3px 10px rgba(45,52,54,0.15)' }}>
+      <Icon size={22} color={fg} strokeWidth={2.2} style={{ marginBottom: 8 }} />
+      <div style={{ fontSize: '1.8rem', fontWeight: 800, color: fg, lineHeight: 1 }}>{value ?? '—'}</div>
+      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: fg, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</div>
+      <ChevronRight size={22} color={fg} strokeWidth={2.5} style={{ position: 'absolute', top: 16, right: 14 }} />
     </button>
   )
 }
@@ -2555,10 +2560,10 @@ export default function AdminPortal() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
                 {[
-                  { id: 'requests', label: 'Requests', Icon: ClipboardList, color: '#A14B5C', badge: pendingRequests.length + pendingBoardings.length },
-                  { id: 'people', label: 'People', Icon: Users, color: '#3F7A52' },
-                  { id: 'schedule', label: 'Schedule', Icon: Calendar, color: '#A8552F' },
-                  { id: 'tools', label: 'Tools', Icon: Wrench, color: '#636e72' },
+                  { id: 'requests', label: 'Requests', Icon: ClipboardList, badge: pendingRequests.length + pendingBoardings.length },
+                  { id: 'people', label: 'People', Icon: Users },
+                  { id: 'schedule', label: 'Schedule', Icon: Calendar },
+                  { id: 'tools', label: 'Tools', Icon: Wrench },
                 ].map(item => (
                   <button
                     key={item.id}
@@ -2566,26 +2571,26 @@ export default function AdminPortal() {
                     className="action-tile"
                     style={{
                       position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between',
-                      background: item.color, border: 'none', borderRadius: 16, padding: '18px 16px', height: 92,
+                      background: '#182B4A', border: 'none', borderRadius: 16, padding: '18px 16px', height: 92,
                       cursor: 'pointer', boxShadow: '0 3px 10px rgba(45,52,54,0.15)',
                     }}
                   >
                     <item.Icon size={28} color="white" strokeWidth={2.2} />
                     <span style={{ color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem' }}>{item.label}</span>
                     {item.badge > 0 && (
-                      <span style={{ position: 'absolute', top: 12, right: 12, background: '#DC2626', color: 'white', borderRadius: 12, fontSize: '0.8rem', fontWeight: 800, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>{item.badge}</span>
+                      <span style={{ position: 'absolute', top: 12, right: 12, background: ATTENTION_COLOR, color: 'white', border: '2px solid white', borderRadius: 12, fontSize: '0.8rem', fontWeight: 800, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>{item.badge}</span>
                     )}
                   </button>
                 ))}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
-                <StatCard label="Walks Today" value={stats.walksToday} color="#182B4A" Icon={Calendar} onClick={() => setHomeView('walks-today')} />
-                <StatCard label="Pending Requests" value={stats.pending} color="#D4A843" Icon={ClipboardList} onClick={() => setHomeView('pending-requests')} />
-                <StatCard label="Pending Boardings" value={stats.pendingBoardings} color="#B8860B" Icon={Home} onClick={() => setHomeView('pending-boardings')} />
-                <StatCard label="Completed Walks" value={stats.completedWalks} color="#3F7A52" Icon={CircleCheckBig} onClick={() => setHomeView('completed-walks')} />
-                <StatCard label="Active Clients" value={stats.clients} color="#2D9B8A" Icon={Users} onClick={() => setActiveTab('people')} />
-                <StatCard label="Walkers" value={stats.walkers} color="#636e72" Icon={Footprints} onClick={() => setActiveTab('people')} />
+                <StatCard label="Walks Today" value={stats.walksToday} Icon={Calendar} onClick={() => setHomeView('walks-today')} />
+                <StatCard label="Pending Requests" value={stats.pending} attention={stats.pending > 0} Icon={ClipboardList} onClick={() => setHomeView('pending-requests')} />
+                <StatCard label="Pending Boardings" value={stats.pendingBoardings} attention={stats.pendingBoardings > 0} Icon={Home} onClick={() => setHomeView('pending-boardings')} />
+                <StatCard label="Completed Walks" value={stats.completedWalks} Icon={CircleCheckBig} onClick={() => setHomeView('completed-walks')} />
+                <StatCard label="Active Clients" value={stats.clients} Icon={Users} onClick={() => setActiveTab('people')} />
+                <StatCard label="Walkers" value={stats.walkers} Icon={Footprints} onClick={() => setActiveTab('people')} />
               </div>
 
               {activity.length > 0 && (
