@@ -13,8 +13,8 @@ import { PawPrint, CalendarPlus, Route, User } from 'lucide-react'
 
 const SERVICE_TYPES = WALK_SERVICE_TYPES
 
-const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
-const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '0.9rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box', background: 'white' }
+const labelStyle = { display: 'block', fontSize: '0.875rem', fontWeight: 700, color: C.muted, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
+const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box', background: 'white' }
 const cardStyle = { background: 'white', borderRadius: 14, padding: '18px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', marginBottom: 12 }
 
 function SectionHeader({ title, icon, color = C.indigo }) {
@@ -71,13 +71,13 @@ function StatusBadge({ status }) {
     assigned:    { bg: C.greenBg, text: C.green, label: 'Confirmed' },
     confirmed:   { bg: C.greenBg, text: C.green, label: 'Confirmed' },
     in_progress: { bg: C.purpleBg, text: C.purple, label: 'In Progress' },
-    completed:   { bg: '#F0F0F0', text: C.light, label: 'Completed' },
+    completed:   { bg: '#F0F0F0', text: C.muted, label: 'Completed' },
     declined:    { bg: C.redBg, text: C.red, label: 'Declined' },
     cancelled:   { bg: C.redBg, text: C.red, label: 'Cancelled' },
   }
   const s = map[status] || map.pending
   return (
-    <span style={{ background: s.bg, color: s.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+    <span style={{ background: s.bg, color: s.text, padding: '3px 10px', borderRadius: 20, fontSize: '1rem', fontWeight: 700 }}>
       {s.label}
     </span>
   )
@@ -335,7 +335,7 @@ export default function ClientPortal() {
         <div style={{ ...cardStyle, maxWidth: 420, width: '100%' }}>
           <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>{Icon.phone(C.indigo, 32)}</div>
           <div style={{ fontWeight: 800, fontSize: '1.15rem', color: C.indigo, marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
-          <p style={{ fontSize: '0.9rem', color: C.light, textAlign: 'center', marginBottom: 20 }}>
+          <p style={{ fontSize: '1rem', color: C.muted, textAlign: 'center', marginBottom: 20 }}>
             A phone number is required before you can use FetchUs. This is how we let you know about your walks and boarding.
           </p>
           <div style={{ marginBottom: 14 }}>
@@ -344,10 +344,10 @@ export default function ClientPortal() {
           </div>
           <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 18, cursor: 'pointer' }}>
             <input type="checkbox" checked={profile.sms_consent} onChange={e => setProfile({ ...profile, sms_consent: e.target.checked })} style={{ marginTop: 3 }} />
-            <span style={{ fontSize: '0.82rem', color: C.charcoal }}>I agree to receive text messages from FetchUs about my walks and boarding. Message and data rates may apply. Reply STOP to opt out.</span>
+            <span style={{ fontSize: '1rem', color: C.charcoal }}>I agree to receive text messages from FetchUs about my walks and boarding. Message and data rates may apply. Reply STOP to opt out.</span>
           </label>
-          {gateError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14 }}>{gateError}</div>}
-          <button onClick={submitGate} disabled={gateSubmitting || !profile.phone.trim()} style={{ width: '100%', background: !profile.phone.trim() ? '#636e72' : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+          {gateError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 14 }}>{gateError}</div>}
+          <button onClick={submitGate} disabled={gateSubmitting || !profile.phone.trim()} style={{ width: '100%', background: !profile.phone.trim() ? C.muted : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
             {gateSubmitting ? 'Saving...' : 'Continue'}
           </button>
         </div>
@@ -360,8 +360,8 @@ export default function ClientPortal() {
 
       {dbRole && (
         <div style={{ background: '#182B4A', borderRadius: 10, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ color: 'white', fontSize: '0.78rem', fontWeight: 700 }}>Viewing as Client</span>
-          <button onClick={() => { setRole('admin'); navigate('/admin') }} style={{ background: 'rgba(0,0,0,0.35)', border: 'none', color: 'white', padding: '5px 14px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+          <span style={{ color: 'white', fontSize: '1rem', fontWeight: 700 }}>Viewing as Client</span>
+          <button onClick={() => { setRole('admin'); navigate('/admin') }} style={{ background: 'rgba(0,0,0,0.35)', border: 'none', color: 'white', padding: '5px 14px', borderRadius: 20, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
             ← Back to Admin
           </button>
         </div>
@@ -389,26 +389,26 @@ export default function ClientPortal() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800, fontSize: '1rem', color: C.charcoal }}>{dog.name}</div>
-              <div style={{ fontSize: '0.83rem', color: C.light, marginTop: 2 }}>
+              <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>
                 {dog.breed || 'Mixed breed'}{dog.age ? ` · ${dog.age} yrs` : ''}
               </div>
-              {dog.behavioral_notes && <div style={{ fontSize: '0.82rem', color: C.light, marginTop: 4 }}>{dog.behavioral_notes}</div>}
+              {dog.behavioral_notes && <div style={{ fontSize: '1rem', color: C.muted, marginTop: 4 }}>{dog.behavioral_notes}</div>}
               {dog.medical_needs && (
-                <div style={{ marginTop: 6, background: '#FEF9C3', borderRadius: 6, padding: '4px 8px', fontSize: '0.8rem', color: C.yellow, fontWeight: 600 }}>
+                <div style={{ marginTop: 6, background: '#FEF9C3', borderRadius: 6, padding: '4px 8px', fontSize: '1rem', color: C.yellow, fontWeight: 600 }}>
                   {Icon.medical(C.yellow, 13)} {dog.medical_needs}
                 </div>
               )}
             </div>
-            <div style={{ fontSize: '0.75rem', color: C.light, paddingTop: 2 }}>tap to edit</div>
+            <div style={{ fontSize: '1rem', color: C.muted, paddingTop: 2 }}>tap to edit</div>
           </div>
         </div>
       ))}
 
       {dogs.length === 0 && !showAddDog && (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>{Icon.paw(C.light, 44)}</div>
+          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>{Icon.paw(C.muted, 44)}</div>
           <p style={{ fontWeight: 700, color: C.charcoal, marginBottom: 4 }}>No dogs added yet</p>
-          <p style={{ fontSize: '0.85rem', color: C.light }}>Add your first pup to get started</p>
+          <p style={{ fontSize: '1rem', color: C.muted }}>Add your first pup to get started</p>
         </div>
       )}
 
@@ -421,32 +421,32 @@ export default function ClientPortal() {
           onCancel={() => setShowAddDog(false)}
         />
       ) : (
-        <button onClick={openAddDog} style={{ width: '100%', background: 'white', border: `2px dashed ${C.indigo}`, borderRadius: 12, padding: '12px', color: C.indigo, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginBottom: 4 }}>
+        <button onClick={openAddDog} style={{ width: '100%', background: 'white', border: `2px dashed ${C.indigo}`, borderRadius: 12, padding: '12px', color: C.indigo, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
           + Add Dog
         </button>
       )}
       </>)}
 
       {activeTab === 'book' && (<>
-      <SectionHeader title="Book a Walk" icon={Icon.calendar(C.teal)} color={C.teal} />
+      <SectionHeader title="Book a Walk" icon={Icon.calendar(C.tealDark)} color={C.tealDark} />
 
       {!showBook ? (
-        <button onClick={() => setShowBook(true)} style={{ width: '100%', background: C.teal, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
+        <button onClick={() => setShowBook(true)} style={{ width: '100%', background: C.tealDark, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
           Book a Walk
         </button>
       ) : bookSubmitted ? (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.check(C.teal, 36)}</div>
-          <div style={{ fontWeight: 800, color: C.teal, fontSize: '1.1rem', marginBottom: 6 }}>Request Sent!</div>
-          <div style={{ fontSize: '0.85rem', color: C.light }}>
+          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.check(C.tealDark, 36)}</div>
+          <div style={{ fontWeight: 800, color: C.tealDark, fontSize: '1.1rem', marginBottom: 6 }}>Request Sent!</div>
+          <div style={{ fontSize: '1rem', color: C.muted }}>
             {bookForm.service_type} on {formatDate(bookForm.preferred_date)} at {bookForm.preferred_time}
           </div>
-          <div style={{ fontSize: '0.82rem', color: C.light, marginTop: 4 }}>We will text you to confirm.</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 4 }}>We will text you to confirm.</div>
         </div>
       ) : (
         <div style={{ ...cardStyle, borderLeft: `4px solid ${C.teal}` }}>
-          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.teal, marginBottom: 10 }}>New Walk Request</div>
-          <div style={{ background: '#FFF8E8', border: '1px solid #F0DFAF', borderRadius: 8, padding: '12px 14px', fontSize: '0.8rem', color: '#6B5A2A', marginBottom: 14, lineHeight: 1.5 }}>
+          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.tealDark, marginBottom: 10 }}>New Walk Request</div>
+          <div style={{ background: '#FFF8E8', border: '1px solid #F0DFAF', borderRadius: 8, padding: '12px 14px', fontSize: '1rem', color: '#6B5A2A', marginBottom: 14, lineHeight: 1.5 }}>
             <div style={{ fontWeight: 800, marginBottom: 6 }}>Hours</div>
             <div><strong>Mon–Thu:</strong> 9:30am–3pm &amp; 5pm–6:30pm</div>
             <div><strong>Fri:</strong> 10am–2:30pm</div>
@@ -456,10 +456,10 @@ export default function ClientPortal() {
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Service Type</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
               {SERVICE_TYPES.map(type => (
                 <button key={type} type="button" onClick={() => setBookForm({ ...bookForm, service_type: type })}
-                  style={{ border: bookForm.service_type === type ? `2px solid ${C.teal}` : '2px solid #E0E0E0', background: bookForm.service_type === type ? '#ECFDF5' : 'white', color: bookForm.service_type === type ? C.green : C.light, borderRadius: 8, padding: '9px 6px', fontSize: '0.85rem', fontWeight: bookForm.service_type === type ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  style={{ border: bookForm.service_type === type ? `2px solid ${C.teal}` : '2px solid #E0E0E0', background: bookForm.service_type === type ? '#ECFDF5' : 'white', color: bookForm.service_type === type ? C.green : C.muted, borderRadius: 8, padding: '9px 6px', fontSize: '1rem', fontWeight: bookForm.service_type === type ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   {type}
                 </button>
               ))}
@@ -480,20 +480,20 @@ export default function ClientPortal() {
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Preferred Time</label>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b2bec3', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '2px 0 6px' }}>Day</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.03em', margin: '2px 0 6px' }}>Day</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginBottom: 12 }}>
               {DAY_SLOTS.map(slot => (
                 <button key={slot} type="button" onClick={() => setBookForm({ ...bookForm, preferred_time: slot })}
-                  style={{ border: bookForm.preferred_time === slot ? `2px solid ${C.teal}` : '2px solid #E0E0E0', background: bookForm.preferred_time === slot ? '#ECFDF5' : 'white', color: bookForm.preferred_time === slot ? C.green : C.light, borderRadius: 8, padding: '9px', fontSize: '0.85rem', fontWeight: bookForm.preferred_time === slot ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  style={{ border: bookForm.preferred_time === slot ? `2px solid ${C.teal}` : '2px solid #E0E0E0', background: bookForm.preferred_time === slot ? '#ECFDF5' : 'white', color: bookForm.preferred_time === slot ? C.green : C.muted, borderRadius: 8, padding: '9px', fontSize: '1rem', fontWeight: bookForm.preferred_time === slot ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   {slot}
                 </button>
               ))}
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b2bec3', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '2px 0 6px' }}>Evening</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.03em', margin: '2px 0 6px' }}>Evening</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
               {EVENING_SLOTS.map(slot => (
                 <button key={slot} type="button" onClick={() => setBookForm({ ...bookForm, preferred_time: slot })}
-                  style={{ border: bookForm.preferred_time === slot ? `2px solid ${C.teal}` : '2px solid #E0E0E0', background: bookForm.preferred_time === slot ? '#ECFDF5' : 'white', color: bookForm.preferred_time === slot ? C.green : C.light, borderRadius: 8, padding: '9px', fontSize: '0.85rem', fontWeight: bookForm.preferred_time === slot ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  style={{ border: bookForm.preferred_time === slot ? `2px solid ${C.teal}` : '2px solid #E0E0E0', background: bookForm.preferred_time === slot ? '#ECFDF5' : 'white', color: bookForm.preferred_time === slot ? C.green : C.muted, borderRadius: 8, padding: '9px', fontSize: '1rem', fontWeight: bookForm.preferred_time === slot ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   {slot}
                 </button>
               ))}
@@ -503,35 +503,35 @@ export default function ClientPortal() {
             <label style={labelStyle}>Notes (optional)</label>
             <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={bookForm.notes} onChange={e => setBookForm({ ...bookForm, notes: e.target.value })} placeholder="Gate code, where to find the leash, etc." />
           </div>
-          {bookError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12 }}>{bookError}</div>}
+          {bookError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 12 }}>{bookError}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={submitBook} disabled={bookSubmitting || !bookForm.preferred_date || !bookForm.preferred_time}
-              style={{ flex: 1, background: (!bookForm.preferred_date || !bookForm.preferred_time) ? '#636e72' : C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+              style={{ flex: 1, background: (!bookForm.preferred_date || !bookForm.preferred_time) ? C.muted : C.tealDark, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
               {bookSubmitting ? 'Sending...' : 'Send Request'}
             </button>
-            <button onClick={() => { setShowBook(false); setBookError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
+            <button onClick={() => { setShowBook(false); setBookError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: C.muted, cursor: 'pointer' }}>
               Cancel
             </button>
           </div>
         </div>
       )}
 
-      <SectionHeader title="Set Up a Recurring Walk" icon={Icon.repeat(C.teal)} color={C.teal} />
+      <SectionHeader title="Set Up a Recurring Walk" icon={Icon.repeat(C.tealDark)} color={C.tealDark} />
 
       {!showRecurring ? (
-        <button onClick={() => setShowRecurring(true)} style={{ width: '100%', background: C.teal, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
+        <button onClick={() => setShowRecurring(true)} style={{ width: '100%', background: C.tealDark, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
           Set Up Recurring Walk
         </button>
       ) : recurringSubmitted ? (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.repeat(C.light, 40)}</div>
-          <div style={{ fontWeight: 800, color: C.teal, fontSize: '1.1rem', marginBottom: 6 }}>Recurring Walk Set Up!</div>
-          <div style={{ fontSize: '0.85rem', color: C.light }}>Your walks have been requested for the next {recurringForm.weeks} weeks.</div>
+          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.repeat(C.muted, 40)}</div>
+          <div style={{ fontWeight: 800, color: C.tealDark, fontSize: '1.1rem', marginBottom: 6 }}>Recurring Walk Set Up!</div>
+          <div style={{ fontSize: '1rem', color: C.muted }}>Your walks have been requested for the next {recurringForm.weeks} weeks.</div>
         </div>
       ) : (
         <div style={{ ...cardStyle, borderLeft: `4px solid ${C.teal}` }}>
-          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.teal, marginBottom: 10 }}>New Recurring Walk</div>
-          <div style={{ background: '#FFF8E8', border: '1px solid #F0DFAF', borderRadius: 8, padding: '12px 14px', fontSize: '0.8rem', color: '#6B5A2A', marginBottom: 14, lineHeight: 1.5 }}>
+          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.tealDark, marginBottom: 10 }}>New Recurring Walk</div>
+          <div style={{ background: '#FFF8E8', border: '1px solid #F0DFAF', borderRadius: 8, padding: '12px 14px', fontSize: '1rem', color: '#6B5A2A', marginBottom: 14, lineHeight: 1.5 }}>
             <div style={{ fontWeight: 800, marginBottom: 6 }}>Hours</div>
             <div><strong>Mon–Thu:</strong> 9:30am–3pm &amp; 5pm–6:30pm</div>
             <div><strong>Fri:</strong> 10am–2:30pm</div>
@@ -562,7 +562,7 @@ export default function ClientPortal() {
                 return (
                   <button key={i} type="button"
                     onClick={() => setRecurringForm({ ...recurringForm, days: selected ? recurringForm.days.filter(d => d !== i) : [...recurringForm.days, i] })}
-                    style={{ padding: '8px 12px', borderRadius: 8, border: selected ? `1.5px solid ${C.teal}` : '1.5px solid #E0E0E0', background: selected ? C.teal : 'white', color: selected ? 'white' : C.charcoal, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+                    style={{ padding: '8px 12px', borderRadius: 8, border: selected ? `1.5px solid ${C.teal}` : '1.5px solid #E0E0E0', background: selected ? C.teal : 'white', color: selected ? 'white' : C.charcoal, fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
                     {label}
                   </button>
                 )
@@ -581,7 +581,7 @@ export default function ClientPortal() {
               </optgroup>
             </select>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 14 }}>
             <div>
               <label style={labelStyle}>Start Date</label>
               <input type="date" style={inputStyle} value={recurringForm.start_date} min={new Date().toISOString().split('T')[0]} onChange={e => setRecurringForm({ ...recurringForm, start_date: e.target.value })} />
@@ -595,36 +595,36 @@ export default function ClientPortal() {
             <label style={labelStyle}>Notes (optional)</label>
             <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={recurringForm.notes} onChange={e => setRecurringForm({ ...recurringForm, notes: e.target.value })} />
           </div>
-          {recurringError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12 }}>{recurringError}</div>}
+          {recurringError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 12 }}>{recurringError}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={submitRecurring} disabled={recurringSubmitting} style={{ flex: 1, background: C.teal, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+            <button onClick={submitRecurring} disabled={recurringSubmitting} style={{ flex: 1, background: C.tealDark, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
               {recurringSubmitting ? 'Setting up...' : 'Confirm Recurring Walk'}
             </button>
-            <button onClick={() => { setShowRecurring(false); setRecurringError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
+            <button onClick={() => { setShowRecurring(false); setRecurringError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: C.muted, cursor: 'pointer' }}>
               Cancel
             </button>
           </div>
         </div>
       )}
 
-      <SectionHeader title="Book Boarding" icon={Icon.home(C.gold)} color={C.gold} />
+      <SectionHeader title="Book Boarding" icon={Icon.home(C.goldDark)} color={C.goldDark} />
 
       {!showBoard ? (
-        <button onClick={() => setShowBoard(true)} style={{ width: '100%', background: C.gold, border: 'none', borderRadius: 12, padding: '14px', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
+        <button onClick={() => setShowBoard(true)} style={{ width: '100%', background: C.gold, border: 'none', borderRadius: 12, padding: '14px', color: C.ink, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 4 }}>
           Request Boarding
         </button>
       ) : boardSubmitted ? (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.check(C.gold, 36)}</div>
-          <div style={{ fontWeight: 800, color: C.gold, fontSize: '1.1rem', marginBottom: 6 }}>Request Sent!</div>
-          <div style={{ fontSize: '0.85rem', color: C.light }}>
+          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{Icon.check(C.goldDark, 36)}</div>
+          <div style={{ fontWeight: 800, color: C.goldDark, fontSize: '1.1rem', marginBottom: 6 }}>Request Sent!</div>
+          <div style={{ fontSize: '1rem', color: C.muted }}>
             {formatDate(boardForm.check_in_date)} to {formatDate(boardForm.check_out_date)}
           </div>
-          <div style={{ fontSize: '0.82rem', color: C.light, marginTop: 4 }}>We will text you to confirm.</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 4 }}>We will text you to confirm.</div>
         </div>
       ) : (
         <div style={{ ...cardStyle, borderLeft: `4px solid ${C.gold}` }}>
-          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.gold, marginBottom: 16 }}>New Boarding Request</div>
+          <div style={{ fontWeight: 800, fontSize: '1rem', color: C.goldDark, marginBottom: 16 }}>New Boarding Request</div>
           {dogs.length > 0 && (
             <div style={{ marginBottom: 14 }}>
               <label style={labelStyle}>Which Dog?</label>
@@ -634,7 +634,7 @@ export default function ClientPortal() {
               </select>
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 14 }}>
             <div>
               <label style={labelStyle}>Check-In Date</label>
               <input type="date" style={inputStyle} value={boardForm.check_in_date} min={new Date().toISOString().split('T')[0]} onChange={e => setBoardForm({ ...boardForm, check_in_date: e.target.value })} />
@@ -648,13 +648,13 @@ export default function ClientPortal() {
             <label style={labelStyle}>Notes (optional)</label>
             <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={boardForm.notes} onChange={e => setBoardForm({ ...boardForm, notes: e.target.value })} placeholder="Feeding schedule, medications, routine..." />
           </div>
-          {boardError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12 }}>{boardError}</div>}
+          {boardError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 12 }}>{boardError}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={submitBoard} disabled={boardSubmitting || !boardForm.check_in_date || !boardForm.check_out_date}
-              style={{ flex: 1, background: (!boardForm.check_in_date || !boardForm.check_out_date) ? '#636e72' : C.gold, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+              style={{ flex: 1, background: (!boardForm.check_in_date || !boardForm.check_out_date) ? C.muted : C.goldDark, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
               {boardSubmitting ? 'Sending...' : 'Send Request'}
             </button>
-            <button onClick={() => { setShowBoard(false); setBoardError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
+            <button onClick={() => { setShowBoard(false); setBoardError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: C.muted, cursor: 'pointer' }}>
               Cancel
             </button>
           </div>
@@ -665,13 +665,13 @@ export default function ClientPortal() {
       {activeTab === 'activity' && (<>
       {boardings.length > 0 && (
         <>
-          <SectionHeader title="My Boarding Requests" icon={Icon.home(C.gold)} color={C.gold} />
+          <SectionHeader title="My Boarding Requests" icon={Icon.home(C.goldDark)} color={C.goldDark} />
           {boardings.map(b => (
             <div key={b.id} style={{ ...cardStyle }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ fontWeight: 700, color: C.charcoal }}>{b.dogs?.name ? `${b.dogs.name}'s Boarding` : 'Boarding'}</div>
-                  <div style={{ fontSize: '0.83rem', color: C.light, marginTop: 2 }}>
+                  <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>
                     {formatDate(b.check_in_date)} → {formatDate(b.check_out_date)}
                   </div>
                 </div>
@@ -685,9 +685,9 @@ export default function ClientPortal() {
       <SectionHeader title="My Walks" icon={Icon.route(C.indigo)} color={C.indigo} />
 
       {walks.length === 0 ? (
-        <div style={{ ...cardStyle, textAlign: 'center', padding: '28px 20px', color: C.light }}>
+        <div style={{ ...cardStyle, textAlign: 'center', padding: '28px 20px', color: C.muted }}>
           <p style={{ fontWeight: 600 }}>No walk requests yet</p>
-          <p style={{ fontSize: '0.84rem', marginTop: 4 }}>Book your first walk above</p>
+          <p style={{ fontSize: '1rem', marginTop: 4 }}>Book your first walk above</p>
         </div>
       ) : (
         walks.map(walk => {
@@ -697,7 +697,7 @@ export default function ClientPortal() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
               <div>
                 <div style={{ fontWeight: 700, color: C.charcoal }}>{walk.service_type}</div>
-                <div style={{ fontSize: '0.83rem', color: C.light, marginTop: 2 }}>
+                <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>
                   {walk.dogs?.name && `${walk.dogs.name} · `}{formatDate(walk.preferred_date)} at {walk.preferred_time}
                   {walkRecord?.duration && ` · ${walkRecord.duration} min`}
                 </div>
@@ -705,7 +705,7 @@ export default function ClientPortal() {
               <StatusBadge status={walk.status} />
             </div>
             {walk.notes && walk.status === 'completed' && (
-              <div style={{ background: C.cream, borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', color: C.charcoal, marginTop: 6 }}>
+              <div style={{ background: C.cream, borderRadius: 8, padding: '8px 10px', fontSize: '1rem', color: C.charcoal, marginTop: 6 }}>
                 <span style={{ fontWeight: 700 }}>Walker note: </span>{walk.notes}
               </div>
             )}
@@ -722,7 +722,7 @@ export default function ClientPortal() {
       <SectionHeader title="My Profile" icon={Icon.person(C.indigo)} color={C.indigo} />
 
       <div style={cardStyle}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 10 }}>
           <div>
             <label style={labelStyle}>Name</label>
             <input style={inputStyle} value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} placeholder="Your name" />
@@ -740,14 +740,14 @@ export default function ClientPortal() {
               onChange={e => { setProfile({ ...profile, sms_consent: e.target.checked }); setConsentError(null) }}
               style={{ width: 20, height: 20, marginTop: 2, flexShrink: 0, accentColor: '#92400E' }}
             />
-            <span style={{ fontSize: '0.85rem', color: '#4B5563', lineHeight: 1.5 }}>
+            <span style={{ fontSize: '1rem', color: '#4B5563', lineHeight: 1.5 }}>
               I agree to receive SMS notifications about my dog walk bookings, including walk confirmations, walker en route, walk start, and walk completion alerts. Message frequency varies. Message and data rates may apply. Reply STOP to opt out, HELP for help. A phone number cannot be saved without checking this box.
             </span>
           </label>
         </div>
         <div style={{ marginBottom: 10 }}>
           <label style={labelStyle}>Email</label>
-          <input style={{ ...inputStyle, background: '#F5F5F5', color: C.light }} value={profile.email} readOnly />
+          <input style={{ ...inputStyle, background: '#F5F5F5', color: C.muted }} value={profile.email} readOnly />
         </div>
         <div style={{ marginBottom: 10 }}>
           <label style={labelStyle}>Service Address</label>
@@ -760,16 +760,16 @@ export default function ClientPortal() {
         {profileSaved && (
           <div style={{ background: '#D1FAE5', border: '2px solid #10B981', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>{Icon.check('#065F46', 20)}</span>
-            <span style={{ fontWeight: 800, color: '#065F46', fontSize: '0.95rem' }}>Profile saved successfully!</span>
+            <span style={{ fontWeight: 800, color: '#065F46', fontSize: '1rem' }}>Profile saved successfully!</span>
           </div>
         )}
         {consentError && (
           <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>{Icon.warning('#991B1B', 20)}</span>
-            <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '0.95rem' }}>{consentError}</span>
+            <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '1rem' }}>{consentError}</span>
           </div>
         )}
-        <button onClick={saveProfile} disabled={savingProfile} style={{ width: '100%', background: profileSaved ? C.teal : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+        <button onClick={saveProfile} disabled={savingProfile} style={{ width: '100%', background: profileSaved ? C.teal : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
           {profileSaved ? 'Profile Saved!' : savingProfile ? 'Saving...' : 'Save Profile'}
         </button>
       </div>
@@ -789,8 +789,8 @@ export default function ClientPortal() {
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               background: activeTab === tab.id ? '#E8EEF5' : 'none',
               border: 'none', borderRadius: 14, cursor: 'pointer', padding: '6px 12px',
-              color: activeTab === tab.id ? '#182B4A' : '#636e72',
-              fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.7rem',
+              color: activeTab === tab.id ? '#182B4A' : C.muted,
+              fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.875rem',
             }}
           >
             <tab.Icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 2} />

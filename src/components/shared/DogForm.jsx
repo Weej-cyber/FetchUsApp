@@ -6,8 +6,8 @@ import { COLORS as C } from '../../theme'
 // DogFields (the inputs), saveDog (photo upload + insert/update), removeDog,
 // and the standalone DogForm card the Client portal uses.
 
-const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
-const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '0.9rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box', background: 'white' }
+const labelStyle = { display: 'block', fontSize: '0.875rem', fontWeight: 700, color: C.muted, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
+const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box', background: 'white' }
 const cardStyle = { background: 'white', borderRadius: 14, padding: '18px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', marginBottom: 12 }
 
 const pawIcon = (color, size) => (
@@ -47,12 +47,12 @@ export function DogFields({ draft, onChange }) {
         <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#F0EDE5', overflow: 'hidden', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem' }}>
           {preview ? <img src={preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : pawIcon(C.indigo, 26)}
         </div>
-        <label style={{ display: 'inline-block', background: '#F0EDE5', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 700, color: C.indigo, cursor: 'pointer' }}>
+        <label style={{ display: 'inline-block', background: '#F0EDE5', borderRadius: 8, padding: '6px 14px', fontSize: '1rem', fontWeight: 700, color: C.indigo, cursor: 'pointer' }}>
           {preview ? 'Change Photo' : '+ Add Photo'}
           <input type="file" accept="image/*" onChange={pickPhoto} style={{ display: 'none' }} />
         </label>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 10 }}>
         <div>
           <label style={labelStyle}>Name *</label>
           <input style={inputStyle} value={form.name} onChange={e => set('name', e.target.value)} placeholder="Max" />
@@ -111,7 +111,7 @@ export async function removeDog(dogId) {
 
 export const REMOVE_WARNING = 'Its upcoming walks, boardings, and recurring walks will be canceled. Past walks and invoices keep its name.'
 
-export const removeBtnStyle = { width: '100%', background: 'white', border: '2px solid #991B1B', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', color: '#991B1B', cursor: 'pointer' }
+export const removeBtnStyle = { width: '100%', background: 'white', border: '2px solid #991B1B', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: '#991B1B', cursor: 'pointer' }
 
 export default function DogForm({ clientId, dog, onSaved, onCancel }) {
   const [draft, setDraft] = useState(() => dogDraft(dog))
@@ -156,12 +156,12 @@ export default function DogForm({ clientId, dog, onSaved, onCancel }) {
     return (
       <div style={{ ...cardStyle, borderLeft: '4px solid #991B1B' }}>
         <div style={{ fontWeight: 800, fontSize: '1rem', color: '#991B1B', marginBottom: 8 }}>Remove {dog.name}?</div>
-        <div style={{ fontSize: '0.9rem', color: C.charcoal, marginBottom: 16 }}>{REMOVE_WARNING}</div>
+        <div style={{ fontSize: '1rem', color: C.charcoal, marginBottom: 16 }}>{REMOVE_WARNING}</div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={handleRemove} disabled={savingDog} style={{ flex: 1, background: '#991B1B', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+          <button onClick={handleRemove} disabled={savingDog} style={{ flex: 1, background: '#991B1B', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
             {savingDog ? 'Removing...' : 'Yes, Remove Dog'}
           </button>
-          <button onClick={() => setConfirmingRemove(false)} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
+          <button onClick={() => setConfirmingRemove(false)} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: C.muted, cursor: 'pointer' }}>
             Keep Dog
           </button>
         </div>
@@ -178,20 +178,20 @@ export default function DogForm({ clientId, dog, onSaved, onCancel }) {
       {dogSaved && (
         <div style={{ background: '#D1FAE5', border: '2px solid #10B981', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span>{checkIcon('#065F46', 20)}</span>
-          <span style={{ fontWeight: 800, color: '#065F46', fontSize: '0.95rem' }}>Saved successfully!</span>
+          <span style={{ fontWeight: 800, color: '#065F46', fontSize: '1rem' }}>Saved successfully!</span>
         </div>
       )}
       {dogError && (
         <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span>{warningIcon('#991B1B', 20)}</span>
-          <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '0.95rem' }}>{dogError}</span>
+          <span style={{ fontWeight: 800, color: '#991B1B', fontSize: '1rem' }}>{dogError}</span>
         </div>
       )}
       <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={handleSave} disabled={savingDog || nameMissing} style={{ flex: 1, background: nameMissing ? '#636e72' : (dogSaved ? C.teal : C.indigo), color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+        <button onClick={handleSave} disabled={savingDog || nameMissing} style={{ flex: 1, background: nameMissing ? C.muted : (dogSaved ? C.tealDark : C.indigo), color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
           {dogSaved ? 'Saved!' : savingDog ? 'Saving...' : dog ? 'Save Changes' : 'Add Dog'}
         </button>
-        <button onClick={onCancel} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.light, cursor: 'pointer' }}>
+        <button onClick={onCancel} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: C.muted, cursor: 'pointer' }}>
           Cancel
         </button>
       </div>

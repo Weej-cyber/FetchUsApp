@@ -13,7 +13,14 @@ export const COLORS = {
   goldAlt: '#E8B84B',
   cream: '#AEE0F5', // page background — matches marketing site's body gradient top stop
   charcoal: '#2D3436',
-  light: '#636e72',
+
+  // accessible text colors: every text color must be at least 4.5:1 on white
+  // and on the light blue page background. Use these instead of the bright
+  // teal/gold or light grays for any text.
+  muted: '#374151',    // secondary text (10.3:1 white, 7.3:1 light blue)
+  tealDark: '#0F5C4E', // teal text, and teal buttons with white text (7.9:1)
+  goldDark: '#6B4E08', // gold text (7.7:1 white, 5.4:1 light blue)
+  ink: '#1F2937',      // text on gold backgrounds (6.6:1)
 
   // status colors (unchanged — semantic, not brand-tinted)
   redBg: '#FEE2E2', red: '#991B1B',

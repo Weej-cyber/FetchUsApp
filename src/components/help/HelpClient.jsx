@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { COLORS as C } from '../../theme'
 
 function Section({ color, title, items }) {
   return (
@@ -20,7 +21,7 @@ export default function HelpClient() {
   const navigate = useNavigate()
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '28px 20px 60px', fontFamily: 'Nunito, sans-serif' }}>
-      <button onClick={() => navigate(-1)} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '10px 18px', fontSize: 18, fontWeight: 700, color: '#636e72', cursor: 'pointer', marginBottom: 20 }}>
+      <button onClick={() => navigate(-1)} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '10px 18px', fontSize: 18, fontWeight: 700, color: C.muted, cursor: 'pointer', marginBottom: 20 }}>
         ← Back
       </button>
 
@@ -39,7 +40,7 @@ export default function HelpClient() {
         { name: 'Remove Dog', desc: 'Tap a dog, then Remove Dog. Its upcoming walks, boardings, and recurring walks are canceled. Past walks keep its name.' },
       ]} />
 
-      <Section color="#2D9B8A" title="Book" items={[
+      <Section color={C.tealDark} title="Book" items={[
         { name: 'Book a Walk', desc: 'Request a one-time walk — pick your dog, the service type, and a date and time.' },
         { name: 'Set Up a Recurring Walk', desc: 'Book the same walk on repeating days each week, all in one go, instead of booking each one separately.' },
         { name: 'Book Boarding', desc: 'Request overnight boarding — pick your dog and the check-in and check-out dates.' },

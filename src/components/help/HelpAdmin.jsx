@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { COLORS as C } from '../../theme'
 
 function Section({ color, title, items }) {
   return (
@@ -20,7 +21,7 @@ export default function HelpAdmin() {
   const navigate = useNavigate()
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '28px 20px 60px', fontFamily: 'Nunito, sans-serif' }}>
-      <button onClick={() => navigate(-1)} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '10px 18px', fontSize: 18, fontWeight: 700, color: '#636e72', cursor: 'pointer', marginBottom: 20 }}>
+      <button onClick={() => navigate(-1)} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '10px 18px', fontSize: 18, fontWeight: 700, color: C.muted, cursor: 'pointer', marginBottom: 20 }}>
         ← Back
       </button>
 
@@ -61,7 +62,7 @@ export default function HelpAdmin() {
         { name: 'Cancel', desc: 'Removes a walk from the active schedule while keeping the record on file — nothing is ever truly deleted.' },
       ]} />
 
-      <Section color="#636e72" title="Tools" items={[
+      <Section color={C.muted} title="Tools" items={[
         { name: 'Invoices', desc: 'Pick a client and date range to pull in walks/boardings, fill in prices, Preview before anything saves, then Finalize to lock in a real invoice number and download the PDF.' },
         { name: 'Client Report', desc: 'Pick a client and date range to generate a PDF summary of their activity.' },
         { name: 'Broadcast Message', desc: 'Send one message to every active client at once — useful for weather closures or announcements.' },

@@ -1,3 +1,4 @@
+import { COLORS as C } from '../../theme'
 export default function TermsOfService() {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px', fontFamily: 'Nunito, sans-serif', color: '#2D3436', lineHeight: 1.8 }}>
@@ -6,7 +7,7 @@ export default function TermsOfService() {
           <svg width="34" height="30" viewBox="0 0 48 42" fill="none"><ellipse cx="10" cy="12" rx="5" ry="7" fill="white"/><ellipse cx="24" cy="7" rx="6" ry="8" fill="white"/><ellipse cx="38" cy="12" rx="5" ry="7" fill="white"/><path d="M24 18 C13 18 8 27 10 34 C12 40 18 42 24 42 C30 42 36 40 38 34 C40 27 35 18 24 18Z" fill="white"/></svg>
         </div>
         <h1 style={{ fontFamily: 'Baloo 2, sans-serif', color: '#182B4A', fontSize: '1.8rem', fontWeight: 700, margin: '0 0 4px' }}>FetchUs Terms of Service</h1>
-        <p style={{ color: '#636e72', fontSize: '0.88rem', margin: 0 }}>Effective Date: March 29, 2026</p>
+        <p style={{ color: C.muted, fontSize: '1rem', margin: 0 }}>Effective Date: March 29, 2026</p>
       </div>
 
       <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.1rem', color: '#2D3436', marginTop: 32 }}>1. Service Description</h2>

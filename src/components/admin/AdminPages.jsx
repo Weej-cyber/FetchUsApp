@@ -53,7 +53,7 @@ function StatCard({ label, value, Icon, onClick, attention = false }) {
     <button onClick={onClick} className="action-tile" style={{ position: 'relative', background: attention ? ATTENTION_COLOR : 'white', borderRadius: 16, padding: '16px 18px', border: `2px solid ${attention ? ATTENTION_COLOR : '#182B4A'}`, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%', boxShadow: '0 3px 10px rgba(45,52,54,0.15)' }}>
       <Icon size={22} color={fg} strokeWidth={2.2} style={{ marginBottom: 8 }} />
       <div style={{ fontSize: '1.8rem', fontWeight: 800, color: fg, lineHeight: 1 }}>{value ?? '—'}</div>
-      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: fg, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</div>
+      <div style={{ fontSize: '0.875rem', fontWeight: 700, color: fg, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</div>
       <ChevronRight size={22} color={fg} strokeWidth={2.5} style={{ position: 'absolute', top: 16, right: 14 }} />
     </button>
   )
@@ -61,7 +61,7 @@ function StatCard({ label, value, Icon, onClick, attention = false }) {
 
 function SectionHeader({ title, action, icon }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
       <h2 style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#182B4A', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>{icon}{title}</h2>
       {action}
     </div>
@@ -69,13 +69,13 @@ function SectionHeader({ title, action, icon }) {
 }
 
 function EmptyState({ message }) {
-  return <div style={{ textAlign: 'center', padding: '24px 0', color: '#b2bec3', fontSize: '0.88rem' }}>{message}</div>
+  return <div style={{ textAlign: 'center', padding: '24px 0', color: C.muted, fontSize: '1rem' }}>{message}</div>
 }
 
-const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
-const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', background: 'white' }
-const saveBtnStyle = { background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
-const cancelBtnStyle = { background: 'white', color: '#636e72', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }
+const labelStyle = { display: 'block', fontSize: '0.875rem', fontWeight: 700, color: C.muted, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }
+const inputStyle = { width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 10px', fontSize: '1rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', background: 'white' }
+const saveBtnStyle = { background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }
+const cancelBtnStyle = { background: 'white', color: C.muted, border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 14px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }
 
 // Shared edit panel used everywhere a walk can be changed (Requests tab, Schedule tab).
 // Every field is always editable regardless of the walk's current status — nothing
@@ -119,7 +119,7 @@ function EditWalkPanel({ walk, walkers, onSave, onClose }) {
 
   return (
     <div style={{ marginTop: 10, background: '#F7FAFC', border: '1.5px solid #E0E8F0', borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
         <div>
           <label style={labelStyle}>Walker</label>
           <select style={inputStyle} value={walkerId} onChange={e => setWalkerId(e.target.value)}>
@@ -214,7 +214,7 @@ function EditBoardingPanel({ req, walkers, onSave, onClose }) {
 
   return (
     <div style={{ marginTop: 10, background: '#F7FAFC', border: '1.5px solid #E0E8F0', borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
         <div>
           <label style={labelStyle}>Walker</label>
           <select style={inputStyle} value={walkerId} onChange={e => setWalkerId(e.target.value)}>
@@ -279,26 +279,26 @@ function WalkRequestCard({ req, walkers, onDecline, onEdit, onCancel }) {
     <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, borderLeft: '4px solid #182B4A' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#2D3436' }}>{req.dogs?.name ?? 'Unknown dog'} — {req.service_type}</div>
-          <div style={{ fontSize: '0.83rem', color: '#636e72', marginTop: 2 }}>{formatDate(req.preferred_date)} at {req.preferred_time}</div>
-          <div style={{ fontSize: '0.8rem', color: '#b2bec3', marginTop: 2 }}>{req.clients?.users?.name ?? 'Unknown client'} · {timeAgo(req.created_at)}</div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436' }}>{req.dogs?.name ?? 'Unknown dog'} — {req.service_type}</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{formatDate(req.preferred_date)} at {req.preferred_time}</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{req.clients?.users?.name ?? 'Unknown client'} · {timeAgo(req.created_at)}</div>
         </div>
-        <span style={{ background: sc.bg, color: sc.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{req.status}</span>
+        <span style={{ background: sc.bg, color: sc.text, padding: '3px 10px', borderRadius: 20, fontSize: '1rem', fontWeight: 700, textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{req.status}</span>
       </div>
-      {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: C.cream, borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
+      {req.notes && <div style={{ fontSize: '1rem', color: C.muted, background: C.cream, borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
       {req.walks?.[0]?.photo_url && (
         <img src={req.walks[0].photo_url} alt="Walk photo" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8, marginBottom: 10 }} />
       )}
-      {req.assigned_walker_id && <div style={{ fontSize: '0.8rem', color: '#2D9B8A', fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
+      {req.assigned_walker_id && <div style={{ fontSize: '1rem', color: C.tealDark, fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
       <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
         {req.status === 'pending' && (
-          <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
+          <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
         )}
         {editable && (
-          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
+          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
         )}
         {editable && (
-          <button onClick={() => onCancel(req.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+          <button onClick={() => onCancel(req.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
         )}
       </div>
       {showEdit && <EditWalkPanel walk={req} walkers={walkers} onSave={onEdit} onClose={() => setShowEdit(false)} />}
@@ -323,23 +323,23 @@ function BoardingRequestCard({ req, walkers, onDecline, onEdit, onCancel }) {
     <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12, borderLeft: '4px solid #D4A843' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#2D3436' }}>{req.dogs?.name ?? 'Unknown dog'} — Boarding</div>
-          <div style={{ fontSize: '0.83rem', color: '#636e72', marginTop: 2 }}>{formatDate(req.check_in_date)} → {formatDate(req.check_out_date)}</div>
-          <div style={{ fontSize: '0.8rem', color: '#b2bec3', marginTop: 2 }}>{req.clients?.users?.name ?? 'Unknown client'} · {timeAgo(req.created_at)}</div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436' }}>{req.dogs?.name ?? 'Unknown dog'} — Boarding</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{formatDate(req.check_in_date)} → {formatDate(req.check_out_date)}</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{req.clients?.users?.name ?? 'Unknown client'} · {timeAgo(req.created_at)}</div>
         </div>
-        <span style={{ background: sc.bg, color: sc.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{req.status}</span>
+        <span style={{ background: sc.bg, color: sc.text, padding: '3px 10px', borderRadius: 20, fontSize: '1rem', fontWeight: 700, textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{req.status}</span>
       </div>
-      {req.notes && <div style={{ fontSize: '0.82rem', color: '#636e72', background: C.cream, borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
-      {req.assigned_walker_id && <div style={{ fontSize: '0.8rem', color: '#2D9B8A', fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
+      {req.notes && <div style={{ fontSize: '1rem', color: C.muted, background: C.cream, borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>"{req.notes}"</div>}
+      {req.assigned_walker_id && <div style={{ fontSize: '1rem', color: C.tealDark, fontWeight: 600, marginBottom: 8 }}>Assigned to: {walkers.find(w => w.id === req.assigned_walker_id)?.name ?? 'Unknown'}</div>}
       <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
         {req.status === 'pending' && (
-          <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
+          <button onClick={() => onDecline(req.id)} style={{ background: 'white', border: '1.5px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '6px 14px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>Decline</button>
         )}
         {editable && (
-          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
+          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 14px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
         )}
         {editable && (
-          <button onClick={() => onCancel(req.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+          <button onClick={() => onCancel(req.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
         )}
       </div>
       {showEdit && <EditBoardingPanel req={req} walkers={walkers} onSave={onEdit} onClose={() => setShowEdit(false)} />}
@@ -386,21 +386,21 @@ function BroadcastPanel() {
 
   return (
     <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginTop: 16 }}>
-      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#2D3436', marginBottom: 10 }}>Broadcast Message</div>
-      <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Message all clients..." rows={3} style={{ width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '10px 12px', fontSize: '0.88rem', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+      <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436', marginBottom: 10 }}>Broadcast Message</div>
+      <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Message all clients..." rows={3} style={{ width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '10px 12px', fontSize: '1rem', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-        <span style={{ fontSize: '0.78rem', color: '#b2bec3' }}>{message.length} chars</span>
-        <button onClick={sendBroadcast} disabled={!message.trim() || sending} style={{ background: !message.trim() ? '#636e72' : (sent ? '#2D9B8A' : '#182B4A'), color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+        <span style={{ fontSize: '1rem', color: C.muted }}>{message.length} chars</span>
+        <button onClick={sendBroadcast} disabled={!message.trim() || sending} style={{ background: !message.trim() ? C.muted : (sent ? C.tealDark : '#182B4A'), color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>
           {sending ? 'Sending...' : sent ? 'Sent!' : 'Send to All Clients'}
         </button>
       </div>
       {history.length > 0 && (
         <div style={{ marginTop: 16, borderTop: '1px solid #F0EDE5', paddingTop: 14 }}>
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Recent Broadcasts</div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Recent Broadcasts</div>
           {history.map(h => (
-            <div key={h.id} style={{ fontSize: '0.82rem', color: '#636e72', padding: '6px 0', borderBottom: '1px solid #F0EDE5' }}>
+            <div key={h.id} style={{ fontSize: '1rem', color: C.muted, padding: '6px 0', borderBottom: '1px solid #F0EDE5' }}>
               <span style={{ color: '#2D3436' }}>{h.message}</span>
-              <span style={{ color: '#b2bec3', marginLeft: 8 }}>· {timeAgo(h.created_at)}</span>
+              <span style={{ color: C.muted, marginLeft: 8 }}>· {timeAgo(h.created_at)}</span>
             </div>
           ))}
         </div>
@@ -479,7 +479,7 @@ function WeekPanel({ selectedDay, onSelectDay, refreshKey }) {
           <div style={{ fontFamily: 'Baloo 2, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#182B4A' }}>
             {weekStart === mondayOf(today) ? 'This Week' : `Week of ${formatDay(weekStart, { month: 'short', day: 'numeric' })}`}
           </div>
-          <div style={{ fontSize: '0.85rem', color: '#2D3436' }}>{formatDay(weekStart, { month: 'short', day: 'numeric' })} – {formatDay(weekEnd, { month: 'short', day: 'numeric' })}</div>
+          <div style={{ fontSize: '1rem', color: '#2D3436' }}>{formatDay(weekStart, { month: 'short', day: 'numeric' })} – {formatDay(weekEnd, { month: 'short', day: 'numeric' })}</div>
         </div>
         <button onClick={() => setWeekStart(addDays(weekStart, 7))} style={arrowStyle} aria-label="Next week"><ChevronRight size={26} strokeWidth={2.5} /></button>
       </div>
@@ -501,7 +501,7 @@ function WeekPanel({ selectedDay, onSelectDay, refreshKey }) {
             <span style={{ fontWeight: 800, fontSize: '1rem' }}>
               {formatDay(day, { weekday: 'short', month: 'short', day: 'numeric' })}{isToday ? ' · Today' : ''}
             </span>
-            <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+            <span style={{ fontWeight: 700, fontSize: '1rem' }}>
               {loading ? '…' : `${plural(c.walks, 'walk')}${c.boardings ? ` · ${plural(c.boardings, 'boarding')}` : ''}`}
             </span>
           </button>
@@ -589,7 +589,7 @@ function ScheduleSection({ walkers }) {
       {showAddForm && (
         <form onSubmit={handleAddWalk} style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 16, borderLeft: '4px solid #2D9B8A' }}>
           <div style={{ fontWeight: 700, marginBottom: 14, color: '#2D3436' }}>Add Walk</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 10 }}>
             <div>
               <label style={labelStyle}>Client</label>
               <select style={inputStyle} value={form.client_id} onChange={e => handleClientChange(e.target.value)} required>
@@ -605,7 +605,7 @@ function ScheduleSection({ walkers }) {
               </select>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 10 }}>
             <div>
               <label style={labelStyle}>Service Type</label>
               <select style={inputStyle} value={form.service_type} onChange={e => setForm({ ...form, service_type: e.target.value })} required>
@@ -661,16 +661,16 @@ function ScheduleWalkRow({ walk, walkers, onEdit, onCancel }) {
   const [showEdit, setShowEdit] = useState(false)
   return (
     <div style={{ background: 'white', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.06)', marginBottom: 10 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#2D3436' }}>{walk.dogs?.name ?? '—'} — {walk.service_type}</div>
-          <div style={{ fontSize: '0.8rem', color: '#636e72', marginTop: 2 }}>{formatDate(walk.preferred_date)} · {walk.preferred_time}</div>
-          <div style={{ fontSize: '0.78rem', color: '#b2bec3', marginTop: 1 }}>Owner: {walk.clients?.users?.name ?? '—'} · Walker: {walk.assigned_walker?.name ?? 'Unassigned'}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ flex: '1 1 200px', minWidth: 0, overflowWrap: 'anywhere' }}>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436' }}>{walk.dogs?.name ?? '—'} — {walk.service_type}</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{formatDate(walk.preferred_date)} · {walk.preferred_time}</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 1 }}>Owner: {walk.clients?.users?.name ?? '—'} · Walker: {walk.assigned_walker?.name ?? 'Unassigned'}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ background: '#E3EAF2', color: '#1F3A5F', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>{walk.status}</span>
-          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>Edit</button>
-          <button onClick={() => onCancel(walk.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+          <span style={{ background: '#E3EAF2', color: '#1F3A5F', padding: '3px 10px', borderRadius: 20, fontSize: '1rem', fontWeight: 700 }}>{walk.status}</span>
+          <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 12px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>Edit</button>
+          <button onClick={() => onCancel(walk.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
         </div>
       </div>
       {showEdit && <EditWalkPanel walk={walk} walkers={walkers} onSave={onEdit} onClose={() => setShowEdit(false)} />}
@@ -773,7 +773,7 @@ function CompletedWalksView({ walkers }) {
           <>
             {walks.map(w => <ScheduleWalkRow key={w.id} walk={w} walkers={walkers} onEdit={handleEdit} onCancel={handleCancel} />)}
             {hasMore && (
-              <button onClick={() => loadPage(walks.length, false)} disabled={loadingMore} style={{ width: '100%', background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 10, padding: '10px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', marginTop: 8 }}>
+              <button onClick={() => loadPage(walks.length, false)} disabled={loadingMore} style={{ width: '100%', background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 10, padding: '10px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginTop: 8 }}>
                 {loadingMore ? 'Loading...' : 'Load More'}
               </button>
             )}
@@ -790,13 +790,13 @@ function ReadOnlyStatusBadge({ status }) {
     assigned:    { bg: '#D1FAE5', text: '#065F46', label: 'Confirmed' },
     confirmed:   { bg: '#D1FAE5', text: '#065F46', label: 'Confirmed' },
     in_progress: { bg: '#E3EAF2', text: '#1F3A5F', label: 'In Progress' },
-    completed:   { bg: '#F0F0F0', text: '#636e72', label: 'Completed' },
+    completed:   { bg: '#F0F0F0', text: C.muted, label: 'Completed' },
     declined:    { bg: '#FEE2E2', text: '#991B1B', label: 'Declined' },
     cancelled:   { bg: '#FEE2E2', text: '#991B1B', label: 'Cancelled' },
   }
   const s = map[status] || map.pending
   return (
-    <span style={{ background: s.bg, color: s.text, padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+    <span style={{ background: s.bg, color: s.text, padding: '3px 10px', borderRadius: 20, fontSize: '1rem', fontWeight: 700 }}>
       {s.label}
     </span>
   )
@@ -981,26 +981,26 @@ function ClientReadOnlyView({ userId, onBack }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: 0 }}>← Back to People</button>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', padding: 0 }}>← Back to People</button>
       </div>
-      <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '0.85rem', fontWeight: 700, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ background: '#FFF8E7', border: '2px solid #D4A843', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: '1rem', fontWeight: 700, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8 }}>
         <Eye size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
         Viewing as {profile?.users?.name ?? 'this client'}. You can edit their info and dogs, and book a walk for them.
       </div>
 
       <div style={{ marginBottom: 20 }}>
         {!showBook ? (
-          <button onClick={() => setShowBook(true)} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+          <button onClick={() => setShowBook(true)} style={{ width: '100%', background: C.tealDark, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
             Book a Walk for {profile?.users?.name ?? 'this client'}
           </button>
         ) : bookSubmitted ? (
           <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', textAlign: 'center' }}>
-            <div style={{ fontWeight: 800, color: '#2D9B8A' }}>Walk request submitted.</div>
+            <div style={{ fontWeight: 800, color: C.tealDark }}>Walk request submitted.</div>
           </div>
         ) : (
           <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', borderLeft: '4px solid #2D9B8A' }}>
             <div style={{ fontWeight: 700, color: '#2D3436', marginBottom: 12 }}>Book a Walk</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
               <div>
                 <label style={labelStyle}>Service Type</label>
                 <select style={inputStyle} value={bookForm.service_type} onChange={e => setBookForm({ ...bookForm, service_type: e.target.value })}>
@@ -1015,7 +1015,7 @@ function ClientReadOnlyView({ userId, onBack }) {
                 </select>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
               <div>
                 <label style={labelStyle}>Date</label>
                 <input type="date" style={inputStyle} value={bookForm.preferred_date} min={new Date().toISOString().split('T')[0]} onChange={e => setBookForm({ ...bookForm, preferred_date: e.target.value })} />
@@ -1032,12 +1032,12 @@ function ClientReadOnlyView({ userId, onBack }) {
               <label style={labelStyle}>Notes</label>
               <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={bookForm.notes} onChange={e => setBookForm({ ...bookForm, notes: e.target.value })} placeholder="Gate code, where to find the leash, etc." />
             </div>
-            {bookError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12, fontWeight: 600 }}>{bookError}</div>}
+            {bookError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 12, fontWeight: 600 }}>{bookError}</div>}
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={submitBook} disabled={bookSubmitting} style={{ flex: 1, background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+              <button onClick={submitBook} disabled={bookSubmitting} style={{ flex: 1, background: C.tealDark, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
                 {bookSubmitting ? 'Booking...' : 'Confirm'}
               </button>
-              <button onClick={() => { setShowBook(false); setBookError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#636e72', cursor: 'pointer' }}>
+              <button onClick={() => { setShowBook(false); setBookError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: C.muted, cursor: 'pointer' }}>
                 Cancel
               </button>
             </div>
@@ -1046,16 +1046,16 @@ function ClientReadOnlyView({ userId, onBack }) {
       </div>
 
       <SectionHeader title="Client Profile" />
-      <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 20 }}>
-        {emailChanged && <div style={{ fontSize: '0.85rem', color: '#0F5C4E', fontWeight: 700, marginBottom: 12 }}>Email updated. They'll now log in with the new address.</div>}
+      <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 20, overflowWrap: 'anywhere' }}>
+        {emailChanged && <div style={{ fontSize: '1rem', color: '#0F5C4E', fontWeight: 700, marginBottom: 12 }}>Email updated. They'll now log in with the new address.</div>}
         {!editing ? (
           <>
             <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436', marginBottom: 6 }}>{profile?.users?.name}</div>
-            {profile?.users?.phone && <div style={{ fontSize: '0.85rem', color: '#636e72' }}>{profile.users.phone} {profile.users.sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
-            {profile?.address && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>{profile.address}</div>}
-            {profile?.access_instructions && <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Access notes: </span>{profile.access_instructions}</div>}
-            <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}><span style={{ fontWeight: 700 }}>Login email: </span>{profile?.users?.email}</div>
-            <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 6 }}>
+            {profile?.users?.phone && <div style={{ fontSize: '1rem', color: C.muted }}>{profile.users.phone} {profile.users.sms_consent ? '(SMS consent on)' : '(SMS consent off)'}</div>}
+            {profile?.address && <div style={{ fontSize: '1rem', color: C.muted, marginTop: 6 }}>{profile.address}</div>}
+            {profile?.access_instructions && <div style={{ fontSize: '1rem', color: C.muted, marginTop: 4 }}><span style={{ fontWeight: 700 }}>Access notes: </span>{profile.access_instructions}</div>}
+            <div style={{ fontSize: '1rem', color: C.muted, marginTop: 6 }}><span style={{ fontWeight: 700 }}>Login email: </span>{profile?.users?.email}</div>
+            <div style={{ fontSize: '1rem', color: C.muted, marginTop: 6 }}>
               <span style={{ fontWeight: 700 }}>Second contact: </span>
               {profile?.secondary_name
                 ? <>{profile.secondary_name}{profile.secondary_phone && ` · ${profile.secondary_phone} ${profile.secondary_sms_consent ? '(SMS consent on)' : '(SMS consent off)'}`}{profile.secondary_email && ` · ${profile.secondary_email}`}</>
@@ -1063,31 +1063,31 @@ function ClientReadOnlyView({ userId, onBack }) {
             </div>
 
             <div style={{ fontWeight: 700, color: '#2D3436', marginTop: 16, marginBottom: 8 }}>Dogs ({dogs.length})</div>
-            {dogs.length === 0 ? <div style={{ fontSize: '0.85rem', color: '#636e72' }}>No dogs on file.</div> : dogs.map(d => (
+            {dogs.length === 0 ? <div style={{ fontSize: '1rem', color: C.muted }}>No dogs on file.</div> : dogs.map(d => (
               <div key={d.id} style={{ display: 'flex', gap: 12, padding: '10px 0', borderTop: '1px solid #F0F0F0' }}>
                 {d.photo_url && <img src={d.photo_url} alt={d.name} style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />}
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, color: '#2D3436' }}>{d.name}{d.breed ? ` — ${d.breed}` : ''}{d.age != null ? ` · ${d.age} yrs` : ''}</div>
-                  {d.behavioral_notes && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Behavioral: </span>{d.behavioral_notes}</div>}
-                  {d.medical_needs && <div style={{ fontSize: '0.82rem', color: '#636e72', marginTop: 4 }}><span style={{ fontWeight: 700 }}>Medical: </span>{d.medical_needs}</div>}
+                  {d.behavioral_notes && <div style={{ fontSize: '1rem', color: C.muted, marginTop: 4 }}><span style={{ fontWeight: 700 }}>Behavioral: </span>{d.behavioral_notes}</div>}
+                  {d.medical_needs && <div style={{ fontSize: '1rem', color: C.muted, marginTop: 4 }}><span style={{ fontWeight: 700 }}>Medical: </span>{d.medical_needs}</div>}
                 </div>
               </div>
             ))}
 
-            <button onClick={startEdit} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 16 }}>
+            <button onClick={startEdit} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginTop: 16 }}>
               Edit Client Profile
             </button>
           </>
         ) : confirmingEmail ? (
           <div>
             <div style={{ background: '#FFF8E7', border: '1.5px solid #D4A843', borderRadius: 10, padding: 12, marginBottom: 10 }}>
-              <div style={{ fontSize: '0.83rem', color: '#2D3436', marginBottom: 8 }}>
+              <div style={{ fontSize: '1rem', color: '#2D3436', marginBottom: 8 }}>
                 This changes their login. They'll only be able to sign in using this new address from now on. Double-check it's correct:
               </div>
               <div style={{ fontSize: '1rem', fontWeight: 800, color: '#182B4A', wordBreak: 'break-all' }}>{newEmail}</div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={saveClient} disabled={saving} style={{ ...saveBtnStyle, flex: 1, background: '#D4A843' }}>{saving ? 'Saving...' : 'Yes, Save Changes'}</button>
+              <button onClick={saveClient} disabled={saving} style={{ ...saveBtnStyle, flex: 1, background: '#D4A843', color: C.ink }}>{saving ? 'Saving...' : 'Yes, Save Changes'}</button>
               <button onClick={() => setConfirmingEmail(false)} style={cancelBtnStyle}>Go Back</button>
             </div>
           </div>
@@ -1127,7 +1127,7 @@ function ClientReadOnlyView({ userId, onBack }) {
               <label style={labelStyle}>Email (optional)</label>
               <input type="email" style={inputStyle} value={secondaryForm.secondary_email} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_email: e.target.value })} placeholder="jane@email.com" />
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#2D3436', marginBottom: 12, cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', color: '#2D3436', marginBottom: 12, cursor: 'pointer' }}>
               <input type="checkbox" checked={secondaryForm.secondary_sms_consent} onChange={e => setSecondaryForm({ ...secondaryForm, secondary_sms_consent: e.target.checked })} />
               This person has consented to receive SMS updates
             </label>
@@ -1138,7 +1138,7 @@ function ClientReadOnlyView({ userId, onBack }) {
                 {draft.remove ? (
                   <>
                     <div style={{ fontWeight: 800, color: '#991B1B', marginBottom: 6 }}>{draft.form.name} will be removed when you save.</div>
-                    <div style={{ fontSize: '0.85rem', color: '#2D3436', marginBottom: 12 }}>{REMOVE_WARNING}</div>
+                    <div style={{ fontSize: '1rem', color: '#2D3436', marginBottom: 12 }}>{REMOVE_WARNING}</div>
                     <button onClick={() => setDogDrafts(dogDrafts.map((d, j) => j === i ? { ...d, remove: false } : d))} style={{ ...cancelBtnStyle, width: '100%' }}>Undo</button>
                   </>
                 ) : (
@@ -1154,11 +1154,11 @@ function ClientReadOnlyView({ userId, onBack }) {
                 )}
               </div>
             ))}
-            <button onClick={() => setDogDrafts([...dogDrafts, dogDraft(null)])} style={{ width: '100%', background: 'white', border: `2px dashed ${C.indigo}`, borderRadius: 12, padding: '12px', color: C.indigo, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginBottom: 16 }}>
+            <button onClick={() => setDogDrafts([...dogDrafts, dogDraft(null)])} style={{ width: '100%', background: 'white', border: `2px dashed ${C.indigo}`, borderRadius: 12, padding: '12px', color: C.indigo, fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: 16 }}>
               + Add Dog
             </button>
 
-            {saveError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 10, fontWeight: 600 }}>{saveError}</div>}
+            {saveError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 10, fontWeight: 600 }}>{saveError}</div>}
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={saveClient} disabled={saving || !profileForm.name.trim()} style={{ ...saveBtnStyle, flex: 1 }}>{saving ? 'Saving...' : 'Save'}</button>
               <button onClick={cancelEdit} style={cancelBtnStyle}>Cancel</button>
@@ -1173,7 +1173,7 @@ function ClientReadOnlyView({ userId, onBack }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={{ fontWeight: 700, color: '#2D3436' }}>{w.service_type}</div>
-              <div style={{ fontSize: '0.83rem', color: '#636e72', marginTop: 2 }}>{w.dogs?.name && `${w.dogs.name} · `}{formatDate(w.preferred_date)} at {w.preferred_time}</div>
+              <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{w.dogs?.name && `${w.dogs.name} · `}{formatDate(w.preferred_date)} at {w.preferred_time}</div>
             </div>
             <ReadOnlyStatusBadge status={w.status} />
           </div>
@@ -1186,7 +1186,7 @@ function ClientReadOnlyView({ userId, onBack }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={{ fontWeight: 700, color: '#2D3436' }}>{b.dogs?.name ? `${b.dogs.name}'s Boarding` : 'Boarding'}</div>
-              <div style={{ fontSize: '0.83rem', color: '#636e72', marginTop: 2 }}>{formatDate(b.check_in_date)} → {formatDate(b.check_out_date)}</div>
+              <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{formatDate(b.check_in_date)} → {formatDate(b.check_out_date)}</div>
             </div>
             <ReadOnlyStatusBadge status={b.status} />
           </div>
@@ -1262,12 +1262,12 @@ function RecurringWalkSection() {
     <div style={{ marginBottom: 32 }}>
       <SectionHeader title="Recurring Walks" icon={<Repeat size={18} color="#182B4A" />} />
       {!open ? (
-        <button onClick={() => setOpen(true)} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+        <button onClick={() => setOpen(true)} style={{ width: '100%', background: C.tealDark, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
           Set Up Recurring Walk
         </button>
       ) : submitted ? (
         <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', textAlign: 'center' }}>
-          <div style={{ fontWeight: 800, color: '#2D9B8A' }}>Recurring walk set up for the next {form.weeks} weeks.</div>
+          <div style={{ fontWeight: 800, color: C.tealDark }}>Recurring walk set up for the next {form.weeks} weeks.</div>
         </div>
       ) : (
         <div style={{ background: 'white', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', borderLeft: '4px solid #2D9B8A' }}>
@@ -1287,7 +1287,7 @@ function RecurringWalkSection() {
               </select>
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
             <div>
               <label style={labelStyle}>Service Type</label>
               <select style={inputStyle} value={form.service_type} onChange={e => setForm({ ...form, service_type: e.target.value })}>
@@ -1310,14 +1310,14 @@ function RecurringWalkSection() {
                 return (
                   <button key={i} type="button"
                     onClick={() => setForm({ ...form, days: selected ? form.days.filter(d => d !== i) : [...form.days, i] })}
-                    style={{ padding: '7px 11px', borderRadius: 8, border: selected ? '1.5px solid #2D9B8A' : '1.5px solid #E0E0E0', background: selected ? '#2D9B8A' : 'white', color: selected ? 'white' : '#2D3436', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                    style={{ padding: '7px 11px', borderRadius: 8, border: selected ? `1.5px solid ${C.tealDark}` : '1.5px solid #E0E0E0', background: selected ? C.tealDark : 'white', color: selected ? 'white' : '#2D3436', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
                     {label}
                   </button>
                 )
               })}
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
             <div>
               <label style={labelStyle}>Time</label>
               <select style={inputStyle} value={form.preferred_time} onChange={e => setForm({ ...form, preferred_time: e.target.value })}>
@@ -1333,12 +1333,12 @@ function RecurringWalkSection() {
             <label style={labelStyle}>Number of Weeks</label>
             <input type="number" min={1} max={52} style={inputStyle} value={form.weeks} onChange={e => setForm({ ...form, weeks: Math.max(1, Math.min(52, parseInt(e.target.value) || 1)) })} />
           </div>
-          {error && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 12, fontWeight: 600 }}>{error}</div>}
+          {error && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 12, fontWeight: 600 }}>{error}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={submit} disabled={submitting} style={{ flex: 1, background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+            <button onClick={submit} disabled={submitting} style={{ flex: 1, background: C.tealDark, color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
               {submitting ? 'Setting up...' : 'Confirm'}
             </button>
-            <button onClick={() => { setOpen(false); setError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#636e72', cursor: 'pointer' }}>
+            <button onClick={() => { setOpen(false); setError(null) }} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 10, padding: '11px 18px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: C.muted, cursor: 'pointer' }}>
               Cancel
             </button>
           </div>
@@ -1586,7 +1586,7 @@ function InvoiceSection() {
             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 14 }}>
           <div>
             <label style={labelStyle}>Start Date</label>
             <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -1597,9 +1597,9 @@ function InvoiceSection() {
           </div>
         </div>
         {loadError && (
-          <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>{loadError}</div>
+          <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontWeight: 700, color: '#991B1B', fontSize: '1rem' }}>{loadError}</div>
         )}
-        <button onClick={loadBillable} disabled={loading} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+        <button onClick={loadBillable} disabled={loading} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
           {loading ? 'Loading...' : 'Load Walks & Boardings'}
         </button>
       </div>
@@ -1615,35 +1615,35 @@ function InvoiceSection() {
                   value={item.description} onChange={e => updateCustomDescription(item.key, e.target.value)}
                 />
               ) : (
-                <div style={{ flex: 1, fontSize: '0.85rem', color: '#2D3436', paddingTop: 8 }}>{item.description}</div>
+                <div style={{ flex: 1, fontSize: '1rem', color: '#2D3436', paddingTop: 8 }}>{item.description}</div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ color: '#636e72', fontWeight: 700 }}>$</span>
+                <span style={{ color: C.muted, fontWeight: 700 }}>$</span>
                 <input
                   type="number" step="0.01" min="0" placeholder="0.00"
                   style={{ ...inputStyle, width: 90 }} value={item.price}
                   onChange={e => updatePrice(item.key, e.target.value)}
                 />
               </div>
-              <button onClick={() => removeItem(item.key)} style={{ background: 'none', border: 'none', color: '#DC2626', fontWeight: 700, cursor: 'pointer', padding: '8px 4px' }}>✕</button>
+              <button onClick={() => removeItem(item.key)} style={{ background: 'none', border: 'none', color: C.red, fontWeight: 700, cursor: 'pointer', padding: '8px 4px' }}>✕</button>
             </div>
           ))}
-          <button onClick={addCustomItem} style={{ background: 'none', border: '1.5px dashed #b2bec3', borderRadius: 8, padding: '8px', width: '100%', marginTop: 10, color: '#636e72', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={addCustomItem} style={{ background: 'none', border: '1.5px dashed #b2bec3', borderRadius: 8, padding: '8px', width: '100%', marginTop: 10, color: C.muted, fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
             + Add Custom Line Item
           </button>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTop: '2px solid #E0E0E0' }}>
             <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#2D3436' }}>Total</span>
-            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#2D9B8A' }}>${total.toFixed(2)}</span>
+            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: C.tealDark }}>${total.toFixed(2)}</span>
           </div>
 
           {genError && (
-            <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginTop: 14, fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>{genError}</div>
+            <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginTop: 14, fontWeight: 700, color: '#991B1B', fontSize: '1rem' }}>{genError}</div>
           )}
-          <button onClick={previewInvoice} style={{ width: '100%', background: 'white', color: '#182B4A', border: '2px solid #182B4A', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 14 }}>
+          <button onClick={previewInvoice} style={{ width: '100%', background: 'white', color: '#182B4A', border: '2px solid #182B4A', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginTop: 14 }}>
             👁 Preview PDF (no invoice number yet)
           </button>
-          <button onClick={generateInvoice} disabled={generating} style={{ width: '100%', background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginTop: 10 }}>
+          <button onClick={generateInvoice} disabled={generating} style={{ width: '100%', background: C.tealDark, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginTop: 10 }}>
             {generating ? 'Finalizing...' : 'Finalize Invoice — Assign Number & Save'}
           </button>
         </div>
@@ -1657,14 +1657,14 @@ function InvoiceSection() {
 
       {history.length > 0 && (
         <div style={{ marginTop: 20 }}>
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Invoice History</div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Invoice History</div>
           {history.map(inv => (
             <div key={inv.id} style={{ background: 'white', borderRadius: 10, padding: '10px 14px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(45,52,54,0.06)' }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#2D3436' }}>{inv.invoice_number}</div>
-                <div style={{ fontSize: '0.78rem', color: '#636e72' }}>{formatDate(inv.issue_date)} · ${parseFloat(inv.total).toFixed(2)}</div>
+                <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436' }}>{inv.invoice_number}</div>
+                <div style={{ fontSize: '1rem', color: C.muted }}>{formatDate(inv.issue_date)} · ${parseFloat(inv.total).toFixed(2)}</div>
               </div>
-              <button onClick={() => redownload(inv)} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => redownload(inv)} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>
                 ⬇ PDF
               </button>
             </div>
@@ -1793,7 +1793,7 @@ function ClientReportSection() {
             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 14 }}>
           <div>
             <label style={labelStyle}>Start Date</label>
             <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -1804,9 +1804,9 @@ function ClientReportSection() {
           </div>
         </div>
         {reportError && (
-          <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontWeight: 700, color: '#991B1B', fontSize: '0.85rem' }}>{reportError}</div>
+          <div style={{ background: '#FEE2E2', border: '2px solid #DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontWeight: 700, color: '#991B1B', fontSize: '1rem' }}>{reportError}</div>
         )}
-        <button onClick={runReport} disabled={running} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+        <button onClick={runReport} disabled={running} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
           {running ? 'Running...' : 'Run Report'}
         </button>
       </div>
@@ -1816,20 +1816,20 @@ function ClientReportSection() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
             <div>
               <div style={{ fontWeight: 800, fontSize: '1rem', color: '#2D3436' }}>{report.clientName}</div>
-              <div style={{ fontSize: '0.8rem', color: '#636e72' }}>{formatDate(startDate)} — {formatDate(endDate)}</div>
+              <div style={{ fontSize: '1rem', color: C.muted }}>{formatDate(startDate)} — {formatDate(endDate)}</div>
             </div>
-            <button onClick={exportReport} style={{ background: '#2D9B8A', color: 'white', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <button onClick={exportReport} style={{ background: C.tealDark, color: 'white', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               ⬇ Export
             </button>
           </div>
 
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, marginTop: 14 }}>Walks ({report.walks.length})</div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, marginTop: 14 }}>Walks ({report.walks.length})</div>
           {Object.keys(report.walksByType).length === 0 ? (
-            <div style={{ fontSize: '0.85rem', color: '#b2bec3', marginBottom: 16 }}>No walks in this range.</div>
+            <div style={{ fontSize: '1rem', color: C.muted, marginBottom: 16 }}>No walks in this range.</div>
           ) : (
             <div style={{ marginBottom: 16 }}>
               {Object.entries(report.walksByType).map(([type, count]) => (
-                <div key={type} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '4px 0', borderBottom: '1px solid #F1F1F1' }}>
+                <div key={type} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', padding: '4px 0', borderBottom: '1px solid #F1F1F1' }}>
                   <span>{type}</span>
                   <span style={{ fontWeight: 700 }}>{count}</span>
                 </div>
@@ -1837,12 +1837,12 @@ function ClientReportSection() {
             </div>
           )}
 
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Boarding ({report.boardings.length} stay{report.boardings.length !== 1 ? 's' : ''}, {report.totalNights} night{report.totalNights !== 1 ? 's' : ''})</div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Boarding ({report.boardings.length} stay{report.boardings.length !== 1 ? 's' : ''}, {report.totalNights} night{report.totalNights !== 1 ? 's' : ''})</div>
           {report.boardings.length === 0 ? (
-            <div style={{ fontSize: '0.85rem', color: '#b2bec3' }}>No boarding in this range.</div>
+            <div style={{ fontSize: '1rem', color: C.muted }}>No boarding in this range.</div>
           ) : (
             report.boardings.map(b => (
-              <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '4px 0', borderBottom: '1px solid #F1F1F1' }}>
+              <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', padding: '4px 0', borderBottom: '1px solid #F1F1F1' }}>
                 <span>{b.dogs?.name ? `${b.dogs.name} — ` : ''}{formatDate(b.check_in_date)} → {formatDate(b.check_out_date)}</span>
                 <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{b.status}</span>
               </div>
@@ -1945,7 +1945,7 @@ function GlobalSearchView({ walkers }) {
           placeholder="Dog name, client name, or date (YYYY-MM-DD)"
           style={{ ...inputStyle, flex: 1 }}
         />
-        <button onClick={runSearch} disabled={searching || !term.trim()} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '0 18px', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' }}>
+        <button onClick={runSearch} disabled={searching || !term.trim()} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '0 18px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
           {searching ? '...' : 'Search'}
         </button>
       </div>
@@ -1954,7 +1954,7 @@ function GlobalSearchView({ walkers }) {
           ? <EmptyState message="No walks or boardings match that search." />
           : (
             <>
-              <div style={{ fontSize: '0.8rem', color: '#636e72', marginBottom: 8 }}>{results.length} result{results.length === 1 ? '' : 's'}:</div>
+              <div style={{ fontSize: '1rem', color: C.muted, marginBottom: 8 }}>{results.length} result{results.length === 1 ? '' : 's'}:</div>
               {results.map(item => item.itemType === 'walk'
                 ? <WalkRequestCard key={`walk-${item.id}`} req={item} walkers={walkers} onDecline={noopDecline} onEdit={handleEditWalk} onCancel={handleCancelWalk} />
                 : <BoardingRequestCard key={`boarding-${item.id}`} req={item} walkers={walkers} onDecline={noopDecline} onEdit={handleEditBoarding} onCancel={handleCancelBoarding} />
@@ -2024,10 +2024,10 @@ function ReconciliationSection({ walkers }) {
   return (
     <div style={{ background: 'white', borderRadius: 14, padding: 20, boxShadow: '0 2px 10px rgba(45,52,54,0.06)', marginBottom: 24 }}>
       <SectionHeader title="Reconciliation" icon={<Scale size={18} color="#182B4A" />} />
-      <p style={{ fontSize: '0.82rem', color: '#636e72', margin: '0 0 14px' }}>
+      <p style={{ fontSize: '1rem', color: C.muted, margin: '0 0 14px' }}>
         Finds walks and boardings that were booked in a period but never got closed out — the ones that would otherwise fall through the cracks at billing time.
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
         <div>
           <label style={labelStyle}>Start Date</label>
           <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -2037,18 +2037,18 @@ function ReconciliationSection({ walkers }) {
           <input type="date" style={inputStyle} value={endDate} onChange={e => setEndDate(e.target.value)} />
         </div>
       </div>
-      {reportError && <div style={{ color: '#991B1B', fontSize: '0.85rem', marginBottom: 10 }}>{reportError}</div>}
-      <button onClick={runReport} disabled={running} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+      {reportError && <div style={{ color: '#991B1B', fontSize: '1rem', marginBottom: 10 }}>{reportError}</div>}
+      <button onClick={runReport} disabled={running} style={{ width: '100%', background: '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
         {running ? 'Running...' : 'Run Reconciliation'}
       </button>
 
       {items && (
         <div style={{ marginTop: 16 }}>
           {items.length === 0 ? (
-            <div style={{ fontSize: '0.85rem', color: '#2D9B8A', fontWeight: 600 }}>Nothing open for this period — everything's been closed out.</div>
+            <div style={{ fontSize: '1rem', color: C.tealDark, fontWeight: 600 }}>Nothing open for this period — everything's been closed out.</div>
           ) : (
             <>
-              <div style={{ fontSize: '0.8rem', color: '#636e72', marginBottom: 8 }}>{items.length} item{items.length === 1 ? '' : 's'} never closed out:</div>
+              <div style={{ fontSize: '1rem', color: C.muted, marginBottom: 8 }}>{items.length} item{items.length === 1 ? '' : 's'} never closed out:</div>
               {items.map(item => (
                 <ReconciliationRow key={`${item.itemType}-${item.id}`} item={item} walkers={walkers} onUpdate={handleUpdate} daysOpen={daysOpen} />
               ))}
@@ -2068,14 +2068,14 @@ function ReconciliationRow({ item, walkers, onUpdate, daysOpen }) {
     <div style={{ background: '#F7FAFC', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#2D3436' }}>
+          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#2D3436' }}>
             {item.dogs?.name ?? 'Unknown dog'} — {item.itemType === 'walk' ? item.service_type : 'Boarding'}
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#636e72' }}>
+          <div style={{ fontSize: '1rem', color: C.muted }}>
             {item.clients?.users?.name ?? 'Unknown client'} · {formatDate(item.reportDate)} · open {open} day{open === 1 ? '' : 's'} · status: {item.status}
           </div>
         </div>
-        <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Edit</button>
+        <button onClick={() => setShowEdit(!showEdit)} style={{ background: 'white', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '6px 12px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Edit</button>
       </div>
       {showEdit && (
         item.itemType === 'walk'
@@ -2262,11 +2262,11 @@ function ClientsAndWalkersSection() {
   return (
     <div>
       <SectionHeader title="Clients & Walkers" action={
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={toggleDeactivated} style={{ ...saveBtnStyle, background: showDeactivated ? '#636e72' : '#B2BEC3', color: '#2D3436' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <button onClick={toggleDeactivated} style={{ ...saveBtnStyle, background: showDeactivated ? C.muted : 'white', color: showDeactivated ? 'white' : C.muted, border: `2px solid ${C.muted}` }}>
             {showDeactivated ? 'Hide Deactivated' : 'View Deactivated'}
           </button>
-          <button onClick={() => openAddForm('walker')} style={{ ...saveBtnStyle, background: '#2D9B8A' }}>+ Add Walker</button>
+          <button onClick={() => openAddForm('walker')} style={{ ...saveBtnStyle, background: C.tealDark }}>+ Add Walker</button>
           <button onClick={() => openAddForm('client')} style={saveBtnStyle}>+ Add Pet Parent</button>
         </div>
       } />
@@ -2279,17 +2279,17 @@ function ClientsAndWalkersSection() {
           {confirmingCreate ? (
             <div>
               <div style={{ background: '#FFF8E7', border: '1.5px solid #D4A843', borderRadius: 10, padding: 14, marginBottom: 14 }}>
-                <div style={{ fontSize: '0.85rem', color: '#2D3436', marginBottom: 10 }}>
+                <div style={{ fontSize: '1rem', color: '#2D3436', marginBottom: 10 }}>
                   This creates a real, working account immediately and sends them their sign-in link right away — nothing further for you to do. Double-check the email is exactly right before continuing:
                 </div>
                 <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#182B4A', wordBreak: 'break-all' }}>{form.email}</div>
-                <div style={{ fontSize: '0.85rem', color: '#636e72', marginTop: 4 }}>for {form.name}</div>
+                <div style={{ fontSize: '1rem', color: C.muted, marginTop: 4 }}>for {form.name}</div>
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setConfirmingCreate(false)} style={cancelBtnStyle}>Go Back</button>
                 <button type="submit" disabled={saving} style={{ ...saveBtnStyle, background: borderColor }}>{saving ? 'Creating...' : 'Yes, Create This Client'}</button>
               </div>
-              {addError && <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#991B1B', background: '#FEE2E2', borderRadius: 6, padding: '7px 12px' }}>{addError}</div>}
+              {addError && <div style={{ marginTop: 10, fontSize: '1rem', color: '#991B1B', background: '#FEE2E2', borderRadius: 6, padding: '7px 12px' }}>{addError}</div>}
             </div>
           ) : !magicLinkSent && !clientCreated && (
             <>
@@ -2312,7 +2312,7 @@ function ClientsAndWalkersSection() {
                     <input style={inputStyle} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="123 Main St, City, State" />
                   </div>
                   <div style={{ borderTop: '1px solid #F0F0F0', marginTop: 4, paddingTop: 14, marginBottom: 14 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
                       Second Contact (optional)
                     </div>
                     <div style={{ marginBottom: 10 }}>
@@ -2327,7 +2327,7 @@ function ClientsAndWalkersSection() {
                       <label style={labelStyle}>Email</label>
                       <input type="email" style={inputStyle} value={form.secondary_email} onChange={e => setForm({ ...form, secondary_email: e.target.value })} placeholder="jane@email.com" />
                     </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#2D3436', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', color: '#2D3436', cursor: 'pointer' }}>
                       <input type="checkbox" checked={form.secondary_sms_consent} onChange={e => setForm({ ...form, secondary_sms_consent: e.target.checked })} />
                       This person has consented to receive SMS updates
                     </label>
@@ -2340,7 +2340,7 @@ function ClientsAndWalkersSection() {
                   {saving ? 'Sending...' : addingRole === 'client' ? 'Review & Create' : 'Send Magic Link'}
                 </button>
               </div>
-              {addError && <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#991B1B', background: '#FEE2E2', borderRadius: 6, padding: '7px 12px' }}>{addError}</div>}
+              {addError && <div style={{ marginTop: 10, fontSize: '1rem', color: '#991B1B', background: '#FEE2E2', borderRadius: 6, padding: '7px 12px' }}>{addError}</div>}
             </>
           )}
         </form>
@@ -2348,21 +2348,21 @@ function ClientsAndWalkersSection() {
 
       {showDeactivated && (
         <div style={{ background: '#FFF8E7', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 16, borderLeft: '4px solid #D4A843' }}>
-          <div style={{ fontWeight: 700, marginBottom: 12, color: '#2D3436', fontSize: '0.9rem' }}>
+          <div style={{ fontWeight: 700, marginBottom: 12, color: '#2D3436', fontSize: '1rem' }}>
             Deactivated Accounts ({deactivated.length})
           </div>
           {loadingDeactivated ? <EmptyState message="Loading..." /> : (
             deactivated.length === 0
               ? <EmptyState message="No deactivated accounts." />
               : deactivated.map(u => (
-                <div key={u.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#2D3436' }}>{u.name || '(no name)'}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#636e72' }}>{u.email}</div>
+                <div key={u.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                  <div style={{ flex: '1 1 200px', minWidth: 0, overflowWrap: 'anywhere' }}>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436' }}>{u.name || '(no name)'}</div>
+                    <div style={{ fontSize: '1rem', color: C.muted }}>{u.email}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ background: '#F1F1F1', color: '#636e72', borderRadius: 12, padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700, textTransform: 'capitalize' }}>{u.role}</span>
-                    <button onClick={() => handleReactivate(u.id)} style={{ background: 'none', border: 'none', color: '#2D9B8A', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}>Reactivate</button>
+                    <span style={{ background: '#F1F1F1', color: C.muted, borderRadius: 12, padding: '2px 8px', fontSize: '1rem', fontWeight: 700, textTransform: 'capitalize' }}>{u.role}</span>
+                    <button onClick={() => handleReactivate(u.id)} style={{ background: 'none', border: 'none', color: C.tealDark, fontSize: '1rem', cursor: 'pointer', fontWeight: 700 }}>Reactivate</button>
                   </div>
                 </div>
               ))
@@ -2374,42 +2374,42 @@ function ClientsAndWalkersSection() {
 
       {loading ? <EmptyState message="Loading..." /> : (
         <>
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
+          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
             Walkers ({filteredWalkers.length})
           </div>
           {filteredWalkers.length === 0
             ? <EmptyState message="No walkers yet." />
             : filteredWalkers.map(w => (
-              <div key={w.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.06)', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '3px solid #2D9B8A' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#2D3436' }}>{w.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#636e72' }}>{w.email}</div>
-                  {w.phone && <div style={{ fontSize: '0.78rem', color: '#b2bec3' }}>{w.phone}</div>}
+              <div key={w.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.06)', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, borderLeft: `3px solid ${C.tealDark}` }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0, overflowWrap: 'anywhere' }}>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436' }}>{w.name}</div>
+                  <div style={{ fontSize: '1rem', color: C.muted }}>{w.email}</div>
+                  {w.phone && <div style={{ fontSize: '1rem', color: C.muted }}>{w.phone}</div>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ background: '#D1FAE5', color: '#065F46', borderRadius: 12, padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700 }}>Walker</span>
-                  <button onClick={() => handleDelete(w.id)} style={{ background: 'none', border: 'none', color: '#FCA5A5', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
+                  <span style={{ background: '#D1FAE5', color: '#065F46', borderRadius: 12, padding: '2px 8px', fontSize: '1rem', fontWeight: 700 }}>Walker</span>
+                  <button onClick={() => handleDelete(w.id)} style={{ background: 'none', border: 'none', color: C.red, fontSize: '1rem', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
                 </div>
               </div>
             ))
           }
 
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, marginTop: 20 }}>
+          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, marginTop: 20 }}>
             Clients ({filteredClients.length})
           </div>
           {filteredClients.length === 0
             ? <EmptyState message="No pet parents yet." />
             : filteredClients.map(c => (
-              <div key={c.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.06)', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#2D3436' }}>{c.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#636e72' }}>{c.email}</div>
-                  {c.phone && <div style={{ fontSize: '0.78rem', color: '#b2bec3' }}>{c.phone}</div>}
+              <div key={c.id} style={{ background: 'white', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 6px rgba(45,52,54,0.06)', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0, overflowWrap: 'anywhere' }}>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: '#2D3436' }}>{c.name}</div>
+                  <div style={{ fontSize: '1rem', color: C.muted }}>{c.email}</div>
+                  {c.phone && <div style={{ fontSize: '1rem', color: C.muted }}>{c.phone}</div>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ fontSize: '0.75rem', color: '#b2bec3' }}>{new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                  <button onClick={() => setViewingClientId(c.id)} style={{ background: 'none', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '4px 10px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 700 }}>View</button>
-                  <button onClick={() => handleDelete(c.id)} style={{ background: 'none', border: 'none', color: '#FCA5A5', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
+                  <div style={{ fontSize: '1rem', color: C.muted }}>{new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                  <button onClick={() => setViewingClientId(c.id)} style={{ background: 'none', border: '1.5px solid #182B4A', color: '#182B4A', borderRadius: 8, padding: '4px 10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 700 }}>View</button>
+                  <button onClick={() => handleDelete(c.id)} style={{ background: 'none', border: 'none', color: C.red, fontSize: '1rem', cursor: 'pointer', fontWeight: 700 }}>Delete</button>
                 </div>
               </div>
             ))
@@ -2594,19 +2594,19 @@ export default function AdminPortal() {
         <div style={{ background: 'white', borderRadius: 14, padding: '24px 20px', boxShadow: '0 2px 10px rgba(45,52,54,0.08)', maxWidth: 420, width: '100%' }}>
           <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}><Smartphone size={30} color="#182B4A" /></div>
           <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#182B4A', marginBottom: 6, textAlign: 'center' }}>One Quick Thing</div>
-          <p style={{ fontSize: '0.9rem', color: '#636e72', textAlign: 'center', marginBottom: 20 }}>
+          <p style={{ fontSize: '1rem', color: C.muted, textAlign: 'center', marginBottom: 20 }}>
             A phone number is required before you can use FetchUs admin. This is how you'll be notified about new requests.
           </p>
           <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#636e72', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>Phone Number</label>
-            <input type="tel" style={{ width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '0.9rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box' }} value={gatePhone} onChange={e => setGatePhone(e.target.value)} placeholder="(555) 123-4567" autoFocus />
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: C.muted, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>Phone Number</label>
+            <input type="tel" style={{ width: '100%', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '9px 11px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', outline: 'none', boxSizing: 'border-box' }} value={gatePhone} onChange={e => setGatePhone(e.target.value)} placeholder="(555) 123-4567" autoFocus />
           </div>
           <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 18, cursor: 'pointer' }}>
             <input type="checkbox" checked={gateConsent} onChange={e => setGateConsent(e.target.checked)} style={{ marginTop: 3 }} />
-            <span style={{ fontSize: '0.82rem', color: '#2D3436' }}>I agree to receive text messages from FetchUs about new requests and assignments. Message and data rates may apply. Reply STOP to opt out.</span>
+            <span style={{ fontSize: '1rem', color: '#2D3436' }}>I agree to receive text messages from FetchUs about new requests and assignments. Message and data rates may apply. Reply STOP to opt out.</span>
           </label>
-          {gateError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '0.84rem', marginBottom: 14, fontWeight: 600 }}>{gateError}</div>}
-          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: !gatePhone.trim() ? '#636e72' : '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
+          {gateError && <div style={{ background: '#FEE2E2', color: '#991B1B', borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 14, fontWeight: 600 }}>{gateError}</div>}
+          <button onClick={submitGate} disabled={gateSubmitting || !gatePhone.trim()} style={{ width: '100%', background: !gatePhone.trim() ? C.muted : '#182B4A', color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
             {gateSubmitting ? 'Saving...' : 'Continue'}
           </button>
         </div>
@@ -2632,8 +2632,8 @@ export default function AdminPortal() {
       <PortalHeader title="Admin Portal" subtitle="FetchUs Pet Care" onSignOut={signOut} helpPath="/help/admin" />
       <InstallBanner />
 
-      <div style={{ background: '#F0F4F8', borderRadius: 10, padding: '10px 14px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#182B4A', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>View as</span>
+      <div style={{ background: '#F0F4F8', borderRadius: 10, padding: '10px 14px', marginBottom: 24, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#182B4A', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 4 }}>View as</span>
         {[
           { role: 'admin', label: 'Admin', path: '/admin' },
           { role: 'walker', label: 'Walker', path: '/walker' },
@@ -2642,7 +2642,7 @@ export default function AdminPortal() {
           <button
             key={r.role}
             onClick={() => { setRole(r.role); navigate(r.path) }}
-            style={{ padding: '5px 14px', borderRadius: 20, border: 'none', background: '#182B4A', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
+            style={{ padding: '5px 14px', borderRadius: 20, border: 'none', background: '#182B4A', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}
           >
             {r.label}
           </button>
@@ -2653,7 +2653,7 @@ export default function AdminPortal() {
         <>
           {homeView ? (
             <div style={{ marginBottom: 32 }}>
-              <button onClick={() => back({ view: null })} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', padding: '4px 0 16px' }}>← Back</button>
+              <button onClick={() => back({ view: null })} style={{ background: 'none', border: 'none', color: '#182B4A', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', padding: '4px 0 16px' }}>← Back</button>
               {homeView === 'walks-today' && <TodayWalksView walkers={walkers} />}
               {homeView === 'pending-requests' && (
                 <>
@@ -2679,11 +2679,11 @@ export default function AdminPortal() {
           ) : (
             <>
               <button onClick={() => setHomeView('search')} className="action-tile" style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'white', border: '1.5px solid #E0E8F0', borderRadius: 14, padding: '14px 16px', marginBottom: 20, cursor: 'pointer', fontFamily: 'inherit' }}>
-                <Search size={20} color="#636e72" />
-                <span style={{ color: '#636e72', fontSize: '0.92rem', fontWeight: 600 }}>Search by dog, client, or date...</span>
+                <Search size={20} color={C.muted} />
+                <span style={{ color: C.muted, fontSize: '1rem', fontWeight: 600 }}>Search by dog, client, or date...</span>
               </button>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
                 {[
                   { id: 'requests', label: 'Requests', Icon: ClipboardList, badge: pendingRequests.length + pendingBoardings.length },
                   { id: 'people', label: 'People', Icon: Users },
@@ -2703,13 +2703,13 @@ export default function AdminPortal() {
                     <item.Icon size={28} color="white" strokeWidth={2.2} />
                     <span style={{ color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem' }}>{item.label}</span>
                     {item.badge > 0 && (
-                      <span style={{ position: 'absolute', top: 12, right: 12, background: ATTENTION_COLOR, color: 'white', border: '2px solid white', borderRadius: 12, fontSize: '0.8rem', fontWeight: 800, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>{item.badge}</span>
+                      <span style={{ position: 'absolute', top: 12, right: 12, background: ATTENTION_COLOR, color: 'white', border: '2px solid white', borderRadius: 12, fontSize: '1rem', fontWeight: 800, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>{item.badge}</span>
                     )}
                   </button>
                 ))}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 32 }}>
                 <StatCard label="Walks Today" value={stats.walksToday} Icon={Calendar} onClick={() => setHomeView('walks-today')} />
                 <StatCard label="Pending Requests" value={stats.pending} attention={stats.pending > 0} Icon={ClipboardList} onClick={() => setHomeView('pending-requests')} />
                 <StatCard label="Pending Boardings" value={stats.pendingBoardings} attention={stats.pendingBoardings > 0} Icon={Home} onClick={() => setHomeView('pending-boardings')} />
@@ -2724,8 +2724,8 @@ export default function AdminPortal() {
                   <div style={{ background: 'white', borderRadius: 12, padding: '4px 0', boxShadow: '0 2px 8px rgba(45,52,54,0.07)' }}>
                     {activity.map((a, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: i < activity.length - 1 ? '1px solid #F0EDE5' : 'none' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#2D3436' }}>{a.label}</span>
-                        <span style={{ fontSize: '0.75rem', color: '#b2bec3', whiteSpace: 'nowrap', marginLeft: 8 }}>{timeAgo(a.ts)}</span>
+                        <span style={{ fontSize: '1rem', color: '#2D3436' }}>{a.label}</span>
+                        <span style={{ fontSize: '1rem', color: C.muted, whiteSpace: 'nowrap', marginLeft: 8 }}>{timeAgo(a.ts)}</span>
                       </div>
                     ))}
                   </div>
@@ -2740,10 +2740,10 @@ export default function AdminPortal() {
         <>
           <RecurringWalkSection />
           <div style={{ marginBottom: 32 }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
               Walk Requests
               {pendingRequests.length > 0 && (
-                <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '0.75rem' }}>{pendingRequests.length} pending</span>
+                <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '1rem' }}>{pendingRequests.length} pending</span>
               )}
             </div>
             {loadingRequests ? <EmptyState message="Loading requests..." />
@@ -2753,7 +2753,7 @@ export default function AdminPortal() {
                   {pendingRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onEdit={handleEditWalk} onCancel={handleCancelWalkRequest} />)}
                   {otherRequests.length > 0 && (
                     <details style={{ marginTop: 8 }}>
-                      <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
+                      <summary style={{ fontSize: '1rem', color: C.muted, cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
                         Show {otherRequests.length} resolved request{otherRequests.length > 1 ? 's' : ''}
                       </summary>
                       {otherRequests.map(r => <WalkRequestCard key={r.id} req={r} walkers={walkers} onDecline={handleDecline} onEdit={handleEditWalk} onCancel={handleCancelWalkRequest} />)}
@@ -2765,10 +2765,10 @@ export default function AdminPortal() {
           </div>
 
           <div style={{ marginBottom: 32 }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#636e72', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
               Boarding Requests
               {pendingBoardings.length > 0 && (
-                <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '0.75rem' }}>{pendingBoardings.length} pending</span>
+                <span style={{ background: '#FEF9C3', color: '#92400E', borderRadius: 12, padding: '1px 7px', marginLeft: 6, fontSize: '1rem' }}>{pendingBoardings.length} pending</span>
               )}
             </div>
             {loadingBoardings ? <EmptyState message="Loading boarding requests..." />
@@ -2778,7 +2778,7 @@ export default function AdminPortal() {
                   {pendingBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onEdit={handleEditBoarding} onCancel={handleCancelBoarding} />)}
                   {otherBoardings.length > 0 && (
                     <details style={{ marginTop: 8 }}>
-                      <summary style={{ fontSize: '0.82rem', color: '#636e72', cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
+                      <summary style={{ fontSize: '1rem', color: C.muted, cursor: 'pointer', userSelect: 'none', marginBottom: 8 }}>
                         Show {otherBoardings.length} resolved boarding{otherBoardings.length > 1 ? 's' : ''}
                       </summary>
                       {otherBoardings.map(b => <BoardingRequestCard key={b.id} req={b} walkers={walkers} onDecline={handleDeclineBoarding} onEdit={handleEditBoarding} onCancel={handleCancelBoarding} />)}
@@ -2822,15 +2822,15 @@ export default function AdminPortal() {
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               background: activeTab === tab.id ? '#E8EEF5' : 'none',
-              border: 'none', borderRadius: 14, cursor: 'pointer', padding: '6px 12px', position: 'relative',
-              color: activeTab === tab.id ? '#182B4A' : '#636e72',
-              fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.7rem',
+              border: 'none', borderRadius: 14, cursor: 'pointer', padding: '6px 2px', position: 'relative', flex: '1 1 0', minWidth: 0,
+              color: activeTab === tab.id ? '#182B4A' : C.muted,
+              fontFamily: 'Nunito, sans-serif', fontWeight: activeTab === tab.id ? 800 : 600, fontSize: '0.875rem',
             }}
           >
             <tab.Icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
             {tab.label}
             {tab.badge > 0 && (
-              <span style={{ position: 'absolute', top: -2, right: 0, background: '#DC2626', color: 'white', borderRadius: 10, fontSize: '0.62rem', fontWeight: 800, padding: '1px 5px', minWidth: 14, textAlign: 'center' }}>{tab.badge}</span>
+              <span style={{ position: 'absolute', top: -2, right: 0, background: '#DC2626', color: 'white', borderRadius: 10, fontSize: '1rem', fontWeight: 800, padding: '1px 5px', minWidth: 14, textAlign: 'center' }}>{tab.badge}</span>
             )}
           </button>
         ))}

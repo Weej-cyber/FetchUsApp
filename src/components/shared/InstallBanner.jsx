@@ -4,6 +4,7 @@
 // it), so we show the manual Share -> Add to Home Screen steps instead.
 // Hides itself permanently once installed, or if the person dismisses it.
 import { useState, useEffect } from 'react'
+import { COLORS as C } from '../../theme'
 
 const DISMISSED_KEY = 'fetchus_install_dismissed'
 
@@ -69,14 +70,14 @@ export default function InstallBanner() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <img src="/paw-192.png" alt="" style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#182B4A' }}>Get the FetchUs icon</div>
-          <div style={{ fontSize: '0.75rem', color: '#636e72', marginTop: 1 }}>One tap, no store needed</div>
+          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#182B4A' }}>Get the FetchUs icon</div>
+          <div style={{ fontSize: '1rem', color: C.muted, marginTop: 1 }}>One tap, no store needed</div>
         </div>
-        <button onClick={handleInstallClick} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Install</button>
-        <button onClick={handleDismiss} aria-label="Dismiss" style={{ background: 'none', border: 'none', color: '#b2bec3', fontSize: '1.1rem', cursor: 'pointer', padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>×</button>
+        <button onClick={handleInstallClick} style={{ background: '#182B4A', color: 'white', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Install</button>
+        <button onClick={handleDismiss} aria-label="Dismiss" style={{ background: 'none', border: 'none', color: C.muted, fontSize: '1.1rem', cursor: 'pointer', padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>×</button>
       </div>
       {showSteps && (
-        <div style={{ fontSize: '0.78rem', color: '#2D3436', background: 'white', borderRadius: 8, padding: '10px 12px' }}>
+        <div style={{ fontSize: '1rem', color: '#2D3436', background: 'white', borderRadius: 8, padding: '10px 12px' }}>
           1. Tap the <strong>Share</strong> button in Safari (square with an arrow, at the bottom of the screen)<br />
           2. Scroll down and tap <strong>Add to Home Screen</strong><br />
           3. Tap <strong>Add</strong> in the top right
