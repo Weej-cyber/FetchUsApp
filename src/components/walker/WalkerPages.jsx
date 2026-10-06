@@ -104,7 +104,7 @@ function ActiveWalkScreen({ walk, onComplete, onBack }) {
         const path = `${walk.id}/${Date.now()}.${ext}`
         const { data: uploadData } = await supabase.storage
           .from('walk-photos')
-          .upload(path, photoFile, { upsert: true })
+          .upload(path, photoFile)
         if (uploadData) {
           const { data: urlData } = supabase.storage
             .from('walk-photos')

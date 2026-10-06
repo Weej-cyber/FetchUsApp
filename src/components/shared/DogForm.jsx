@@ -87,7 +87,7 @@ export async function saveDog(clientId, draft) {
     const path = `${clientId}/${Date.now()}.${ext}`
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('dog-photos')
-      .upload(path, photoFile, { upsert: true })
+      .upload(path, photoFile)
     if (uploadError) {
       console.error('Photo upload failed:', uploadError.message)
     } else if (uploadData) {
