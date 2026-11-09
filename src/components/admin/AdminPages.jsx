@@ -347,6 +347,94 @@ function BoardingRequestCard({ req, walkers, onDecline, onEdit, onCancel }) {
   )
 }
 
+const TEXT_LOG_TYPES = {
+  walk_assigned: 'Walk assigned',
+  walk_started: 'Walk started',
+  walk_completed: 'Walk completed',
+  boarding_assigned: 'Boarding assigned',
+}
+
+// Shows Nancy each text the app tried to send to a client: who, what for,
+// and whether it went out. Skipped texts say why, so she can fix it.
+function TextLogSection() {
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
+
+  useEffect(() => { load() }, [])
+
+  async function load() {
+    setLoading(true)
+    setLoadError(null)
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('id, type, status, created_at, secondary_of_client_id, users(name, phone, sms_consent), clients(secondary_name, users(name))')
+      .in('type', Object.keys(TEXT_LOG_TYPES))
+      .order('created_at', { ascending: false })
+      .limit(80)
+    if (error) {
+      setLoadError('Could not load the text messages. Please try again.')
+    } else {
+      // Second-contact lines that were skipped are just "no second contact set up" -- leave them out.
+      setRows((data || []).filter(r => !(r.secondary_of_client_id && r.status !== 'sent')).slice(0, 50))
+    }
+    setLoading(false)
+  }
+
+  function describe(r) {
+    if (r.status === 'sent') return { label: 'Sent', bg: C.greenBg, color: C.green, note: null }
+    if (r.status === 'pending') return { label: 'Waiting to send', bg: C.yellowBg, color: C.yellow, note: null }
+    if (r.status === 'failed') return { label: 'Failed', bg: C.redBg, color: C.red, note: 'The text could not be delivered.' }
+    let note = 'Not sent.'
+    if (!r.secondary_of_client_id) {
+      const u = r.users
+      if (!u?.phone) note = 'No phone number on file.'
+      else if (!u?.sms_consent) note = "Client hasn't agreed to texts."
+      else note = "Client hadn't agreed to texts at the time."
+    }
+    return { label: 'Not sent', bg: C.redBg, color: C.red, note }
+  }
+
+  function recipient(r) {
+    if (r.secondary_of_client_id) {
+      const owner = r.clients?.users?.name
+      return r.clients?.secondary_name ? `${r.clients.secondary_name} (second contact${owner ? ` of ${owner}` : ''})` : `Second contact${owner ? ` of ${owner}` : ''}`
+    }
+    return r.users?.name || 'Unknown client'
+  }
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <SectionHeader title="Text Messages" />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ fontSize: '1rem', color: C.muted }}>The most recent texts to clients, newest first.</div>
+        <button onClick={load} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 16px', fontSize: '1rem', fontWeight: 700, color: C.charcoal, cursor: 'pointer' }}>Refresh</button>
+      </div>
+      {loading ? (
+        <EmptyState message="Loading text messages..." />
+      ) : loadError ? (
+        <div style={{ background: C.redBg, color: C.red, borderRadius: 10, padding: '12px 14px', fontSize: '1rem', fontWeight: 700 }}>{loadError}</div>
+      ) : rows.length === 0 ? (
+        <EmptyState message="No texts yet." />
+      ) : rows.map(r => {
+        const d = describe(r)
+        return (
+          <div key={r.id} style={{ background: 'white', borderRadius: 12, padding: '14px 16px', boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+              <div>
+                <div style={{ fontSize: '1.0625rem', fontWeight: 800, color: C.charcoal }}>{recipient(r)}</div>
+                <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{TEXT_LOG_TYPES[r.type]} · {timeAgo(r.created_at)}</div>
+              </div>
+              <span style={{ background: d.bg, color: d.color, padding: '4px 12px', borderRadius: 20, fontSize: '0.875rem', fontWeight: 800, whiteSpace: 'nowrap' }}>{d.label}</span>
+            </div>
+            {d.note && <div style={{ fontSize: '1rem', color: d.color, fontWeight: 700, marginTop: 8 }}>{d.note}</div>}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function BroadcastPanel() {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -2823,6 +2911,7 @@ export default function AdminPortal() {
           <div style={{ marginBottom: 32 }}>
             <BroadcastPanel />
           </div>
+          <TextLogSection />
         </>
       )}
 
