@@ -353,13 +353,18 @@ const TEXT_LOG_TYPES = {
   walk_completed: 'Walk completed',
   boarding_assigned: 'Boarding assigned',
 }
+const TEXT_LOG_PAGE = 10
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
-// Shows Nancy each text the app tried to send to a client: who, what for,
-// and whether it went out. Skipped texts say why, so she can fix it.
+// Shows Nancy how the texts to clients are going. It opens on a one-line
+// summary and only the texts that did not go out (grouped by client), and
+// the full lists show 10 at a time so there is never a long scroll.
 function TextLogSection() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
+  const [view, setView] = useState('attention')
+  const [shown, setShown] = useState(TEXT_LOG_PAGE)
 
   useEffect(() => { load() }, [])
 
@@ -371,29 +376,17 @@ function TextLogSection() {
       .select('id, type, status, created_at, secondary_of_client_id, users(name, phone, sms_consent), clients(secondary_name, users(name))')
       .in('type', Object.keys(TEXT_LOG_TYPES))
       .order('created_at', { ascending: false })
-      .limit(80)
+      .limit(300)
     if (error) {
       setLoadError('Could not load the text messages. Please try again.')
     } else {
-      // Second-contact lines that were skipped are just "no second contact set up" -- leave them out.
-      setRows((data || []).filter(r => !(r.secondary_of_client_id && r.status !== 'sent')).slice(0, 50))
+      // Second-contact lines that were skipped just mean no second contact is set up -- leave them out.
+      setRows((data || []).filter(r => !(r.secondary_of_client_id && r.status !== 'sent')))
     }
     setLoading(false)
   }
 
-  function describe(r) {
-    if (r.status === 'sent') return { label: 'Sent', bg: C.greenBg, color: C.green, note: null }
-    if (r.status === 'pending') return { label: 'Waiting to send', bg: C.yellowBg, color: C.yellow, note: null }
-    if (r.status === 'failed') return { label: 'Failed', bg: C.redBg, color: C.red, note: 'The text could not be delivered.' }
-    let note = 'Not sent.'
-    if (!r.secondary_of_client_id) {
-      const u = r.users
-      if (!u?.phone) note = 'No phone number on file.'
-      else if (!u?.sms_consent) note = "Client hasn't agreed to texts."
-      else note = "Client hadn't agreed to texts at the time."
-    }
-    return { label: 'Not sent', bg: C.redBg, color: C.red, note }
-  }
+  function chooseView(v) { setView(v); setShown(TEXT_LOG_PAGE) }
 
   function recipient(r) {
     if (r.secondary_of_client_id) {
@@ -403,34 +396,106 @@ function TextLogSection() {
     return r.users?.name || 'Unknown client'
   }
 
+  // Why a text did not go out, judged by the client's setting right now.
+  function reason(r) {
+    if (r.status === 'failed') return { text: 'The text could not be delivered.', fixed: false }
+    const u = r.users
+    if (!u?.phone) return { text: 'No phone number on file.', fixed: false }
+    if (!u?.sms_consent) return { text: "Client hasn't agreed to texts.", fixed: false }
+    return { text: 'Fixed: texts are now turned on for this client.', fixed: true }
+  }
+
+  const weekAgo = Date.now() - WEEK_MS
+  const weekRows = rows.filter(r => new Date(r.created_at).getTime() >= weekAgo)
+  const sentWeek = weekRows.filter(r => r.status === 'sent').length
+  const notSentWeek = weekRows.filter(r => r.status !== 'sent' && r.status !== 'pending').length
+
+  // One line per client for texts that did not go out this past week.
+  const groups = []
+  weekRows.filter(r => r.status === 'skipped' || r.status === 'failed').forEach(r => {
+    const name = recipient(r)
+    let g = groups.find(x => x.name === name)
+    if (!g) { g = { name, count: 0, latest: r, ...reason(r) }; groups.push(g) }
+    g.count += 1
+  })
+  groups.sort((a, b) => Number(a.fixed) - Number(b.fixed))
+  const needAction = groups.filter(g => !g.fixed).length
+
+  const sentRows = rows.filter(r => r.status === 'sent')
+  const listRows = view === 'sent' ? sentRows : rows
+  const visible = listRows.slice(0, shown)
+
+  const tabStyle = active => ({
+    flex: '1 1 auto', minHeight: 48, padding: '10px 14px', borderRadius: 10, fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
+    background: active ? C.indigo : 'white', color: active ? 'white' : C.charcoal, border: `2px solid ${C.indigo}`,
+  })
+  const pill = (bg, color, label) => (
+    <span style={{ background: bg, color, padding: '4px 12px', borderRadius: 20, fontSize: '0.875rem', fontWeight: 800, whiteSpace: 'nowrap' }}>{label}</span>
+  )
+
   return (
     <div style={{ marginBottom: 32 }}>
       <SectionHeader title="Text Messages" />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div style={{ fontSize: '1rem', color: C.muted }}>The most recent texts to clients, newest first.</div>
-        <button onClick={load} style={{ background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 16px', fontSize: '1rem', fontWeight: 700, color: C.charcoal, cursor: 'pointer' }}>Refresh</button>
-      </div>
       {loading ? (
         <EmptyState message="Loading text messages..." />
       ) : loadError ? (
         <div style={{ background: C.redBg, color: C.red, borderRadius: 10, padding: '12px 14px', fontSize: '1rem', fontWeight: 700 }}>{loadError}</div>
-      ) : rows.length === 0 ? (
-        <EmptyState message="No texts yet." />
-      ) : rows.map(r => {
-        const d = describe(r)
-        return (
-          <div key={r.id} style={{ background: 'white', borderRadius: 12, padding: '14px 16px', boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-              <div>
-                <div style={{ fontSize: '1.0625rem', fontWeight: 800, color: C.charcoal }}>{recipient(r)}</div>
-                <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{TEXT_LOG_TYPES[r.type]} · {timeAgo(r.created_at)}</div>
-              </div>
-              <span style={{ background: d.bg, color: d.color, padding: '4px 12px', borderRadius: 20, fontSize: '0.875rem', fontWeight: 800, whiteSpace: 'nowrap' }}>{d.label}</span>
+      ) : (
+        <>
+          <div style={{ background: 'white', borderRadius: 12, padding: '14px 16px', boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 12 }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: C.charcoal }}>
+              This past week: {sentWeek} sent, {notSentWeek} not sent
             </div>
-            {d.note && <div style={{ fontSize: '1rem', color: d.color, fontWeight: 700, marginTop: 8 }}>{d.note}</div>}
+            <button onClick={load} style={{ marginTop: 10, background: 'white', border: '1.5px solid #E0E0E0', borderRadius: 8, padding: '8px 16px', fontSize: '1rem', fontWeight: 700, color: C.charcoal, cursor: 'pointer' }}>Refresh</button>
           </div>
-        )
-      })}
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            <button aria-pressed={view === 'attention'} onClick={() => chooseView('attention')} style={tabStyle(view === 'attention')}>Needs attention{needAction > 0 ? ` (${needAction})` : ''}</button>
+            <button aria-pressed={view === 'sent'} onClick={() => chooseView('sent')} style={tabStyle(view === 'sent')}>Sent</button>
+            <button aria-pressed={view === 'all'} onClick={() => chooseView('all')} style={tabStyle(view === 'all')}>All</button>
+          </div>
+
+          {view === 'attention' ? (
+            groups.length === 0 ? (
+              <div style={{ background: C.greenBg, color: C.green, borderRadius: 12, padding: '16px', fontSize: '1.0625rem', fontWeight: 800 }}>All clear. Every text this past week went out.</div>
+            ) : groups.map(g => (
+              <div key={g.name} style={{ background: 'white', borderRadius: 12, padding: '14px 16px', boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ fontSize: '1.0625rem', fontWeight: 800, color: C.charcoal }}>{g.name}</div>
+                  {g.fixed ? pill(C.greenBg, C.green, 'Fixed') : pill(C.redBg, C.red, 'Not sent')}
+                </div>
+                <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{g.count} {g.count === 1 ? 'text' : 'texts'} not sent · latest: {TEXT_LOG_TYPES[g.latest.type]}, {timeAgo(g.latest.created_at)}</div>
+                <div style={{ fontSize: '1rem', color: g.fixed ? C.green : C.red, fontWeight: 700, marginTop: 6 }}>{g.text}</div>
+              </div>
+            ))
+          ) : listRows.length === 0 ? (
+            <EmptyState message="No texts yet." />
+          ) : (
+            <>
+              {visible.map(r => {
+                const sent = r.status === 'sent'
+                const label = sent ? pill(C.greenBg, C.green, 'Sent') : r.status === 'pending' ? pill(C.yellowBg, C.yellow, 'Waiting to send') : pill(C.redBg, C.red, 'Not sent')
+                return (
+                  <div key={r.id} style={{ background: 'white', borderRadius: 12, padding: '14px 16px', boxShadow: '0 2px 8px rgba(45,52,54,0.07)', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                      <div>
+                        <div style={{ fontSize: '1.0625rem', fontWeight: 800, color: C.charcoal }}>{recipient(r)}</div>
+                        <div style={{ fontSize: '1rem', color: C.muted, marginTop: 2 }}>{TEXT_LOG_TYPES[r.type]} · {timeAgo(r.created_at)}</div>
+                      </div>
+                      {label}
+                    </div>
+                    {!sent && r.status !== 'pending' && <div style={{ fontSize: '1rem', color: C.red, fontWeight: 700, marginTop: 8 }}>{reason(r).text}</div>}
+                  </div>
+                )
+              })}
+              <div style={{ fontSize: '1rem', color: C.muted, marginBottom: 8 }}>Showing {visible.length} of {listRows.length}</div>
+              {visible.length < listRows.length && (
+                <button onClick={() => setShown(n => n + TEXT_LOG_PAGE)} style={{ width: '100%', minHeight: 52, background: C.indigo, color: 'white', border: 'none', borderRadius: 10, fontSize: '1.0625rem', fontWeight: 800, cursor: 'pointer' }}>Show more</button>
+              )}
+            </>
+          )}
+        </>
+      )}
     </div>
   )
 }
