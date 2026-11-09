@@ -2095,7 +2095,7 @@ function ClientsAndWalkersSection() {
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
   const [addingRole, setAddingRole] = useState('client')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', sms_consent: true, secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
   const [saving, setSaving] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [clientCreated, setClientCreated] = useState(false)
@@ -2134,7 +2134,7 @@ function ClientsAndWalkersSection() {
     setClientCreated(false)
     setConfirmingCreate(false)
     setAddError('')
-    setForm({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+    setForm({ name: '', email: '', phone: '', address: '', sms_consent: true, secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
   }
 
   async function handleDelete(id) {
@@ -2218,6 +2218,12 @@ function ClientsAndWalkersSection() {
         setConfirmingCreate(false)
         return
       }
+      // Record that Nancy confirmed the client agreed to text updates.
+      if (form.sms_consent && data?.user_id) {
+        await supabase.from('users')
+          .update({ sms_consent: true, sms_consent_at: new Date().toISOString() })
+          .eq('id', data.user_id)
+      }
       // Client account now exists -- send their real sign-in email immediately.
       // Nothing further for Nancy to do; nothing to copy or send herself.
       await supabase.auth.signInWithOtp({
@@ -2226,7 +2232,7 @@ function ClientsAndWalkersSection() {
       })
       setClientCreated(true)
       setConfirmingCreate(false)
-      setForm({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+      setForm({ name: '', email: '', phone: '', address: '', sms_consent: true, secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
       setTimeout(() => { setClientCreated(false); setShowAddForm(false) }, 3000)
       loadAll()
       return
@@ -2246,7 +2252,7 @@ function ClientsAndWalkersSection() {
       return
     }
     setMagicLinkSent(true)
-    setForm({ name: '', email: '', phone: '', address: '', secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
+    setForm({ name: '', email: '', phone: '', address: '', sms_consent: true, secondary_name: '', secondary_phone: '', secondary_email: '', secondary_sms_consent: false })
     setTimeout(() => { setMagicLinkSent(false); setShowAddForm(false) }, 3000)
     loadAll()
   }
@@ -2305,6 +2311,12 @@ function ClientsAndWalkersSection() {
                 <label style={labelStyle}>Phone (optional)</label>
                 <input style={inputStyle} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="(555) 000-0000" />
               </div>
+              {addingRole === 'client' && (
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: '1rem', color: C.charcoal, cursor: 'pointer', marginBottom: 14 }}>
+                  <input type="checkbox" style={{ marginTop: 4 }} checked={form.sms_consent} onChange={e => setForm({ ...form, sms_consent: e.target.checked })} />
+                  This client has agreed to receive text updates about their walks (uncheck if they have not)
+                </label>
+              )}
               {addingRole === 'client' && (
                 <>
                   <div style={{ marginBottom: 14 }}>
