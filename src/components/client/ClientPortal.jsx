@@ -132,6 +132,7 @@ export default function ClientPortal() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSaved, setProfileSaved] = useState(false)
   const [consentError, setConsentError] = useState(null)
+  const [loadedConsent, setLoadedConsent] = useState(false)
 
   useEffect(() => { loadAll() }, [])
 
@@ -158,6 +159,7 @@ export default function ClientPortal() {
     if (!user) { setLoadError('Not signed in.'); setLoading(false); return }
 
     const { data: userData } = await supabase.from('users').select('name, email, phone, sms_consent').eq('id', user.id).single()
+    setLoadedConsent(!!userData?.sms_consent)
     const { data: clientData } = await supabase.from('clients').select('id, address, access_instructions').eq('user_id', user.id).maybeSingle()
     setPhoneRequired(!userData?.phone || !userData.phone.trim())
 
@@ -259,10 +261,13 @@ export default function ClientPortal() {
       if (!user) throw new Error('Not signed in')
       const { error } = await supabase.from('users').update({
         phone: profile.phone,
-        sms_consent: profile.sms_consent,
-        ...(profile.sms_consent ? { sms_consent_at: new Date().toISOString() } : {}),
+        // Walk-update texts are part of the service: giving a number here, next to the
+        // disclosure, is the agreement. Record it with the date.
+        sms_consent: true,
+        sms_consent_at: new Date().toISOString(),
       }).eq('id', user.id)
       if (error) throw error
+      setLoadedConsent(true)
       setPhoneRequired(false)
     } catch (err) {
       console.error('Save phone failed:', err)
@@ -281,7 +286,7 @@ export default function ClientPortal() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not signed in')
-      const consentChanged = profile.phone.trim() && profile.sms_consent
+      const consentChanged = profile.phone.trim() && profile.sms_consent && !loadedConsent
       const { error: userError } = await supabase.from('users').update({
         name: profile.name,
         phone: profile.phone,
@@ -289,6 +294,7 @@ export default function ClientPortal() {
         ...(consentChanged ? { sms_consent_at: new Date().toISOString() } : {})
       }).eq('id', user.id)
       if (userError) throw userError
+      setLoadedConsent(!!profile.sms_consent)
 
       if (clientId) {
         const { error: clientError } = await supabase.from('clients').update({ address: profile.address, access_instructions: profile.access_instructions }).eq('id', clientId)
@@ -342,10 +348,9 @@ export default function ClientPortal() {
             <label style={labelStyle}>Phone Number</label>
             <input type="tel" style={inputStyle} value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} placeholder="(555) 123-4567" autoFocus />
           </div>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 18, cursor: 'pointer' }}>
-            <input type="checkbox" checked={profile.sms_consent} onChange={e => setProfile({ ...profile, sms_consent: e.target.checked })} style={{ marginTop: 3 }} />
-            <span style={{ fontSize: '1rem', color: C.charcoal }}>I agree to receive text messages from FetchUs about my walks and boarding. Message and data rates may apply. Reply STOP to opt out.</span>
-          </label>
+          <div style={{ background: '#FFF8E1', border: '1.5px solid #F0C040', borderRadius: 10, padding: 12, marginBottom: 18, fontSize: '1rem', color: C.charcoal, lineHeight: 1.5 }}>
+            FetchUs sends your walk updates by text to this number. Message and data rates may apply. Reply STOP to opt out. Reply HELP for help.
+          </div>
           {gateError && <div style={{ background: C.redBg, color: C.red, borderRadius: 8, padding: '9px 12px', fontSize: '1rem', marginBottom: 14 }}>{gateError}</div>}
           <button onClick={submitGate} disabled={gateSubmitting || !profile.phone.trim()} style={{ width: '100%', background: !profile.phone.trim() ? C.muted : C.indigo, color: 'white', border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
             {gateSubmitting ? 'Saving...' : 'Continue'}
@@ -741,7 +746,7 @@ export default function ClientPortal() {
               style={{ width: 20, height: 20, marginTop: 2, flexShrink: 0, accentColor: '#92400E' }}
             />
             <span style={{ fontSize: '1rem', color: '#4B5563', lineHeight: 1.5 }}>
-              I agree to receive SMS notifications about my dog walk bookings, including walk confirmations, walker en route, walk start, and walk completion alerts. Message frequency varies. Message and data rates may apply. Reply STOP to opt out, HELP for help. A phone number cannot be saved without checking this box.
+              Send me text updates about my dog walk bookings, including walk confirmations, walker en route, walk start, and walk completion alerts. Message frequency varies. Message and data rates may apply. Reply STOP to opt out, HELP for help. Uncheck this box to stop text updates.
             </span>
           </label>
         </div>
