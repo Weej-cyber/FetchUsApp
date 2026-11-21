@@ -7,6 +7,30 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+
+  // Signing in with the typed code keeps the login inside whatever window
+  // the user is in. On iPhone the email link always opens Safari, which
+  // never logs in the Home Screen app, so the code is the way in there.
+  const handleVerify = async () => {
+    const token = code.trim();
+    if (!token) return;
+    setVerifying(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token,
+        type: "email",
+      });
+      if (error) throw error;
+    } catch (err) {
+      setError("That code didn't work. Check the code in your email and try again, or send a new one.");
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!email.trim()) return;
@@ -99,10 +123,44 @@ export default function LoginPage() {
               </div>
               <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#12203A", marginBottom: "8px" }}>Check your email</h2>
               <p style={{ color: "#4B5563", fontSize: '1rem', lineHeight: 1.6, fontWeight: 600 }}>
-                We sent a magic link to <strong style={{ color: "#12203A" }}>{email}</strong>. Click it to sign in.
+                We sent an email to <strong style={{ color: "#12203A" }}>{email}</strong>. Type the code from that email below.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px", textAlign: "left" }}>
+                <label htmlFor="login-code" style={{ color: "#12203A", fontSize: '1rem', fontWeight: 800 }}>Code from your email</label>
+                <input
+                  id="login-code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="123456"
+                  maxLength={10}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  onKeyDown={(e) => e.key === "Enter" && handleVerify()}
+                  style={{ width: "100%", padding: "13px 16px", borderRadius: "10px", border: "1.5px solid #C9D6E5", fontSize: '1.5rem', letterSpacing: "4px", textAlign: "center", fontFamily: "'Nunito', sans-serif", outline: "none", boxSizing: "border-box", background: "#fff", color: "#12203A", fontWeight: 800 }}
+                />
+                {error && <p style={{ color: "#B91C1C", fontSize: '1rem', marginTop: "-4px", fontWeight: 700 }}>{error}</p>}
+                <button
+                  onClick={handleVerify}
+                  disabled={verifying || !code.trim()}
+                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: verifying || !code.trim() ? C.muted : `linear-gradient(135deg, ${C.tealDark}, ${C.indigo})`, color: "#fff", fontSize: '1rem', fontWeight: 800, fontFamily: "'Nunito', sans-serif", cursor: verifying || !code.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+                >
+                  {verifying ? "Signing in..." : "Sign In"}
+                </button>
+              </div>
+              <p style={{ color: "#4B5563", fontSize: '1rem', lineHeight: 1.6, fontWeight: 600, marginTop: "18px" }}>
+                On a computer, you can also just click the link in the email.
               </p>
               <button
-                onClick={() => { setSent(false); setEmail(""); }}
+                onClick={handleSubmit}
+                disabled={loading}
+                style={{ marginTop: "8px", background: "none", border: "none", color: C.tealDark, fontSize: '1rem', cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}
+              >
+                {loading ? "Sending..." : "Send a new email"}
+              </button>
+              <br />
+              <button
+                onClick={() => { setSent(false); setEmail(""); setCode(""); setError(null); }}
                 style={{ marginTop: "24px", background: "none", border: "none", color: C.tealDark, fontSize: '1rem', cursor: "pointer", fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}
               >
                 Use a different email
@@ -111,7 +169,7 @@ export default function LoginPage() {
           ) : (
             <>
               <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#12203A", marginBottom: "6px" }}>Sign in to FetchUs</h2>
-              <p style={{ color: "#4B5563", fontSize: '1rem', marginBottom: "22px", lineHeight: 1.6, fontWeight: 600 }}>FetchUs is invite-only. Enter your email and we'll send you a secure link to sign in.</p>
+              <p style={{ color: "#4B5563", fontSize: '1rem', marginBottom: "22px", lineHeight: 1.6, fontWeight: 600 }}>FetchUs is invite-only. Enter your email and we'll send you a sign-in code.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 <input
                   type="email"
@@ -127,7 +185,7 @@ export default function LoginPage() {
                   disabled={loading || !email.trim()}
                   style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: loading || !email.trim() ? C.muted : `linear-gradient(135deg, ${C.tealDark}, ${C.indigo})`, color: "#fff", fontSize: '1rem', fontWeight: 800, fontFamily: "'Nunito', sans-serif", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}
                 >
-                  {loading ? "Sending..." : "Send Magic Link"}
+                  {loading ? "Sending..." : "Email Me a Code"}
                 </button>
               </div>
             </>
